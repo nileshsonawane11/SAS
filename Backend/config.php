@@ -1,5 +1,5 @@
 <?php
 
-$conn = mysqli_connect("127.0.0.1","root","", "db", 3307);
+$conn = mysqli_connect("127.0.0.1","root","", "livestrike", 3306);
 
 ?>
