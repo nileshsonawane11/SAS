@@ -193,10 +193,15 @@ include './Backend/config.php';
         }
         .add-container{
             padding: 25px;
+            display: flex;
+            gap: 5px;
+            flex-direction: column;
         }
         .add-staff,
         .add-slot,
         .Add_block,
+        .delete-selected,
+        .delete-selected_blocks,
         .add-block,
         .add-schedule,
         .Add_staff{
@@ -359,7 +364,7 @@ include './Backend/config.php';
             padding: 15px;
             border-radius: 15px;
             display: grid;
-            grid-template-columns: 10% 60% 15% 15%;
+            grid-template-columns: 10% 50% 15% 15% 10%;
             background: #fff;
             justify-items: center;
             align-items: center;
@@ -407,6 +412,9 @@ include './Backend/config.php';
             overflow: auto;
             padding: 15px;
         }
+        #blk-no{
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -428,11 +436,21 @@ include './Backend/config.php';
             <div class="items" data-page="manage_block.php"><svg width="30" height="30" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M19.8712 3.76873L36.7462 7.51873C36.9587 7.5612 37.1499 7.67593 37.2873 7.84342C37.4247 8.01092 37.4999 8.22083 37.5 8.43748V36.5625C37.4999 36.7791 37.4247 36.989 37.2873 37.1565C37.1499 37.324 36.9587 37.4388 36.7462 37.4812L19.8712 41.2312C19.7353 41.2584 19.595 41.2551 19.4605 41.2215C19.326 41.1879 19.2006 41.1249 19.0933 41.0371C18.9861 40.9492 18.8996 40.8386 18.8403 40.7133C18.7809 40.588 18.7501 40.4511 18.75 40.3125V4.68748C18.7501 4.54884 18.7809 4.41193 18.8403 4.28664C18.8996 4.16134 18.9861 4.05077 19.0933 3.9629C19.2006 3.87502 19.326 3.81203 19.4605 3.77845C19.595 3.74488 19.7353 3.74156 19.8712 3.76873ZM16.875 7.49998V37.5H8.90625C8.56643 37.5 8.23811 37.3769 7.98201 37.1535C7.7259 36.9302 7.55934 36.6216 7.51312 36.285L7.5 36.0937V8.90623C7.50001 8.56641 7.62308 8.23809 7.84644 7.98199C8.0698 7.72589 8.37834 7.55932 8.715 7.51311L8.90625 7.49998H16.875ZM24.375 20.625C23.8777 20.625 23.4008 20.8225 23.0492 21.1742C22.6975 21.5258 22.5 22.0027 22.5 22.5C22.5 22.9973 22.6975 23.4742 23.0492 23.8258C23.4008 24.1774 23.8777 24.375 24.375 24.375C24.8723 24.375 25.3492 24.1774 25.7008 23.8258C26.0525 23.4742 26.25 22.9973 26.25 22.5C26.25 22.0027 26.0525 21.5258 25.7008 21.1742C25.3492 20.8225 24.8723 20.625 24.375 20.625Z" fill="#D6D6D6"/>
             </svg><span>Manage Blocks</span></div>
-            <div class="items" data-page="manage_slot.php"><svg width="30" height="30" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19.8712 3.76873L36.7462 7.51873C36.9587 7.5612 37.1499 7.67593 37.2873 7.84342C37.4247 8.01092 37.4999 8.22083 37.5 8.43748V36.5625C37.4999 36.7791 37.4247 36.989 37.2873 37.1565C37.1499 37.324 36.9587 37.4388 36.7462 37.4812L19.8712 41.2312C19.7353 41.2584 19.595 41.2551 19.4605 41.2215C19.326 41.1879 19.2006 41.1249 19.0933 41.0371C18.9861 40.9492 18.8996 40.8386 18.8403 40.7133C18.7809 40.588 18.7501 40.4511 18.75 40.3125V4.68748C18.7501 4.54884 18.7809 4.41193 18.8403 4.28664C18.8996 4.16134 18.9861 4.05077 19.0933 3.9629C19.2006 3.87502 19.326 3.81203 19.4605 3.77845C19.595 3.74488 19.7353 3.74156 19.8712 3.76873ZM16.875 7.49998V37.5H8.90625C8.56643 37.5 8.23811 37.3769 7.98201 37.1535C7.7259 36.9302 7.55934 36.6216 7.51312 36.285L7.5 36.0937V8.90623C7.50001 8.56641 7.62308 8.23809 7.84644 7.98199C8.0698 7.72589 8.37834 7.55932 8.715 7.51311L8.90625 7.49998H16.875ZM24.375 20.625C23.8777 20.625 23.4008 20.8225 23.0492 21.1742C22.6975 21.5258 22.5 22.0027 22.5 22.5C22.5 22.9973 22.6975 23.4742 23.0492 23.8258C23.4008 24.1774 23.8777 24.375 24.375 24.375C24.8723 24.375 25.3492 24.1774 25.7008 23.8258C26.0525 23.4742 26.25 22.9973 26.25 22.5C26.25 22.0027 26.0525 21.5258 25.7008 21.1742C25.3492 20.8225 24.8723 20.625 24.375 20.625Z" fill="#D6D6D6"/>
-            </svg><span>Manage Slots</span></div>
+            <!-- <div class="items" data-page="manage_slot.php"><svg width="25" height="25" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_2061_2)">
+            <path d="M10.0004 0.400024C7.45431 0.400024 5.01251 1.41145 3.21217 3.2118C1.41182 5.01215 0.400391 7.45395 0.400391 10C0.400456 11.2607 0.648833 12.509 1.13134 13.6737C1.61384 14.8384 2.32103 15.8967 3.21252 16.7881C4.10401 17.6795 5.16234 18.3866 6.32709 18.869C7.49184 19.3513 8.7402 19.5996 10.0009 19.5995C11.2616 19.5995 12.5099 19.3511 13.6746 18.8686C14.8393 18.3861 15.8976 17.6789 16.789 16.7874C17.6804 15.8959 18.3874 14.8376 18.8698 13.6728C19.3522 12.5081 19.6005 11.2597 19.6004 9.99902C19.6004 4.69802 15.3014 0.400024 10.0004 0.400024ZM10.0004 17.599C9.00234 17.599 8.01407 17.4024 7.092 17.0205C6.16992 16.6386 5.3321 16.0788 4.62638 15.373C3.92065 14.6673 3.36084 13.8295 2.97891 12.9074C2.59697 11.9853 2.40039 10.9971 2.40039 9.99902C2.40039 9.00098 2.59697 8.0127 2.97891 7.09063C3.36084 6.16856 3.92065 5.33074 4.62638 4.62501C5.3321 3.91929 6.16992 3.35948 7.092 2.97754C8.01407 2.5956 9.00234 2.39902 10.0004 2.39902V10L16.7924 6.60402C17.3233 7.65736 17.6 8.82045 17.6004 10C17.6001 12.0155 16.7993 13.9483 15.374 15.3734C13.9488 16.7985 12.0159 17.599 10.0004 17.599Z" fill="white"/>
+            </g>
+            <defs>
+            <clipPath id="clip0_2061_2">
+            <rect width="20" height="20" fill="white"/>
+            </clipPath>
+            </defs>
+            </svg><span>Manage Slots</span></div> -->
+            <div class="items" data-page="Admin_Panel.php"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M15.76 4.0375C16.3267 4.2125 16.8683 4.4375 17.385 4.7125L19.6763 3.3375C19.9152 3.1942 20.1951 3.13482 20.4716 3.16879C20.7481 3.20276 21.0054 3.32814 21.2025 3.525L22.475 4.7975C22.6719 4.99463 22.7972 5.25187 22.8312 5.52838C22.8652 5.8049 22.8058 6.08484 22.6625 6.32375L21.2875 8.615C21.5625 9.13167 21.7875 9.67333 21.9625 10.24L24.5537 10.8888C24.8241 10.9565 25.064 11.1126 25.2354 11.3322C25.4069 11.5519 25.5 11.8226 25.5 12.1012V13.8988C25.5 14.1774 25.4069 14.4481 25.2354 14.6678C25.064 14.8874 24.8241 15.0435 24.5537 15.1112L21.9625 15.76C21.7875 16.3267 21.5625 16.8683 21.2875 17.385L22.6625 19.6763C22.8058 19.9152 22.8652 20.1951 22.8312 20.4716C22.7972 20.7481 22.6719 21.0054 22.475 21.2025L21.2025 22.475C21.0054 22.6719 20.7481 22.7972 20.4716 22.8312C20.1951 22.8652 19.9152 22.8058 19.6763 22.6625L17.385 21.2875C16.8683 21.5625 16.3267 21.7875 15.76 21.9625L15.1112 24.5537C15.0435 24.8241 14.8874 25.064 14.6678 25.2354C14.4481 25.4069 14.1774 25.5 13.8988 25.5H12.1012C11.8226 25.5 11.5519 25.4069 11.3322 25.2354C11.1126 25.064 10.9565 24.8241 10.8888 24.5537L10.24 21.9625C9.67837 21.7889 9.13431 21.5629 8.615 21.2875L6.32375 22.6625C6.08484 22.8058 5.8049 22.8652 5.52838 22.8312C5.25187 22.7972 4.99463 22.6719 4.7975 22.475L3.525 21.2025C3.32814 21.0054 3.20276 20.7481 3.16879 20.4716C3.13482 20.1951 3.1942 19.9152 3.3375 19.6763L4.7125 17.385C4.43705 16.8657 4.21106 16.3216 4.0375 15.76L1.44625 15.1112C1.17615 15.0436 0.936373 14.8877 0.764953 14.6683C0.593534 14.4488 0.500286 14.1784 0.5 13.9V12.1025C0.500007 11.8238 0.593128 11.5532 0.764569 11.3335C0.936011 11.1138 1.17594 10.9577 1.44625 10.89L4.0375 10.2413C4.2125 9.67458 4.4375 9.13292 4.7125 8.61625L3.3375 6.325C3.1942 6.08609 3.13482 5.80615 3.16879 5.52963C3.20276 5.25312 3.32814 4.99588 3.525 4.79875L4.7975 3.525C4.99463 3.32814 5.25187 3.20276 5.52838 3.16879C5.8049 3.13482 6.08484 3.1942 6.32375 3.3375L8.615 4.7125C9.13167 4.4375 9.67333 4.2125 10.24 4.0375L10.8888 1.44625C10.9564 1.17615 11.1123 0.936373 11.3317 0.764953C11.5512 0.593534 11.8216 0.500286 12.1 0.5H13.8975C14.1762 0.500007 14.4468 0.593128 14.6665 0.764569C14.8862 0.936011 15.0423 1.17594 15.11 1.44625L15.76 4.0375ZM13 18C14.3261 18 15.5979 17.4732 16.5355 16.5355C17.4732 15.5979 18 14.3261 18 13C18 11.6739 17.4732 10.4021 16.5355 9.46447C15.5979 8.52678 14.3261 8 13 8C11.6739 8 10.4021 8.52678 9.46447 9.46447C8.52678 10.4021 8 11.6739 8 13C8 14.3261 8.52678 15.5979 9.46447 16.5355C10.4021 17.4732 11.6739 18 13 18Z" fill="white"></path>
+            </svg><span>Setting</span></div>
             <div class="items" data-page="history.php"><svg width="30" height="30" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.5 39.375C18.1875 39.375 14.43 37.9456 11.2275 35.0869C8.025 32.2281 6.18875 28.6575 5.71875 24.375H9.5625C10 27.625 11.4456 30.3125 13.8994 32.4375C16.3531 34.5625 19.22 35.625 22.5 35.625C26.1563 35.625 29.2581 34.3519 31.8056 31.8056C34.3531 29.2594 35.6262 26.1575 35.625 22.5C35.6238 18.8425 34.3506 15.7413 31.8056 13.1963C29.2606 10.6513 26.1587 9.3775 22.5 9.375C20.3438 9.375 18.3281 9.875 16.4531 10.875C14.5781 11.875 13 13.25 11.7188 15H16.875V18.75H5.625V7.5H9.375V11.9062C10.9688 9.90625 12.9144 8.35937 15.2119 7.26562C17.5094 6.17188 19.9387 5.625 22.5 5.625C24.8438 5.625 27.0394 6.07063 29.0869 6.96188C31.1344 7.85313 32.9156 9.05563 34.4306 10.5694C35.9456 12.0831 37.1488 13.8644 38.04 15.9131C38.9313 17.9619 39.3762 20.1575 39.375 22.5C39.3738 24.8425 38.9288 27.0381 38.04 29.0869C37.1513 31.1356 35.9481 32.9169 34.4306 34.4306C32.9131 35.9444 31.1319 37.1475 29.0869 38.04C27.0419 38.9325 24.8463 39.3775 22.5 39.375ZM27.75 30.375L20.625 23.25V13.125H24.375V21.75L30.375 27.75L27.75 30.375Z" fill="#D6D6D6"/>
+            <path d="M22.5 39.375C18.1875 39.375 14.43 37.9456 11.2275 35.0869C8.025 32.2281 6.18875 28.6575 5.71875 24.375H9.5625C10 27.625 11.4456 30.3125 13.8994 32.4375C16.3531 34.5625 19.22 35.625 22.5 35.625C26.1563 35.625 29.2581 34.3519 31.8056 31.8056C34.3531 29.2594 35.6262 26.1575 35.625 22.5C35.6238 18.8425 34.3506 15.7413 31.8056 13.1963C29.2606 10.6513 26.1587 9.3775 22.5 9.375C20.3438 9.375 18.3281 9.875 16.4531 10.875C14.5781 11.875 13 13.25 11.7188 15H16.875V18.75H5.625V7.5H9.375V11.9062C10.9688 9.90625 12.9144 8.35937 15.2119 7.26562C17.5094 6.17188 19.9387 5.625 22.5 5.625C24.8438 5.625 27.0394 6.07063 29.0869 6.96188C31.1344 7.85313 32.9156 9.05563 34.4306 10.5694C35.9456 12.0831 37.1488 13.8644 38.04 15.9131C38.9313 17.9619 39.3762 20.1575 39.375 22.5C39.3738 24.8425 38.9288 27.0381 38.04 29.0869C37.1513 31.1356 35.9481 32.9169 34.4306 34.4306C32.9131 35.9444 31.1319 37.1475 29.0869 38.04C27.0419 38.9325 24.8463 39.3775 22.5 39.375ZM27.75 30.375L20.625 23.25V13.125H24.375V21.75L30.375 27.75L27.75 30.375Z" fill="#ffffff"/>
             </svg><span>History</span></div>
         </div>
     </div>
@@ -484,19 +502,56 @@ include './Backend/config.php';
         });
     });
 
-    //Delete Staff
-    let delete_staff = (el) => {
-        const tr = el.closest('tr');
-        const facultyId = tr.getAttribute('data-id');
+// DELETE STAFF ======================================
+    // Select all checkboxes
+    function toggleAll(master) {
+        let rows = document.getElementsByClassName('row-check');
 
-        if (!confirm('Are you sure you want to delete this faculty?')) return;
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].checked = master.checked;
+        }
+
+        toggleDeleteBtn(); // update button visibility
+    }
+
+    function toggleDeleteBtn() {
+        let rows  = document.getElementsByClassName('row-check');
+        let btn   = document.getElementById('deleteBtn');
+        let addbtn   = document.querySelector('.add-staff');
+        let count = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].checked) count++;
+        }
+
+        if (count > 0) {
+            btn.style.display = 'flex';
+            addbtn.style.display = 'none';
+            document.getElementById('selCount').innerText = `( ${count} )`;
+        } else {
+            btn.style.display = 'none';
+            addbtn.style.display = 'flex';
+        }
+    }
+
+    // Delete selected faculties
+    function deleteSelectedStaff() {
+        let ids = [];
+        document.querySelectorAll('.row-check:checked').forEach(cb => {
+            ids.push(cb.value);
+        });
+
+        if (ids.length === 0) {
+            alert('Please select at least one faculty');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete selected faculties?')) return;
 
         fetch('./Backend/delete_faculty.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: facultyId })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids })
         })
         .then(res => res.json())
         .then(data => {
@@ -506,25 +561,63 @@ include './Backend/config.php';
                 .then(html => card.innerHTML = html);
                 return;
             } else {
-                alert('Error: ' + data.message);
+                alert('Delete failed');
             }
-        })
-        .catch(err => console.error(err));
+        });
     }
 
-    //Delete Block
-    let delete_block = (el) => {
-        const tr = el.closest('tr');
-        const blockId = tr.getAttribute('data-id');
+// DELETE BLOCK ======================================
+    // Select all checkboxes
+    function toggleAllblks(master) {
+        let rows = document.getElementsByClassName('row-check-blk');
 
-        if (!confirm('Are you sure you want to delete this block?')) return;
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].checked = master.checked;
+        }
+
+        toggleDeleteblkBtn(); // update button visibility
+    }
+
+    function toggleDeleteblkBtn() {
+        let rows  = document.getElementsByClassName('row-check-blk');
+        let btn   = document.getElementById('deleteblkBtn');
+        let addbtn   = document.querySelector('.add-block');
+        let count = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            if (rows[i].checked) count++;
+        }
+
+        if (count > 0) {
+            btn.style.display = 'flex';
+            addbtn.style.display = 'none';
+            document.getElementById('selblkCount').innerText = `( ${count} )`;
+        } else {
+            btn.style.display = 'none';
+            addbtn.style.display = 'flex';
+        }
+    }
+
+    // Delete selected faculties
+    function deleteSelectedblock() {
+        let ids = [];
+        document.querySelectorAll('.row-check-blk:checked').forEach(cb => {
+            ids.push(cb.value);
+        });
+
+        if (ids.length === 0) {
+            alert('Please select at least one Block');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete selected Blocks?')) return;
 
         fetch('./Backend/delete_block.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ id: blockId })
+            body: JSON.stringify({ ids })
         })
         .then(res => res.json())
         .then(data => {
@@ -539,6 +632,63 @@ include './Backend/config.php';
         })
         .catch(err => console.error(err));
     }
+
+
+    // //Delete Staff
+    // let delete_staff = (el) => {
+    //     const tr = el.closest('tr');
+    //     const facultyId = tr.getAttribute('data-id');
+
+    //     if (!confirm('Are you sure you want to delete this faculty?')) return;
+
+    //     fetch('./Backend/delete_faculty.php', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({ id: facultyId })
+    //     })
+    //     .then(res => res.json())
+    //     .then(data => {
+    //         if (data.status === 200) {
+    //             fetch('manage_staff.php')
+    //             .then(res => res.text())
+    //             .then(html => card.innerHTML = html);
+    //             return;
+    //         } else {
+    //             alert('Error: ' + data.message);
+    //         }
+    //     })
+    //     .catch(err => console.error(err));
+    // }
+
+    //Delete Block
+    // let delete_block = (el) => {
+    //     const tr = el.closest('tr');
+    //     const blockId = tr.getAttribute('data-id');
+
+    //     if (!confirm('Are you sure you want to delete this block?')) return;
+
+    //     fetch('./Backend/delete_block.php', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({ id: blockId })
+    //     })
+    //     .then(res => res.json())
+    //     .then(data => {
+    //         if (data.status === 200) {
+    //             fetch('manage_block.php')
+    //             .then(res => res.text())
+    //             .then(html => card.innerHTML = html);
+    //             return;
+    //         } else {
+    //             alert('Error: ' + data.message);
+    //         }
+    //     })
+    //     .catch(err => console.error(err));
+    // }
 
     //Delete slot
     let delete_slots = (el) => {
@@ -749,7 +899,7 @@ include './Backend/config.php';
     }
 
     let go_to_schedule = (s) => {
-        window.location.href = "slot_allocation.php?s="+s;
+        window.location.href = "./allocate.php?s="+s;
     }
 
     //Click Events
@@ -892,5 +1042,30 @@ include './Backend/config.php';
         }
     });
     
+    function deleteSchedule(e, id) {
+        e.stopPropagation(); // 🔥 stop go_to_schedule
+
+        if (!confirm("Are you sure you want to delete this schedule?")) {
+            return;
+        }
+
+        fetch("./Backend/delete_schedule.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ s_id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
+            if (data.status === 200) {
+                // remove row from UI
+                const row = document.querySelector(`.block-data[data-id="${id}"]`);
+                if (row) row.remove();
+            } else {
+                alert(data.msg || "Delete failed");
+            }
+        })
+        .catch(() => alert("Server error"));
+    }
 </script>
 </html>

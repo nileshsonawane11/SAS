@@ -51,8 +51,8 @@
                     <label for="staff-role">Role</label>
                     <select name="" id="staff-role" required>
                         <option value="" hidden>Select Role</option>
-                        <option value="Teaching" <?php echo ($role == 'Teaching') ? "Selected" : ''; ?>>Teaching</option>
-                        <option value="Non-teaching" <?php echo ($role == 'Non-teaching') ? "Selected" : ''; ?>>Non-Teaching</option>
+                        <option value="TS" <?php echo ($role == 'TS') ? "Selected" : ''; ?>>Teaching</option>
+                        <option value="NTS" <?php echo ($role == 'NTS') ? "Selected" : ''; ?>>Non-Teaching</option>
                     </select>
                 </div>
             </div>

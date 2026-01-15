@@ -4,13 +4,17 @@ include "./Backend/config.php";
 /* ================= READ JSON ================= */
 $data = json_decode(file_get_contents("php://input"), true);
 
-$fid        = $data['fid'] ?? '';
+$fid        = (int)$data['fid'] ?? '';
 $date       = $data['date'] ?? '';
 $slot       = $data['slot'] ?? '';
 $s_id       = $data['s_id'] ?? '';
 $present    = $data['present'] ?? 'yes';
 $reason     = $data['reason'] ?? '';
 $replace_id = $data['replace_id'] ?? '';
+$other_reason = $data['other_reason'] ?? '';
+$new_faculty = $data['new_faculty'] ?? '';
+
+/* ================= VALIDATE INPUT ================= */
 
 if (!$fid || !$date || !$slot || !$s_id) {
     http_response_code(400);
@@ -32,6 +36,7 @@ if ($present === 'yes') {
 
     $schedule[$date][$slot]['present'] = true;
     $schedule[$date][$slot]['reason']  = '';
+    $schedule[$date][$slot]['other_reason']  = '';
 
     mysqli_query($conn,"
         UPDATE block_supervisor_list
@@ -46,26 +51,93 @@ if ($present === 'yes') {
 /* ================= PRESENT = NO ================= */
 $schedule[$date][$slot]['present'] = false;
 $schedule[$date][$slot]['reason']  = $reason;
+$schedule[$date][$slot]['other_reason']  = $other_reason;
 
 /* ================= NO REPLACEMENT ================= */
 if ($reason !== 'replace') {
 
-    mysqli_query($conn,"
-        UPDATE block_supervisor_list
-        SET schedule='".json_encode($schedule)."'
-        WHERE faculty_id='$fid' AND s_id='$s_id'
-    ");
+    $jsonSchedule = json_encode($schedule, JSON_UNESCAPED_UNICODE);
 
-    echo json_encode(['status'=>'ok','msg'=>'Absence recorded']);
+    if ($jsonSchedule === false) {
+        echo json_encode([
+            'status' => 'error',
+            'msg' => 'JSON error: ' . json_last_error_msg()
+        ]);
+        exit;
+    }
+
+    $jsonSchedule = mysqli_real_escape_string($conn, $jsonSchedule);
+
+    $sql = "
+        UPDATE block_supervisor_list
+        SET schedule = '$jsonSchedule'
+        WHERE faculty_id = '$fid'
+        AND s_id = '$s_id'
+    ";
+
+    if (!mysqli_query($conn, $sql)) {
+        echo json_encode([
+            'status' => 'error',
+            'msg' => mysqli_error($conn)
+        ]);
+        exit;
+    }
+
+    if (mysqli_affected_rows($conn) === 0) {
+        echo json_encode([
+            'status' => 'warn',
+            'msg' => 'No matching row found',
+            'data'=>$schedule
+        ]);
+        exit;
+    }
+
+    echo json_encode(['status'=>'ok','msg'=>'Absence recorded','data'=>$schedule]);
     exit;
 }
 
 /* ================= REPLACE FACULTY ================= */
 if (!$replace_id) {
-    echo json_encode(['status'=>'error','msg'=>'Replacement faculty missing']);
-    exit;
-}
 
+    if (!empty($new_faculty)) {
+
+         // ✅ Define variables FIRST
+        $email   = '';
+        $mobile  = '';
+        $courses = '';
+        $status  = 'ON';
+        $duties  = 0;
+        $role    = '';
+
+        $stmt = $conn->prepare("
+            INSERT INTO faculty 
+            (faculty_name, email, mobile, courses, status, duties, role)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "sssssis",
+            $new_faculty,
+            $email,
+            $mobile,
+            $courses,
+            $status,
+            $duties,
+            $role
+        );
+
+        if ($stmt->execute()) {
+            $replace_id = $conn->insert_id;   // or $stmt->insert_id
+        }else{
+            echo json_encode(['status'=>'error','msg'=>'Faculty creation failed']);
+            exit;
+        }
+
+    } else {
+        echo json_encode(['status'=>'error','msg'=>'Replacement faculty missing']);
+        exit;
+    }
+}
 /* ---------- Load / Create New Faculty Slot ---------- */
 $r = mysqli_query($conn,"
     SELECT schedule FROM block_supervisor_list

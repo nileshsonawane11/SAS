@@ -117,14 +117,14 @@ for ($i = 1; $i < count($rows); $i++) {
     $courses      = trim($row[$map['courses']] ?? '');
     $role         = ucfirst(trim($row[$map['role']] ?? ''));
 
-    if (!$email || !$faculty_name) {
+    if (!$faculty_name) {
         $skipped++;
         continue;
     }
 
     // Duplicate check
-    $check = $conn->prepare("SELECT id FROM faculty WHERE email = ?");
-    $check->bind_param("s", $email);
+    $check = $conn->prepare("SELECT id FROM faculty WHERE email = ? AND faculty_name = ?");
+    $check->bind_param("ss", $email, $faculty_name);
     $check->execute();
     $check->store_result();
 

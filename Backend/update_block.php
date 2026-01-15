@@ -5,7 +5,30 @@ $s_id  = $_POST['s_id'];
 $fid   = $_POST['faculty_id'];
 $date  = $_POST['date'];
 $slot  = $_POST['slot'];
-$block = trim($_POST['block']);
+$block = strtoupper(trim($_POST['block']));
+
+$check = mysqli_query($conn, "
+    SELECT faculty_id, schedule
+    FROM block_supervisor_list
+    WHERE s_id='$s_id'
+");
+
+while ($row = mysqli_fetch_assoc($check)) {
+    $otherFid = $row['faculty_id'];
+    $sch = json_decode($row['schedule'], true);
+
+    if (
+        isset($sch[$date][$slot]['block']) &&
+        strtoupper($sch[$date][$slot]['block']) === strtoupper($block) &&
+        $otherFid != $fid
+    ) {
+        echo json_encode([
+            'status' => 400,
+            'msg' => "Block $block already assigned to another faculty"
+        ]);
+        exit;
+    }
+}
 
 $res = mysqli_query($conn,"
 SELECT schedule FROM block_supervisor_list
@@ -24,4 +47,7 @@ SET schedule='".json_encode($schedule)."'
 WHERE s_id='$s_id' AND faculty_id='$fid'
 ");
 
-echo "UPDATED";
+echo json_encode([
+    'status' => 200,
+    'msg' => "Updated"
+]);

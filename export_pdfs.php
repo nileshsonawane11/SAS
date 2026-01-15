@@ -6,6 +6,28 @@ include './Backend/config.php';
 $s_id = $_GET['s'] ?? '';
 if (!$s_id) die('Invalid Schedule');
 
+function print_sign(){
+    global $pdf;
+    global $signaturePath;
+
+    if (file_exists($signaturePath)) {
+
+        $imgWidth  = 60;   // width of signature
+        $imgHeight = 25;   // height of signature
+
+        // Page width & margins
+        $pageWidth   = $pdf->getPageWidth();
+        $rightMargin = $pdf->getMargins()['right'];
+
+        // X = page width − right margin − image width
+        $x = $pageWidth - $rightMargin - $imgWidth + 15;
+
+        // Y position (adjust as needed)
+        $y = $pdf->GetY() - 18;
+
+        $pdf->Image($signaturePath, $x, $y, $imgWidth, $imgHeight);
+    }
+}
 /* ===============================
    FETCH ASSIGNMENTS + FACULTY
 ================================ */
@@ -29,7 +51,7 @@ $res = mysqli_query($conn, $sql);
 /* ===============================
    BUILD STRUCTURES
 ================================ */
-
+$signaturePath = "./upload/signature.jpg";
 $facultyAssignments = [];
 $facultyName = [];
 $facultyMap = [];
@@ -200,7 +222,8 @@ foreach ($facultyAssignments as $name => $dates) {
 /* -------- FOOTER -------- */
 $pdf->Ln(8);
 $pdf->SetFont('helvetica','B',10);$pdf->Ln();
-$pdf->Cell(0,6,'Examination Incharge',0,1,'R');
+print_sign();
+$pdf->Cell(0,6,'Chief Incharge',0,1,'R');
 
 $pdf->Output("Overall_Supervision_Matrix.pdf","I");
 exit;
@@ -328,7 +351,8 @@ if ($action === 'role') {
         /* ================= FOOTER ================= */
         $pdf->Ln(8);
         $pdf->SetFont('helvetica','B',10);$pdf->Ln();
-        $pdf->Cell(0,6,'Examination Incharge',0,1,'R');
+        print_sign();
+        $pdf->Cell(0,6,'Chief Incharge',0,1,'R');
     }
 
     $pdf->Output('Role_Wise_Supervision.pdf','I');
@@ -456,7 +480,8 @@ if ($action === 'department') {
         /* ================= FOOTER ================= */
         $pdf->Ln(8);
         $pdf->SetFont('helvetica','B',10);$pdf->Ln();
-        $pdf->Cell(0,6,'Examination Incharge',0,1,'R');
+        print_sign();
+        $pdf->Cell(0,6,'Chief Incharge',0,1,'R');
     }
 
     $pdf->Output('Department_Wise_Supervision.pdf','I');
@@ -568,10 +593,11 @@ if ($action === 'individual') {
         $pdf->Ln(12);
         $pdf->SetFont('helvetica','',11);
         $pdf->Cell(0,6,'Yours faithfully,',0,1,'R');
-        $pdf->Ln(12);
+        $pdf->Ln(30);
 
+        print_sign();
         $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,6,'Examination Incharge',0,1,'R');
+        $pdf->Cell(0,6,'Chief Incharge',0,1,'R');
         $pdf->SetFont('helvetica','',10);
         $pdf->Cell(0,6,'Government Polytechnic, Nashik',0,1,'R');
     }

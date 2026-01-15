@@ -61,6 +61,9 @@ while ($row = mysqli_fetch_assoc($res)) {
             if(isset($slots[$slot]['present'])){
                 $facultyAssignments[$fid][$date][$slot]['present'] = $slots[$slot]['present'];
             }
+            if(isset($slots[$slot]['sub'])){
+                $facultyAssignments[$fid][$date][$slot]['sub'] = $slots[$slot]['sub'];
+            }
             $allDatesSlots[$date][$slot] = true;
             $dutyCount[$fid]++;
         }
@@ -118,7 +121,7 @@ table.supervision {
 .supervision th {
     background: #ffcdff;
 }
-.left { text-align: left; }
+td.left { text-align: left; }
 .today { background: #ffeeba !important; }
 .overload { background: #ffcccc; }
 .conflict { background: #ff6666; color: #fff; }
@@ -302,9 +305,64 @@ table.supervision {
     right: 15px;
 }
 .mb-3 {
-    margin-bottom: 4rem !important;
     padding-right: calc(var(--bs-gutter-x) * 1);
     padding-left: calc(var(--bs-gutter-x) * 1);
+}
+.swap-target {
+    outline: 2px dashed #f59e0b;
+    background: #fff7ed;
+    position: relative;
+}
+table{
+    margin-bottom: 4rem !important;
+}
+.cell{
+    position: relative
+}
+.cell .con-tool{
+    display: none;
+}
+.cell .con-tool::after{
+    content: "Click to swap here";
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.swap-source {
+    outline: 2px solid #2563eb;
+    background: #dbeafe;
+}
+td[data-present="false"] {
+    background: #ff002657;
+    border: 2px solid #d50000;
+}
+/* td[data-present="false"] {
+    background: #ffebee;
+} */
+ .or{
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 10px 0px;
+ }
+#swap-rect {
+    position: absolute;
+    border: 2px solid #0bf517ff;
+    background: rgba(175, 245, 11, 0.08);
+    pointer-events: none;
+    z-index: 9998;
+    display: none;
+}
+.tbl_row:hover{
+    background: #efefef;
 }
 /* ================= ANIMATION ================= */
 @keyframes pop {
@@ -462,7 +520,7 @@ if ($filterDept && $facultyDept[$fid] != $filterDept) continue;
 if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) continue;
 ?>
 
-<tr class="<?= $dutyCount[$fid] > 6 ? 'overload':'' ?>">
+<tr class="tbl_row<?= $dutyCount[$fid] > 6 ? 'overload':'' ?>">
     <td><?= $sr++ ?></td>
     <td class="left"><?= htmlspecialchars($facultyName[$fid]) ?></td>
     <td><?= htmlspecialchars($facultyDept[$fid]) ?></td>
@@ -484,15 +542,21 @@ if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) contin
                 data-date="<?= $date ?>"
                 data-slot="<?= $slot ?>"
                 data-sid="<?= $s_id ?>"
-                data-present="<?= isset($assignments[$date][$slot]['present']) ? 'true' : 'false' ?>"
-                oncontextmenu="openDialog(event,this)"
-                onclick="updateBlock(<?= $fid ?>,'<?= $date ?>','<?= $slot ?>',this)">
+                data-present="<?= ($assignments[$date][$slot]['assigned'] ?? false)
+                    ? (!empty($assignments[$date][$slot]['present'])
+                        ? "true"
+                        : "false")
+                    : ""
+                ?>"
+                oncontextmenu="openDialog(event,this)">
                 <?= ($assignments[$date][$slot]['assigned'] ?? false)
                     ? (!empty($assignments[$date][$slot]['block'])
-                        ? "<strong>{$assignments[$date][$slot]['block']}</strong>"
+                        ? "<strong>{$assignments[$date][$slot]['block']}   </strong>"
                         : "✓")
                     : ""
                 ?>
+                <sub><?php echo $assignments[$date][$slot]['sub'] ?? '' ?></sub>
+                <div class="con-tool"></div>
             </td>
 
         <?php endforeach; ?>
@@ -530,7 +594,7 @@ if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) contin
                 <label>Reason</label>
                 <div class="radio-group">
                     <label><input type="radio" name="reason" value="late"> Late</label>
-                    <label><input type="radio" name="reason" value="replace"> Replace</label>
+                    <label><input type="radio" name="reason" value="replace"> Self-replace</label>
                     <label><input type="radio" name="reason" value="other"> Other</label>
                 </div>
             </div>
@@ -538,55 +602,300 @@ if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) contin
             <div id="replaceBox" class="box" hidden>
                 <input id="facultySearch" type="text" placeholder="Search faculty">
                 <select id="facultyList"></select>
+                <span class="or"> ___ OR ___ </span>
+                <input id="replace_new_faculty" type="text" placeholder="Enter new faculty">
+            </div>
+
+            <div id="otherBox" class="box" hidden>
+                <textarea name="othertxt" id="othertxt"></textarea>
             </div>
 
         </div>
 
         <div class="dialog-footer">
             <button class="btn btn-cancel" onclick="closeDialog()">Cancel</button>
+            <button class="btn btn-warning" onclick="enableSwapMode()">Swap</button>
             <button class="btn btn-primary" onclick="submitStatus()">Submit</button>
         </div>
     </div>
 </div>
-
-
+<div id="swap-rect"></div>
 </div>
 <script>
+let cell = null;
+let curr = {};
+let swapMode = false;
+let swapSource = null;
+let swapTarget = null;
+let ispresent = true;
 
-document.querySelectorAll('.cell').forEach((el)=>{
-    if(el.innerText != ''){
-        el.style.cursor = "pointer";
-    }
-})
+/* ================= CELL CURSOR ================= */
+document.querySelectorAll('.cell').forEach(td => {
+    if (td.innerText.trim() !== '') td.style.cursor = 'pointer';
+});
 
-function updateBlock(fid, date, slot,event) {
-    console.log(event.innerText)
-    if((event.innerText).trim() != ""){
-        let block = prompt("Enter Block No:");
-        if (!block) return;
+function drawSwapRectangle(source, target) {
+    const rect = document.getElementById("swap-rect");
 
-        fetch("./Backend/update_block.php", {
-            method: "POST",
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({
-                s_id: "<?= $s_id ?>",
-                faculty_id: fid,
-                date: date,
-                slot: slot,
-                block: block
-            })
-        })
-        .then(r => r.text())
-        .then((data) => {
-            if(block.trim() != ''){
-               event.innerHTML = "<strong>"+block+"</strong>"; 
-            }else{
-                event.innerHTML = "✓";
-            }
-            
-        });
-    }
+    const s = source.getBoundingClientRect();
+    const t = target.getBoundingClientRect();
+
+    const left = Math.min(s.left, t.left);
+    const top = Math.min(s.top, t.top);
+    const right = Math.max(s.right, t.right);
+    const bottom = Math.max(s.bottom, t.bottom);
+
+    rect.style.left = left + window.scrollX + "px";
+    rect.style.top = top + window.scrollY + "px";
+    rect.style.width = (right - left) + "px";
+    rect.style.height = (bottom - top) + "px";
+    rect.style.display = "block";
 }
+
+/* ================= ENABLE SWAP ================= */
+function enableSwapMode() {
+    if (!cell || cell.innerText.trim() === '') {
+        alert("No faculty selected for swap");
+        return;
+    }
+
+    swapMode = true;
+    swapSource = cell;
+    swapSource.classList.add("swap-source");
+
+    closeDialog();
+    alert("Click another FILLED cell in the SAME SLOT to swap");
+}
+
+/* ================= CELL CLICK HANDLER ================= */
+document.querySelectorAll(".cell").forEach(td => {
+    td.addEventListener("click", e => {
+
+        /* ---------- SWAP MODE ---------- */
+        if (swapMode) {
+            e.stopPropagation();
+
+            if (td === swapSource) return;
+
+            if (td.innerText.trim() === '') {
+                alert("Empty cell cannot be swapped");
+                return;
+            }
+
+            // 🔄 Clear previous target if exists
+            if (swapTarget && swapTarget !== td) {
+                swapTarget.classList.remove("swap-target");
+                swapTarget.querySelector('.con-tool').style.display = 'none';
+            }
+
+            // ✅ Set new target
+            swapTarget = td;
+            td.classList.add("swap-target");
+            td.querySelector('.con-tool').style.display = 'block';
+
+            // 🟨 Draw rectangle between source & target
+            drawSwapRectangle(swapSource, swapTarget);
+
+            return;
+        }
+
+        /* ---------- NORMAL BLOCK UPDATE ---------- */
+        if (td.innerText.trim() !== '') {
+            let block = prompt("Enter Block No:");
+            if (block === null) return;
+
+            fetch("./Backend/update_block.php", {
+                method: "POST",
+                headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
+                    s_id: td.dataset.sid,
+                    faculty_id: td.dataset.fid,
+                    date: td.dataset.date,
+                    slot: td.dataset.slot,
+                    block: block
+                })
+            })
+            .then(r => r.json())
+            .then((data) => {
+                console.log(data);
+                if(data.status == 200){
+                    td.innerHTML = block.trim() ? `<strong>${block}</strong>` : "✓";
+                }else{
+                    alert(data.msg);
+                }
+            });
+        }
+    });
+});
+
+document.querySelectorAll('.con-tool').forEach(toolkit => {
+    toolkit.addEventListener("click", e => {
+        e.stopPropagation();
+        const cell = toolkit.closest('td.cell');
+        if (cell) {
+            if (!confirm("Confirm faculty swap?")) {
+                resetSwapUI(); 
+                return; 
+            } 
+            
+            performSwap(cell); 
+            return;
+        }
+    })
+});
+
+/* ================= PERFORM SWAP ================= */
+function performSwap(target) {
+
+    fetch("swap_faculty_slot.php", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+            from: {
+                fid: swapSource.dataset.fid,
+                date: swapSource.dataset.date,
+                slot: swapSource.dataset.slot,
+                s_id: swapSource.dataset.sid
+            },
+            to: {
+                fid: target.dataset.fid,
+                date: target.dataset.date,
+                slot: target.dataset.slot,
+                s_id: target.dataset.sid
+            }
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data);
+        if (!data.success) {
+            alert(data.message || "Swap failed");
+            resetSwapUI();
+            return;
+        }else{
+            location.reload();
+        }
+
+        /* UI SWAP */
+        const tempHTML = swapSource.innerHTML;
+        swapSource.innerHTML = target.innerHTML;
+        target.innerHTML = tempHTML;
+
+        const tempData = {...swapSource.dataset};
+        Object.assign(swapSource.dataset, target.dataset);
+        Object.assign(target.dataset, tempData);
+
+        resetSwapUI();
+    });
+}
+
+/* ================= RESET SWAP ================= */
+function resetSwapUI() {
+    swapMode = false;
+
+    document.querySelectorAll(".swap-source")
+        .forEach(c => c.classList.remove("swap-source"));
+
+    document.querySelectorAll(".swap-target")
+        .forEach(c => c.classList.remove("swap-target"));
+
+    document.querySelectorAll(".con-tool")
+        .forEach(c => c.style.display = 'none');
+
+    document.getElementById("swap-rect").style.display = "none";
+
+    swapTarget = null;
+    swapSource = null;
+}
+
+/* ================= DIALOG ================= */
+function resetDialog() {
+    document.querySelector('[name=present][value=yes]').checked = true;
+    document.querySelector('[name=present][value=no]').checked = false;
+    document.getElementById("reasonBox").hidden = true;
+    document.getElementById("replaceBox").hidden = true;
+    document.getElementById("otherBox").hidden = true;
+    document.querySelectorAll('[name=reason]').forEach(r => r.checked = false);
+    facultySearch.value = '';
+    facultyList.innerHTML = '';
+    ispresent = true;
+}
+
+function openDialog(e, td) {
+    e.preventDefault();
+    if (td.innerText.trim() === '') return;
+
+    cell = td;
+    resetDialog();
+
+    curr = {
+        fid: td.dataset.fid,
+        date: td.dataset.date,
+        slot: td.dataset.slot,
+        s_id: td.dataset.sid,
+        f_name: td.closest('tr').querySelector('.left').innerText.trim(),
+        present: td.dataset.present === 'true'
+    };
+
+    document.querySelector('.f_name').innerText = curr.f_name;
+    document.querySelector('[name=present][value=yes]').checked = curr.present;
+    document.querySelector('[name=present][value=no]').checked = !curr.present;
+
+    document.getElementById("dialog").style.display = "flex";
+    loadFaculty();
+}
+
+function closeDialog() {
+    document.getElementById("dialog").style.display = "none";
+}
+
+/* ================= PRESENT / REASON ================= */
+document.querySelectorAll('[name=present]').forEach(r => {
+    r.onchange = () => {
+        document.getElementById("reasonBox").hidden = r.value !== "no";
+        ispresent = r.value !== "no";
+
+        if(ispresent){
+            document.getElementById("replaceBox").hidden = true;
+            document.getElementById("otherBox").hidden = true;
+        }
+    };
+});
+
+document.querySelectorAll('[name=reason]').forEach(r => {
+    r.onchange = () => {
+        if(!ispresent){
+            document.getElementById("replaceBox").hidden = r.value !== "replace";
+            document.getElementById("otherBox").hidden = r.value !== "other";
+            if (r.value === "replace") loadFaculty();
+            if (r.value === "other"){
+                document.getElementById("othertxt").focus();
+            }
+        }
+    };
+});
+
+/* ================= LOAD FACULTY ================= */
+const facultySearch = document.getElementById("facultySearch");
+const facultyList = document.getElementById("facultyList");
+
+function loadFaculty() {
+    fetch(`get_available_faculty.php?date=${curr.date}&slot=${curr.slot}&s=${curr.s_id}`)
+    .then(r => r.json())
+    .then(data => {
+        facultyList.innerHTML = `<option value="">Select Faculty</option>`;
+        data.forEach(f => {
+            facultyList.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+        });
+    });
+}
+
+facultySearch.addEventListener("keyup", () => {
+    let q = facultySearch.value.toLowerCase();
+    [...facultyList.options].forEach(o => {
+        o.hidden = !o.text.toLowerCase().includes(q);
+    });
+});
 
 function printAttendance(date, slot) {
     window.open(
@@ -602,196 +911,41 @@ function openBlockSheet(date, slot){
     );
 }
 
-let selectedCell = null;
-
-function openFacultyMenu(e, cell) {
-    e.preventDefault(); // block browser menu
-    selectedCell = cell;
-    if(selectedCell.innerText != ''){
-        const date = cell.dataset.date;
-        const slot = cell.dataset.slot;
-
-
-        fetch(`get_available_faculty.php?date=${encodeURIComponent(date)}&slot=${encodeURIComponent(slot)}&s=<?= $s_id; ?>`)
-        .then(res => res.json())
-        .then(data => {
-
-            const menu = document.getElementById('facultyMenu');
-            menu.innerHTML = '';
-
-            if (data.length === 0) {
-                menu.innerHTML = '<div>No available faculty</div>';
-            } else {
-                data.forEach(f => {
-                    const div = document.createElement('div');
-                    div.textContent = `${f.sr}. ${f.name} (${f.dept})`;
-                    div.onclick = () => assignFaculty(f.id);
-                    menu.appendChild(div);
-                });
-            }
-
-            menu.style.left = e.pageX + 'px';
-            menu.style.top  = e.pageY + 'px';
-            menu.style.display = 'block';
-        });
-    }
-}
-
-// hide menu on click
-document.addEventListener('click', () => {
-    document.getElementById('facultyMenu').style.display = 'none';
-});
-
-function assignFaculty(newFid) {
-
-    const date = selectedCell.dataset.date;
-    const slot = selectedCell.dataset.slot;
-    const oldFid = selectedCell.dataset.fid;
-
-
-    fetch('change_faculty_slot.php', {
-        method: 'POST',
-        headers: {'Content-Type':'application/x-www-form-urlencoded'},
-        body: `old_fid=${oldFid}&new_fid=${newFid}&date=${date}&slot=${slot}&s=<?= $s_id; ?>`
-    })
-    .then(res => res.json())
-    .then(r => {
-        console.log(r);
-        if (r.status === 'ok') {
-            location.reload(); // safest
-        } else {
-            alert(r.message);
-        }
-    });
-}
-
-
-//=======================================================
-
-let cell = null;
-let curr = {};
-
-function resetDialog() {
-
-    /* Present = YES (default) */
-    document.querySelector('[name=present][value=yes]').checked = true;
-    document.querySelector('[name=present][value=no]').checked = false;
-
-    /* Hide conditional sections */
-    document.getElementById("reasonBox").hidden = true;
-    document.getElementById("replaceBox").hidden = true;
-
-    /* Clear reason radios */
-    document.querySelectorAll('[name=reason]').forEach(r => r.checked = false);
-
-    /* Clear replace inputs */
-    document.getElementById("facultySearch").value = '';
-    document.getElementById("facultyList").innerHTML = '';
-    document.querySelector('.f_name').innerText = 'Slot Attendance';
-
-    /* Clear other reason */
-}
-
-function openDialog(e, td){
-    e.preventDefault();
-    cell = td;
-    if(cell.innerText != ''){
-        resetDialog()
-
-        curr = {
-            fid: td.dataset.fid,
-            date: td.dataset.date,
-            slot: td.dataset.slot,
-            s_id: td.dataset.sid,
-            f_name : td.closest('tr').querySelector('.left').innerText.trim(),
-            present : td.dataset.present === 'true'
-        };
-
-        console.log(curr)
-
-        document.getElementById("dialog").style.display = "flex";
-        document.querySelector('.f_name').innerText = curr.f_name;
-        document.querySelector('[name=present][value=yes]').checked = curr.present;
-        document.querySelector('[name=present][value=no]').checked = !curr.present;
-        document.getElementById("reasonBox").hidden = true;
-        document.getElementById("replaceBox").hidden = true;
-        loadFaculty();
-    }
-}
-
-function closeDialog(){
-    document.getElementById("dialog").style.display = "none";
-}
-
-/* Present / Absent */
-document.querySelectorAll('[name=present]').forEach(r=>{
-    r.onchange = () => {
-        document.getElementById("reasonBox").hidden = r.value !== "no";
-    };
-});
-
-/* Reason */
-document.querySelectorAll('[name=reason]').forEach(r=>{
-    r.onchange = ()=>{
-        document.getElementById("replaceBox").hidden = r.value !== "replace";
-
-        if(r.value === "replace") loadFaculty();
-    };
-});
-
-/* Load faculty */
-function loadFaculty(){
-    fetch(`get_available_faculty.php?date=${curr.date}&slot=${curr.slot}&s=${curr.s_id}`)
-    .then(r=>r.json())
-    .then(data=>{
-        let list = document.getElementById("facultyList");
-        list.innerHTML = "";
-
-        data.forEach(f=>{
-            list.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-        });
-    });
-}
-
-/* Search */
-facultySearch.onkeyup = function(){
-    let q = this.value.toLowerCase();
-    [...facultyList.options].forEach(o=>{
-        o.hidden = !o.text.toLowerCase().includes(q);
-    });
-};
-
 /* Submit */
-function submitStatus(){
-    let data = {
-        fid: curr.fid,
-        date: curr.date,
-        slot: curr.slot,
-        s_id: curr.s_id,
-        present: document.querySelector('[name=present]:checked').value,
-        reason: document.querySelector('[name=reason]:checked')?.value || '',
-        replace_id: facultyList.value || ''
-    };
-
-    fetch("change_faculty_slot.php",{
-        method:"POST",
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-    })
-    .then(res=>res.json())
-    .then((data)=>{
-        console.log(data)
-        if(data.status == 200){
-            location.reload(); // safest
-        }
-        if (data.status === 'ok') {
-            location.reload(); // safest
-        }
-    });
-
-    closeDialog();
+function submitStatus(){ 
+    let data = { 
+        fid: curr.fid, 
+        date: curr.date, 
+        slot: curr.slot, 
+        s_id: curr.s_id, 
+        present: document.querySelector('[name=present]:checked').value, 
+        reason: document.querySelector('[name=reason]:checked')?.value || '', 
+        replace_id: facultyList.value || '',
+        other_reason : document.getElementById('othertxt')?.value || '',
+        new_faculty : document.getElementById('replace_new_faculty')?.value || ''
+    }; 
+    console.log(data);
+    fetch("change_faculty_slot.php",{ 
+        method:"POST", 
+        headers:{'Content-Type':'application/json'}, 
+        body: JSON.stringify(data) 
+    }) 
+    .then(res=>res.json()) 
+    .then((data)=>{ 
+        console.log(data) 
+        if(data.status == 200){ 
+            location.reload(); 
+            // safest 
+        } 
+        if (data.status === 'ok') { 
+            location.reload(); 
+            // safest 
+        } 
+    }); 
+    closeDialog(); 
 }
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -5,12 +5,41 @@ $s_id = $_GET['s'] ?? '';
 /* =====================================================
    LOAD FACULTY
    ===================================================== */
+$schedule_result = mysqli_query($conn,"SELECT * FROM schedule WHERE id = '$s_id'");
+if(mysqli_num_rows($schedule_result) > 0){
+    $schedule_row = mysqli_fetch_assoc($schedule_result);
+    
+    if($schedule_row['scheduled']){
+        header("Location: ./slot_allocation.php?s=$s_id");
+        exit;
+    }
+
+    $task_name = $schedule_row['task_name'];
+    $task_type = $schedule_row['task_type'];
+
+    $block_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM blocks ORDER BY CAST(block_no AS UNSIGNED)"));
+
+    $blocks = [];
+
+    foreach ($block_rows as $row) {
+        $blockNo   = $row[1];
+        $doubleSit = $row[4];
+
+        if ($doubleSit === 'Yes' && $task_type == 'PT') {
+            $blocks[] = $blockNo . 'L';
+            $blocks[] = $blockNo . 'R';
+        } else {
+            $blocks[] = $blockNo;
+        }
+    }
+}
+
 $faculty = [];
 $q = mysqli_query($conn, "
-    SELECT id, faculty_name, dept_code, duties, role
+    SELECT id, faculty_name, dept_code, duties, role, courses
     FROM faculty
     WHERE status='ON' AND duties>0
-    ORDER BY duties DESC, faculty_name
+    ORDER BY duties DESC, faculty_name ASC
 ");
 
 while ($f = mysqli_fetch_assoc($q)) {
@@ -45,6 +74,7 @@ $records = [];
 while (($row = fgetcsv($handle)) !== false) {
     if($row[$col['online']] == '0'){
        $records[] = [
+            'sub_code'  => $row[$col['sub_code']],
             'date'  => date('d-M-Y', strtotime($row[$col['exam_date']])),
             'slot'  => date('h:i A', strtotime($row[$col['start_time']])) . " - " . date('h:i A', strtotime($row[$col['end_time']])),
             'stud'  => (int)$row[$col['stud_count']]
@@ -57,12 +87,70 @@ fclose($handle);
    GROUP BY DATE + SLOT
    ===================================================== */
 $slots = [];
+$slotStudents = [];
+$slotSubjects = [];
 
 foreach ($records as $r) {
-    $blocks = (int)ceil($r['stud'] / 30);
-    $slots[$r['date']][$r['slot']] =
-        ($slots[$r['date']][$r['slot']] ?? 0) + $blocks;
+
+    $date = $r['date'];
+    $slot = $r['slot'];
+    $stud = (int)$r['stud'];
+    $sub  = $r['sub_code'];
+
+    // Total students
+    $slotStudents[$date][$slot] =
+        ($slotStudents[$date][$slot] ?? 0) + $stud;
+
+    $slotSubjects[$r['date']][$r['slot']][$r['sub_code']] =
+        ($slotSubjects[$r['date']][$r['slot']][$r['sub_code']] ?? 0)
+        + (int)$r['stud'];
 }
+
+/* STEP 2: Convert students → blocks (30 students per block) */
+foreach ($slotSubjects as $date => $slotData) {
+    foreach ($slotData as $slot => $subjects) {
+
+        // Sort subjects by student count DESC (dominant first)
+        arsort($subjects);
+
+        $totalStudents = array_sum($subjects);
+        $totalBlocks = (int)ceil($totalStudents / 30);
+
+        $blockSubjects = [];
+        $remaining = $subjects;
+
+        for ($b = 0; $b < $totalBlocks; $b++) {
+
+            $capacity = 30;
+            $blockSub = [];
+
+            foreach ($remaining as $sub => $count) {
+                if ($count <= 0 || $capacity <= 0) continue;
+
+                $take = min($count, $capacity);
+                $remaining[$sub] -= $take;
+                $capacity -= $take;
+
+                $blockSub[] = $sub;
+            }
+
+            // Single subject → plain
+            if (count($blockSub) === 1) {
+                $blockSubjects[] = $blockSub[0];
+            } else {
+                // Multiple subjects → quoted CSV inside
+                $blockSubjects[] =
+                    "'" . implode("','", $blockSub) . "'";
+            }
+        }
+
+        $slots[$date][$slot] = [
+            'blocks'       => $totalBlocks,
+            'sub_code' => $blockSubjects
+        ];
+    }
+}
+
 
 // /* sort dates & slots */
 ksort($slots);
@@ -82,9 +170,9 @@ foreach ($slots as $date => $times) {
     foreach ($times as $slot => $totalBlocks) {
 
         /* faculty required */
-        $extra = (int)ceil($totalBlocks / 5);
-        $buffer = (int)ceil($totalBlocks * 0.10);
-        $totalFaculty = $totalBlocks + $extra + $buffer;
+        $extra = (int)ceil($totalBlocks['blocks'] / 5);
+        $buffer = (int)ceil($totalBlocks['blocks'] * 0.10);
+        $totalFaculty = $totalBlocks['blocks'] + $extra + $buffer;
 
         $teachReq = (int)ceil($totalFaculty * 0.7);
         $nonReq   = $totalFaculty - $teachReq;
@@ -101,22 +189,84 @@ foreach ($slots as $date => $times) {
             /* ❌ same date + slot */
             if (isset($assigned[$f['id']][$date][$slot]['assigned'])) continue;
 
+            // ===================== Check subject and Code ====================
+
+            $blockSubRaw = $totalBlocks['sub_code'][$assignedCount] ?? '';
+            // Clean quotes and split into array
+            $blockSubs = explode(',', str_replace("'", "", $blockSubRaw));
+
+            // Faculty courses (CSV → array)
+            $facultyCourses = explode(',', $f['courses'] ?? '');
+
+            // Faculty dept
+            $facultyDept = strtoupper(trim($f['dept_code'])) ?? '';
+
+            $match = false;
+
+            /* RULE 1: Buffer faculty */
+            if (empty($facultyCourses) && empty($facultyDept)) {
+                $match = false;
+            } else {
+
+                foreach ($blockSubs as $sub) {
+
+                    $subPrefix = strtoupper(substr($sub, 0, 2));
+
+                    /* RULE 2: Course-based match */
+                    // echo "$sub => ";print_r($facultyCourses);echo "<br>";
+                    if (!empty($facultyCourses) && !empty($sub) && in_array($sub, $facultyCourses)) {
+                        $match = true;
+                        break;
+                    }
+
+                    /* RULE 3: Dept-based match */
+                    if (!empty($facultyDept) && $facultyDept === $subPrefix) {
+                        $match = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($match) continue;
+            // ======================================================================
+
             /* ❌ duties exhausted */
             if ($f['duties'] <= 0) continue;
 
             /* ❌ role quota */
-            if ($f['role'] === 'Teaching' && $teachReq <= 0) continue;
-            if ($f['role'] === 'Non-teaching' && $nonReq <= 0) continue;
+            if ($f['role'] === 'TS' && $teachReq <= 0) continue;
+            if ($f['role'] === 'NTS' && $nonReq <= 0) continue;
 
             /* ✅ assign */
             $assigned[$f['id']][$date][$slot]['assigned'] = true;
             $facultyAssignments[$f['id']][$date][$slot]['assigned'] = true;
             $facultyAssignments[$f['id']][$date][$slot]['present'] = true;
+            $facultyAssignments[$f['id']][$date][$slot]['sub'] = implode(',',$blockSubs);
+
+
+            static $lastBlockNo = 0; // remembers previous block number
+
+            if ($blockSubRaw !== '') {
+
+                if (isset($blocks[$assignedCount])) {
+
+                    // Take block number from array
+                    $block_no = $blocks[$assignedCount];
+                    $lastBlockNo = (int)$block_no;
+
+                } else {
+
+                    // Continue from previous block number
+                    $block_no = ++$lastBlockNo;
+                }
+
+                $facultyAssignments[$f['id']][$date][$slot]['block'] = $block_no;
+            }
 
             $assignedCount++;
             $f['duties']--;
 
-            if ($f['role'] === 'Teaching') $teachReq--;
+            if ($f['role'] === 'TS') $teachReq--;
             else $nonReq--;
         }
     }
@@ -133,12 +283,13 @@ foreach ($slots as $date => $times) {
 }
 
 // echo "<pre>";
-// print_r($facultyAssignments);
+// print_r($blocks);
 // echo "</pre>";
 
 // ksort($allDatesSlots);
 // foreach ($allDatesSlots as &$t) ksort($t);
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     foreach ($facultyAssignments as $key => $value) {
 
         $schedule = mysqli_real_escape_string($conn, json_encode($value));
@@ -160,7 +311,8 @@ foreach ($slots as $date => $times) {
             }
         }
     }
-
+    mysqli_query($conn, "Update Schedule set scheduled = 1 where id = '$s_id'");
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['back'])) {
     header("Location: ./slot_allocation.php?s=$s_id");
@@ -200,35 +352,45 @@ table.supervision {
 form{
     margin: 20px;
 }
+thead{
+    position: sticky;
+    top: 0;
+}
 </style>
 </head>
 
 <body>
+    <form action="" method="POST">
+    <div class="d-flex justify-content-between">
+        <div></div>
+        <input class="btn btn-success" name="save" type="submit" value="Save">
+    </div>
+</form>
 <div class="container-fluid mt-3 mb-3">
     <table class="supervision">
+        <thead>
+            <!-- HEADER ROW 1 -->
+            <tr>
+                <th rowspan="2" class="sr">Sr</th>
+                <th rowspan="2">Supervisor</th>
+                <th rowspan="2" class="dept">Dept</th>
 
-        <!-- HEADER ROW 1 -->
-        <tr>
-            <th rowspan="2" class="sr">Sr</th>
-            <th rowspan="2">Supervisor</th>
-            <th rowspan="2" class="dept">Dept</th>
+                <?php foreach ($allDatesSlots as $date => $times): ?>
+                    <th colspan="<?= count($times) ?>"><?= htmlspecialchars($date) ?></th>
+                <?php endforeach; ?>
 
+                <th rowspan="2" class="signature">Signature</th>
+            </tr>
+
+            <!-- HEADER ROW 2 -->
+            <tr>
             <?php foreach ($allDatesSlots as $date => $times): ?>
-                <th colspan="<?= count($times) ?>"><?= htmlspecialchars($date) ?></th>
+                <?php foreach ($times as $slot => $_): ?>
+                    <th><?= htmlspecialchars($slot) ?></th>
+                <?php endforeach; ?>
             <?php endforeach; ?>
-
-            <th rowspan="2" class="signature">Signature</th>
-        </tr>
-
-        <!-- HEADER ROW 2 -->
-        <tr>
-        <?php foreach ($allDatesSlots as $date => $times): ?>
-            <?php foreach ($times as $slot => $_): ?>
-                <th><?= htmlspecialchars($slot) ?></th>
-            <?php endforeach; ?>
-        <?php endforeach; ?>
-        </tr>
-
+            </tr>
+        </thead>
         <!-- BODY -->
         <?php $sr = 1; 
         // echo "<pre>";print_r($facultyAssignments);echo "</pre>";?>
@@ -240,7 +402,27 @@ form{
 
             <?php foreach ($allDatesSlots as $date => $times): ?>
                 <?php foreach ($times as $slot => $_): ?>
-                    <td><?= isset($assignments[$date][$slot]['assigned']) ? "✓" : "" ?></td>
+                    <td class="<?= $class ?> cell"
+                        data-fid="<?= $fid ?>"
+                        data-date="<?= $date ?>"
+                        data-slot="<?= $slot ?>"
+                        data-sid="<?= $s_id ?>"
+                        data-present="<?= ($assignments[$date][$slot]['assigned'] ?? false)
+                            ? (!empty($assignments[$date][$slot]['present'])
+                                ? "true"
+                                : "false")
+                            : ""
+                        ?>"
+                        oncontextmenu="openDialog(event,this)">
+                        <?= ($assignments[$date][$slot]['assigned'] ?? false)
+                            ? (!empty($assignments[$date][$slot]['block'])
+                                ? "<strong>{$assignments[$date][$slot]['block']}</strong>"
+                                : "✓")
+                            : ""
+                        ?>
+                        <?= $assignments[$date][$slot]['sub'] ?? '' ?>
+                        <div class="con-tool"></div>
+                    </td>
                 <?php endforeach; ?>
             <?php endforeach; ?>
 
@@ -263,13 +445,6 @@ form{
         ?>
     </table>
 </div>
-
-<form action="" method="POST">
-    <div class="d-flex justify-content-between">
-        <input class="btn btn-success" name="back" type="submit" value="Go To Home">
-        <input class="btn btn-success" name="export" type="submit" value="Export PDF">
-    </div>
-</form>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
 </html>

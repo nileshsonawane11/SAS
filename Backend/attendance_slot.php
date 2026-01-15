@@ -11,7 +11,7 @@ $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('Supervision System');
 $pdf->SetAuthor('Exam Cell');
 $pdf->SetTitle('Attendance Sheet');
-$pdf->SetMargins(10, 10, 10);
+$pdf->SetMargins(5, 10, 5);
 $pdf->setPrintHeader(false);
 $pdf->SetAutoPageBreak(TRUE, 10);
 $pdf->AddPage();
@@ -29,25 +29,25 @@ $pdf->Ln(5);
 /* ================= TABLE HEADER ================= */
 $pdf->SetFont('helvetica', 'B', 9);
 
-$pdf->Cell(10, 8, 'Sr', 1, 0, 'C');
-$pdf->Cell(65, 8, 'Faculty', 1, 0, 'C');
-$pdf->Cell(20, 8, 'Dept', 1, 0, 'C');
-$pdf->Cell(20, 8, 'Block', 1, 0, 'C');
-$pdf->Cell(45, 8, 'Answersheet', 1, 0, 'C');
-$pdf->Cell(30, 8, 'Signature', 1, 1, 'C');
+$pdf->Cell(7, 12, 'Sr', 1, 0, 'C');
+$pdf->Cell(65, 12, 'Faculty', 1, 0, 'C');
+$pdf->Cell(13, 12, 'Dept', 1, 0, 'C');
+$pdf->Cell(13, 12, 'Block', 1, 0, 'C');
+$pdf->Cell(45, 12, 'Answersheet', 1, 0, 'C');
+$pdf->Cell(30, 12, 'Rep.Time', 1, 0, 'C');
+$pdf->Cell(25, 12, 'Signature', 1, 1, 'C');
 
 /* ================= DATA ================= */
 $pdf->SetFont('helvetica', '', 9);
 
-$sql = "
-SELECT f.faculty_name, f.dept_code, bsl.schedule
-FROM block_supervisor_list bsl
-JOIN faculty f ON f.id = bsl.faculty_id
-WHERE bsl.s_id='$s_id'
-";
+$res = mysqli_query($conn, "
+    SELECT f.faculty_name, f.dept_code, bsl.schedule
+    FROM block_supervisor_list bsl
+    JOIN faculty f ON f.id = bsl.faculty_id
+    WHERE bsl.s_id='$s_id'
+");
 
-$res = mysqli_query($conn, $sql);
-$sr = 1;
+$rows = [];
 
 while ($row = mysqli_fetch_assoc($res)) {
 
@@ -56,23 +56,50 @@ while ($row = mysqli_fetch_assoc($res)) {
     if (!isset($sch[$date][$slot])) continue;
 
     $block = '';
-    if (is_array($sch[$date][$slot]) && !empty($sch[$date][$slot]['block'])) {
+    if (!empty($sch[$date][$slot]['block'])) {
         $block = trim($sch[$date][$slot]['block']);
     }
 
-    $pdf->Cell(10, 8, $sr++, 1, 0, 'C');
-    $pdf->Cell(65, 8, $row['faculty_name'], 1, 0);
-    $pdf->Cell(20, 8, $row['dept_code'], 1, 0, 'C');
-    $pdf->Cell(20, 8, $block, 1, 0, 'C');
-    $pdf->Cell(45, 8, '-', 1, 0, 'C');
-    $pdf->Cell(30, 8, '', 1, 1);
+    $rows[] = [
+        'faculty' => $row['faculty_name'],
+        'dept'    => $row['dept_code'],
+        'block'   => $block
+    ];
+}
 
-    $pdf->Cell(10, 8, '', 1, 0, 'C');
-    $pdf->Cell(65, 8, '', 1, 0);
-    $pdf->Cell(20, 8, '', 1, 0, 'C');
-    $pdf->Cell(20, 8, '', 1, 0, 'C');
-    $pdf->Cell(45, 8, '-', 1, 0, 'C');
-    $pdf->Cell(30, 8, '', 1, 1);
+$blockSort = [];
+$blankSort = [];
+
+foreach ($rows as $i => $r) {
+    $blockSort[$i] = $r['block'];
+    $blankSort[$i] = ($r['block'] === '' || $r['block'] === '-');
+}
+
+array_multisort(
+    $blankSort, SORT_ASC,
+    $blockSort, SORT_NATURAL, SORT_ASC,
+    $rows
+);
+
+$pdf->SetFont('helvetica', '', 9);
+$sr = 1;
+
+foreach ($rows as $r) {
+
+    $pdf->Cell(7, 12, $sr++, 1, 0, 'C');
+
+    $x = $pdf->GetX();
+    $y = $pdf->GetY();
+
+    // Faculty (MultiCell safe)
+    $pdf->MultiCell(65, 12, $r['faculty'], 1, 'L');
+    $pdf->SetXY($x + 65, $y);
+
+    $pdf->Cell(13, 12, $r['dept'], 1, 0, 'C');
+    $pdf->Cell(13, 12, $r['block'], 1, 0, 'C');
+    $pdf->Cell(45, 12, '-', 1, 0, 'C');
+    $pdf->Cell(30, 12, '', 1, 0, 'C');
+    $pdf->Cell(25, 12, '', 1, 1);
 }
 
 /* ================= OUTPUT ================= */
