@@ -6,6 +6,7 @@ include './Backend/config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Dashboard</title>
     <style>
         :root{
@@ -94,6 +95,7 @@ include './Backend/config.php';
             align-items: center;
             justify-content: space-between;
             padding: 20px;
+            background: white;
         }
         .nav-part{
             width: 100%;
@@ -110,9 +112,14 @@ include './Backend/config.php';
         .nav-part:nth-child(2){
             font-size: 20px;
         }
+        .nav-part:last-child{
+            justify-content: flex-end;
+        }
         .card{
             background: var(--gradient-bg);
-            height: 87.7%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
             width: 100%;
             position: relative;
             overflow: auto;
@@ -220,7 +227,7 @@ include './Backend/config.php';
             cursor: pointer;
         }
         .table-wrapper {
-            max-height: 535px;      /* height of scroll area */
+            margin-bottom: 90px;      /* height of scroll area */
             overflow-y: auto;
             border: 1px solid #ddd;
         }
@@ -228,7 +235,7 @@ include './Backend/config.php';
             width: 100%;
             border-collapse: collapse;
         }
-        .staff-table thead th {
+        .staff-table thead tr th {
             position: sticky;
             top: 0;
             background: #d371ff;
@@ -415,6 +422,52 @@ include './Backend/config.php';
         #blk-no{
             color: red;
         }
+        .fullscreen,
+        .exit-fullscreen {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            border: none;
+            background: #111827;            /* dark slate */
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+            transition: all 0.25s ease;
+            z-index: 9999;
+        }
+
+        /* Exit button slightly shifted */
+        .exit-fullscreen {
+            right: 64px;
+        }
+
+        /* Hover effect */
+        .fullscreen:hover,
+        .exit-fullscreen:hover {
+            background: #2563eb;           /* blue */
+            transform: scale(1.08);
+        }
+
+        /* Active click */
+        .fullscreen:active,
+        .exit-fullscreen:active {
+            transform: scale(0.95);
+        }
+
+        /* Icon size */
+        .fullscreen i,
+        .exit-fullscreen i {
+            font-size: 18px;
+        }
+
+        /* Hide exit button initially */
+        .exit-fullscreen {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -465,7 +518,10 @@ include './Backend/config.php';
                     ?>
                 </span>
             </div>
-            <div class="nav-part"></div>
+            <div class="nav-part">
+                <button onclick="openFullscreen()" class="fullscreen"><i class="fas fa-solid fa-expand"></i></button>
+                <button onclick="closeFullscreen()" class="exit-fullscreen"><i class="fas fa-solid fa-compress"></i></button>
+            </div>
         </div>
         <div class="card"></div>
     </div>
@@ -474,7 +530,35 @@ include './Backend/config.php';
     let menu_items = document.querySelectorAll('.items');
     let heading = document.querySelector('.heading');
     let card = document.querySelector('.card');
+    let elem = document.querySelector('.container');
+    const fsBtn = document.querySelector(".fullscreen");
+    const exitBtn = document.querySelector(".exit-fullscreen");
     
+    //full screen
+    function openFullscreen() {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { // Safari
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE11
+            elem.msRequestFullscreen();
+        }
+        fsBtn.style.display = "none";
+        exitBtn.style.display = "flex";
+    }
+
+    function closeFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        fsBtn.style.display = "flex";
+        exitBtn.style.display = "none";
+    }
+
 
     fetch('dashboard.php')
     .then(res => res.text())
@@ -733,11 +817,7 @@ include './Backend/config.php';
         const tr = el.closest('tr');
         const staffId = tr.getAttribute('data-id');
 
-        fetch('add-staff.php?s='+staffId)
-        .then(res => res.text())
-        .then(html => {
-            card.innerHTML = html;
-        });
+        location.href = ('staff_profile.php?s='+staffId)
     }
 
     //Goto Edit Slot
@@ -1066,6 +1146,146 @@ include './Backend/config.php';
             }
         })
         .catch(() => alert("Server error"));
+    }
+</script>
+<!-- ==================== supervison rules settings ========================= -->
+<script>
+    function saveSettings() {
+
+        const data = {
+            duties_restriction: document.getElementById('maxDutiesCheck').checked ? 1 : 0,
+            block_capacity: parseInt(document.querySelectorAll('input[type=number]')[0].value),
+            reliever: parseInt(document.querySelectorAll('input[type=number]')[1].value),
+            extra_faculty: document.querySelectorAll('input[type=number]')[2].value / 100,
+
+            role_restriction: document.getElementById('roleRestrictionCheck').checked ? 1 : 0,
+
+            teaching_staff: document.querySelectorAll('#roleFields input[type=number]')[0].value / 100,
+            non_teaching_staff: document.querySelectorAll('#roleFields input[type=number]')[1].value / 100,
+
+            sub_restriction: document.getElementById('subjectOn').checked ? 1 : 0,
+            dept_restriction: document.getElementById('deptOn').checked ? 1 : 0
+        };
+
+        // console.log(data);
+
+        fetch('./Backend/save_supervisor_settings.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            console.log(res);
+            if(res.status == 200){
+                showSuccessAlert('successAlert')
+            }
+        });
+    }
+    function toggleRoleFields(checkbox, targetId) {
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        target.classList.toggle('hidden', !checkbox.checked);
+    }
+
+   function showSuccessAlert(alertId, duration = 2000) {
+        const alertBox = document.getElementById(alertId);
+        if (!alertBox) return;
+
+        alertBox.classList.remove('d-none');
+
+        setTimeout(() => {
+            alertBox.classList.add('d-none');
+        }, duration);
+    }
+    function syncPercentages(changedInput, otherInput) {
+        let val = parseInt(changedInput.value) || 0;
+
+        // Ensure value is between 0 and 100
+        if (val < 0) val = 0;
+        if (val > 100) val = 100;
+
+        changedInput.value = val;
+
+        // Automatically adjust the other input
+        otherInput.value = 100 - val;
+    }
+</script>
+<!-- ==================== Documentation settings ========================= -->
+<script>
+    function uploadImage(imgEl) {
+        const input = document.getElementById('signatureInput');
+
+        input.onchange = () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                imgEl.src = e.target.result; // base64 preview
+                imgEl.dataset.value = e.target.result; // store for JSON
+            };
+            reader.readAsDataURL(file);
+        };
+
+        input.click();
+    }
+
+    function saveLetter() {
+
+        const formData = new FormData();
+        let jsonData = {};
+
+        // Loop through all data-key elements
+        document.querySelectorAll('[data-key]').forEach(el => {
+
+            // RADIO
+            if (el.querySelector('input[type=radio]')) {
+                const checked = el.querySelector('input[type=radio]:checked');
+                formData.append(el.dataset.key, checked ? checked.value : 'yes');
+            }
+
+            // IMAGE
+            else if (el.tagName === 'IMG') {
+                if (el.dataset.key) {
+                    let file = document.getElementById('signatureInput');
+                    if (file){
+                        formData.append(el.dataset.key, file.files[0] || '');
+                    }
+                }
+            }
+
+            // TEXT
+            else {
+                formData.append(el.dataset.key, el.innerText.trim());
+            }
+        });
+
+        // formData.forEach((value, key) => {
+        //     console.log(`${key}: ${value}`);
+        // });
+
+        fetch('./Backend/save_letter.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then((res) => {
+            if(res.status == 200){
+                showSuccessAlert('successAlert')
+            }
+        });
+    }
+
+    function toggleScheduleTable(el) {
+        const table = document.getElementById('scheduleTable');
+
+        if (el.value === 'no') {
+            table.style.display = 'none';
+        } else {
+            table.style.display = 'table';
+        }
     }
 </script>
 </html>

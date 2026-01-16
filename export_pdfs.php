@@ -5,6 +5,24 @@ include './Backend/config.php';
 
 $s_id = $_GET['s'] ?? '';
 if (!$s_id) die('Invalid Schedule');
+$result = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE id = 1");
+$row = mysqli_fetch_assoc($result);
+$letter_data = json_decode($row['letter_json'], true);
+
+$institute_name = $letter_data['college_name'] ?? '';
+$section_name = $letter_data['section_name'] ?? '';
+$department = $letter_data['department'] ?? '';
+$college_address = $letter_data['college_address'] ?? '';
+$subject_name = $letter_data['subject_name'] ?? '';
+$body_para_1 = $letter_data['body_para_1'] ?? '';
+$body_para_2 = $letter_data['body_para_2'] ?? '';
+$body_para_3 = $letter_data['body_para_3'] ?? '';
+$show_table = $letter_data['show_table'] ?? 'no';
+$closing_text = $letter_data['closing_text'] ?? '';
+$off_name = $letter_data['off_name'] ?? '';
+$official_designation = $letter_data['official_designation'] ?? '';
+$off_address = $letter_data['off_address'] ?? '';
+$signature = $letter_data['signature'] ?? '';
 
 function print_sign(){
     global $pdf;
@@ -51,7 +69,7 @@ $res = mysqli_query($conn, $sql);
 /* ===============================
    BUILD STRUCTURES
 ================================ */
-$signaturePath = "./upload/signature.jpg";
+$signaturePath = "./upload/$signature";
 $facultyAssignments = [];
 $facultyName = [];
 $facultyMap = [];
@@ -136,7 +154,7 @@ $pdf = createPDF("Overall Supervision");
 
 /* -------- LETTERHEAD -------- */
 $pdf->SetFont('helvetica','B',15);
-$pdf->Cell(0,8,'GOVERNMENT POLYTECHNIC, NASHIK',0,1,'C');
+$pdf->Cell(0,8,$institute_name,0,1,'C');
 $pdf->SetFont('helvetica','',11);
 $pdf->Cell(0,6,'Examination Supervision Allotment Sheet',0,1,'C');
 $pdf->Ln(4);
@@ -223,7 +241,7 @@ foreach ($facultyAssignments as $name => $dates) {
 $pdf->Ln(8);
 $pdf->SetFont('helvetica','B',10);$pdf->Ln();
 print_sign();
-$pdf->Cell(0,6,'Chief Incharge',0,1,'R');
+$pdf->Cell(0,6,$official_designation,0,1,'R');
 
 $pdf->Output("Overall_Supervision_Matrix.pdf","I");
 exit;
@@ -249,7 +267,7 @@ if ($action === 'role') {
 
     /* -------- LETTERHEAD -------- */
     $pdf->SetFont('helvetica','B',15);
-    $pdf->Cell(0,8,'GOVERNMENT POLYTECHNIC, NASHIK',0,1,'C');
+    $pdf->Cell(0,8,$institute_name,0,1,'C');
     $pdf->SetFont('helvetica','',11);
     $pdf->Cell(0,6,'Examination Supervision Allotment Sheet',0,1,'C');
     $pdf->Ln(4);
@@ -260,7 +278,7 @@ if ($action === 'role') {
 
         /* ================= LETTERHEAD ================= */
         $pdf->SetFont('helvetica','B',15);
-        $pdf->Cell(0,8,'GOVERNMENT POLYTECHNIC, NASHIK',0,1,'C');
+        $pdf->Cell(0,8,$institute_name,0,1,'C');
 
         $pdf->SetFont('helvetica','',11);
         $pdf->Cell(0,6,"{$role} Faculty – Examination Supervision",0,1,'C');
@@ -352,7 +370,7 @@ if ($action === 'role') {
         $pdf->Ln(8);
         $pdf->SetFont('helvetica','B',10);$pdf->Ln();
         print_sign();
-        $pdf->Cell(0,6,'Chief Incharge',0,1,'R');
+        $pdf->Cell(0,6,$official_designation,0,1,'R');
     }
 
     $pdf->Output('Role_Wise_Supervision.pdf','I');
@@ -377,7 +395,7 @@ if ($action === 'department') {
 
     /* -------- LETTERHEAD -------- */
     $pdf->SetFont('helvetica','B',15);
-    $pdf->Cell(0,8,'GOVERNMENT POLYTECHNIC, NASHIK',0,1,'C');
+    $pdf->Cell(0,8,$institute_name,0,1,'C');
     $pdf->SetFont('helvetica','',11);
     $pdf->Cell(0,6,'Examination Supervision Allotment Sheet',0,1,'C');
     $pdf->Ln(4);
@@ -389,7 +407,7 @@ if ($action === 'department') {
 
         /* ================= LETTERHEAD ================= */
         $pdf->SetFont('helvetica','B',15);
-        $pdf->Cell(0,8,'GOVERNMENT POLYTECHNIC, NASHIK',0,1,'C');
+        $pdf->Cell(0,8,$institute_name,0,1,'C');
 
         $pdf->SetFont('helvetica','',11);
         $pdf->Cell(0,6,"{$dept} Department – Examination Supervision",0,1,'C');
@@ -481,7 +499,7 @@ if ($action === 'department') {
         $pdf->Ln(8);
         $pdf->SetFont('helvetica','B',10);$pdf->Ln();
         print_sign();
-        $pdf->Cell(0,6,'Chief Incharge',0,1,'R');
+        $pdf->Cell(0,6,$official_designation,0,1,'R');
     }
 
     $pdf->Output('Department_Wise_Supervision.pdf','I');
@@ -496,6 +514,7 @@ if ($action === 'individual') {
     $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
     $pdf->SetMargins(15,20,15);
     $pdf->SetAutoPageBreak(true,20);
+    $pdf->setPrintHeader(false);
 
     uksort($facultyAssignments, function ($a, $b) use ($facultyMap) {
         return strcmp($facultyMap[$a], $facultyMap[$b]);
@@ -507,99 +526,111 @@ if ($action === 'individual') {
 
         /* ---------- LETTERHEAD ---------- */
         $pdf->SetFont('helvetica','B',14);
-        $pdf->Cell(0,8,'GOVERNMENT POLYTECHNIC, NASHIK',0,1,'C');
+        $pdf->Cell(0,8,$institute_name,0,1,'C');
 
         $pdf->SetFont('helvetica','',11);
-        $pdf->Cell(0,6,'Examination Section',0,1,'C');
+        $pdf->Cell(0,6,$section_name,0,1,'C');
         $pdf->Ln(6);
-
+        $pdf->Cell(0,0,'','T',1);
         /* ---------- DATE ---------- */
         $pdf->SetFont('helvetica','',10);
-        $pdf->Cell(0,6,'Date : '.date('d-m-Y'),0,1,'R');
-        $pdf->Ln(4);
+        $pageWidth = $pdf->getPageWidth() - $pdf->getMargins()['left'] - $pdf->getMargins()['right'];
+
+        $pdf->Cell(($pageWidth / 2), 6, 'Ref.No : ____________', 0, 0, 'L');
+        $pdf->Cell(($pageWidth / 2), 6, 'Date : ' . date('d-m-Y'), 0, 1, 'R');
+
+        $pdf->Ln(8);
 
         /* ---------- ADDRESS ---------- */
+        $f_dept = '';
+        if (!empty($facultyMap[$name])) {
+            $f_dept = "$department ".$facultyMap[$name]."\n";
+        }
         $pdf->MultiCell(0,6,
             "To,\n".
             "$facultyName[$name]\n".
-            "Department of ".$facultyMap[$name]."\n".
-            "Government Polytechnic, Nashik",
+            "$f_dept".
+            $college_address,
             0,'L'
         );
         $pdf->Ln(6);
 
         /* ---------- SUBJECT ---------- */
         $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,7,'Subject : Appointment as Examination Supervisor',0,1);
+        $pdf->Cell(0,7,"Subject : $subject_name",0,1);
         $pdf->Ln(3);
 
         /* ---------- BODY ---------- */
         $pdf->SetFont('helvetica','',11);
         $pdf->MultiCell(0,7,
-            "Sir / Madam,\n\n".
-            "You are hereby appointed as an Examination Supervisor for the forthcoming examinations as per the schedule mentioned below. ".
-            "You are requested to report at the examination center at least 30 minutes before the commencement of the examination and perform the assigned duties sincerely.\n\n".
-            "Your presence and cooperation are mandatory as per institutional and government examination norms.",
+            "$body_para_1\n\n".
+            "$body_para_2\n\n".
+            "$body_para_3",
             0,'J'
         );
         $pdf->Ln(6);
 
-        /* ---------- TABLE HEADER (FULL WIDTH) ---------- */
-        $pdf->SetFont('helvetica','B',10);
-        $pdf->Cell(20,8,'Sr.No',1,0,'C');
-        $pdf->Cell(80,8,'Date',1,0,'C');
-        $pdf->Cell(75,8,'Slot',1,1,'C');
+        if($show_table == 'yes'){
+            /* ---------- TABLE HEADER (FULL WIDTH) ---------- */
+            $pdf->SetFont('helvetica','B',10);
+            $pdf->Cell(20,8,'Sr.No',1,0,'C');
+            $pdf->Cell(80,8,'Date',1,0,'C');
+            $pdf->Cell(75,8,'Slot',1,1,'C');
 
-        $pdf->SetFont('helvetica','',10);
+            $pdf->SetFont('helvetica','',10);
 
-        $sr = 1;
-        $srW   = 20;
-        $dateW = 80;
-        $slotW = 75;
-        $rowH  = 8;
+            $sr = 1;
+            $srW   = 20;
+            $dateW = 80;
+            $slotW = 75;
+            $rowH  = 8;
 
-        foreach ($dates as $date => $slots) {
+            foreach ($dates as $date => $slots) {
 
-            $slotCount  = count($slots);
-            $totalH     = $slotCount * $rowH;
+                $slotCount  = count($slots);
+                $totalH     = $slotCount * $rowH;
 
-            /* ---- STORE START POSITION ---- */
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
+                /* ---- STORE START POSITION ---- */
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
 
-            /* ---- SR.NO (MERGED) ---- */
-            $pdf->Cell($srW, $totalH, $sr++, 1,0, 'C');
+                /* ---- SR.NO (MERGED) ---- */
+                $pdf->Cell($srW, $totalH, $sr++, 1,0, 'C');
 
-            /* ---- DATE (MERGED) ---- */
-            $pdf->Cell(
-                $dateW,
-                $totalH,
-                date('d-M-Y', strtotime($date)),
-                1,
-                0,
-                'C'
-            );
+                /* ---- DATE (MERGED) ---- */
+                $pdf->Cell(
+                    $dateW,
+                    $totalH,
+                    date('d-M-Y', strtotime($date)),
+                    1,
+                    0,
+                    'C'
+                );
 
-            /* ---- MOVE TO SLOT COLUMN (IMPORTANT FIX) ---- */
-            // $pdf->SetXY($x + $srW + $dateW, $y);
+                /* ---- MOVE TO SLOT COLUMN (IMPORTANT FIX) ---- */
+                // $pdf->SetXY($x + $srW + $dateW, $y);
 
-            /* ---- SLOT ROWS (NORMAL CELLS) ---- */
-            foreach ($slots as $slot => $_) {
-                $pdf->setX(115);
-                $pdf->Cell($slotW, $rowH, $slot, 1, 1, 'C');
+                /* ---- SLOT ROWS (NORMAL CELLS) ---- */
+                foreach ($slots as $slot => $_) {
+                    $pdf->setX(115);
+                    $pdf->Cell($slotW, $rowH, $slot, 1, 1, 'C');
+                }
             }
         }
+
         /* ---------- FOOTER ---------- */
         $pdf->Ln(12);
         $pdf->SetFont('helvetica','',11);
-        $pdf->Cell(0,6,'Yours faithfully,',0,1,'R');
+        $pdf->Cell(0,6,$closing_text,0,1,'R');
         $pdf->Ln(30);
 
         print_sign();
         $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,6,'Chief Incharge',0,1,'R');
+        $pdf->Cell(0,6,$official_designation,0,1,'R');
         $pdf->SetFont('helvetica','',10);
-        $pdf->Cell(0,6,'Government Polytechnic, Nashik',0,1,'R');
+        $pdf->Cell(0,6,$off_name,0,1,'R');
+        $pdf->SetFont('helvetica','',10);
+        $pdf->Cell(0,6,$off_address,0,1,'R');
     }
 
     /* ---------- OUTPUT ---------- */

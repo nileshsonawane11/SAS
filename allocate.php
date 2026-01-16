@@ -2,6 +2,21 @@
 include './Backend/config.php';
 
 $s_id = $_GET['s'] ?? '';
+
+/* =====================================================
+   LOAD Admin Rules
+   ===================================================== */
+$admin_rules = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel WHERE id = 1"));
+$duties_restriction = $admin_rules['duties_restriction'];
+$role_restriction = $admin_rules['role_restriction'];
+$sub_restriction = $admin_rules['sub_restriction'];
+$dept_restriction = $admin_rules['dept_restriction'];
+$block_capacity = (int)$admin_rules['block_capacity'];
+$reliever = (int)$admin_rules['reliever'];
+$extra_faculty = (float)$admin_rules['extra_faculty'];
+$teaching_staff = (float)$admin_rules['teaching_staff'];
+$non_teaching_staff = (float)$admin_rules['non_teaching_staff'];
+
 /* =====================================================
    LOAD FACULTY
    ===================================================== */
@@ -114,14 +129,14 @@ foreach ($slotSubjects as $date => $slotData) {
         arsort($subjects);
 
         $totalStudents = array_sum($subjects);
-        $totalBlocks = (int)ceil($totalStudents / 30);
+        $totalBlocks = (int)ceil($totalStudents / $block_capacity);
 
         $blockSubjects = [];
         $remaining = $subjects;
 
         for ($b = 0; $b < $totalBlocks; $b++) {
 
-            $capacity = 30;
+            $capacity = $block_capacity;
             $blockSub = [];
 
             foreach ($remaining as $sub => $count) {
@@ -170,11 +185,11 @@ foreach ($slots as $date => $times) {
     foreach ($times as $slot => $totalBlocks) {
 
         /* faculty required */
-        $extra = (int)ceil($totalBlocks['blocks'] / 5);
-        $buffer = (int)ceil($totalBlocks['blocks'] * 0.10);
+        $extra = (int)ceil($totalBlocks['blocks'] / $reliever);
+        $buffer = (int)ceil($totalBlocks['blocks'] * $extra_faculty);
         $totalFaculty = $totalBlocks['blocks'] + $extra + $buffer;
 
-        $teachReq = (int)ceil($totalFaculty * 0.7);
+        $teachReq = (int)ceil($totalFaculty * $teaching_staff);
         $nonReq   = $totalFaculty - $teachReq;
 
         $assignedCount = 0;
@@ -214,13 +229,13 @@ foreach ($slots as $date => $times) {
 
                     /* RULE 2: Course-based match */
                     // echo "$sub => ";print_r($facultyCourses);echo "<br>";
-                    if (!empty($facultyCourses) && !empty($sub) && in_array($sub, $facultyCourses)) {
+                    if (!empty($facultyCourses) && !empty($sub) && in_array($sub, $facultyCourses) && $sub_restriction) {
                         $match = true;
                         break;
                     }
 
                     /* RULE 3: Dept-based match */
-                    if (!empty($facultyDept) && $facultyDept === $subPrefix) {
+                    if (!empty($facultyDept) && $facultyDept === $subPrefix && $dept_restriction) {
                         $match = true;
                         break;
                     }
@@ -264,10 +279,15 @@ foreach ($slots as $date => $times) {
             }
 
             $assignedCount++;
-            $f['duties']--;
 
-            if ($f['role'] === 'TS') $teachReq--;
-            else $nonReq--;
+            if($duties_restriction == 1){
+                $f['duties']--;
+            }
+
+            if($role_restriction == 1){
+                if ($f['role'] === 'TS') $teachReq--;
+                else $nonReq--; 
+            }
         }
     }
 }
@@ -283,7 +303,7 @@ foreach ($slots as $date => $times) {
 }
 
 // echo "<pre>";
-// print_r($blocks);
+// print_r($admin_rules);
 // echo "</pre>";
 
 // ksort($allDatesSlots);
