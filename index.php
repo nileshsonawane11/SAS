@@ -1165,7 +1165,8 @@ include './Backend/config.php';
             non_teaching_staff: document.querySelectorAll('#roleFields input[type=number]')[1].value / 100,
 
             sub_restriction: document.getElementById('subjectOn').checked ? 1 : 0,
-            dept_restriction: document.getElementById('deptOn').checked ? 1 : 0
+            dept_restriction: document.getElementById('deptOn').checked ? 1 : 0,
+            common_duties : document.getElementById('commonOn').checked ? 1 : 0
         };
 
         // console.log(data);

@@ -1,5 +1,6 @@
 <?php
 header('Content-Type: application/json');
+// require './Backend/auth_guard.php';
 require_once "./Backend/config.php"; // must define $conn
 
 /* ================= RESPONSE HELPER ================= */

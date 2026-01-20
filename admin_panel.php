@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 include './Backend/config.php';
 
 $setting_row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel LIMIT 1"));
@@ -460,6 +461,19 @@ body {
                 </div>
                 <div class="form-check form-check-inline">
                     <input type="radio" name="deptRestriction" class="form-check-input" id="deptOff" <?php echo (!$setting_row['dept_restriction']) ? 'checked' : ''?>>
+                    <label for="deptOff" class="form-check-label">Off</label>
+                </div>
+            </div>
+
+            <!-- 9 Strict duties restriction -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Assign Strict Duties <sub> (Role Restriction may Affect it.)</sub></label><br>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="duties_common" class="form-check-input" id="commonOn" <?php echo ($setting_row['strict_duties']) ? 'checked' : ''?>>
+                    <label for="deptOn" class="form-check-label">On</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="duties_common" class="form-check-input" id="commonOff" <?php echo (!$setting_row['strict_duties']) ? 'checked' : ''?>>
                     <label for="deptOff" class="form-check-label">Off</label>
                 </div>
             </div>

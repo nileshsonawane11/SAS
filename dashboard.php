@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 include './Backend/config.php';
 // Count blocks
 $result_blocks = mysqli_query($conn, "SELECT COUNT(*) as Block_count FROM blocks");

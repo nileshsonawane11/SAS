@@ -11,6 +11,7 @@ $duties_restriction = $admin_rules['duties_restriction'];
 $role_restriction = $admin_rules['role_restriction'];
 $sub_restriction = $admin_rules['sub_restriction'];
 $dept_restriction = $admin_rules['dept_restriction'];
+$common_duties = $admin_rules['strict_duties'];
 $block_capacity = (int)$admin_rules['block_capacity'];
 $reliever = (int)$admin_rules['reliever'];
 $extra_faculty = (float)$admin_rules['extra_faculty'];
@@ -195,6 +196,26 @@ function sortFacultyByLoad(&$faculty, $facultyLoad) {
         return $facultyLoad[$a['id']] <=> $facultyLoad[$b['id']];
     });
 }
+
+$slot_count = 0;
+
+foreach ($slots as $date => $times) {
+    
+    foreach ($times as $slot => $totalBlocks) {
+        $slot_count++;
+        /* faculty required */
+        $extra = ($reliever > 0) ? (int)ceil($totalBlocks['blocks'] / $reliever) : 0;
+        $buffer = (int)ceil($totalBlocks['blocks'] * $extra_faculty);
+        $totalFaculty = $totalBlocks['blocks'] + $extra + $buffer;
+
+        $all_blocks_no += $totalFaculty;
+    }
+}
+$avg_duties = ceil($all_blocks_no / $facultyCount);
+$overall_duties = $facultyCount * $avg_duties;
+$extra_duties = $overall_duties - $all_blocks_no;
+$extra_per_slot = ceil($extra_duties / $slot_count);
+
 /* ================= MAIN LOOP ================= */
 foreach ($slots as $date => $times) {
 
@@ -204,6 +225,10 @@ foreach ($slots as $date => $times) {
         $extra = ($reliever > 0) ? (int)ceil($totalBlocks['blocks'] / $reliever) : 0;
         $buffer = (int)ceil($totalBlocks['blocks'] * $extra_faculty);
         $totalFaculty = $totalBlocks['blocks'] + $extra + $buffer;
+
+        if($common_duties == 1){
+           $totalFaculty += $extra_per_slot;
+        }
 
         $all_blocks_no += $totalFaculty;
 
@@ -267,7 +292,7 @@ foreach ($slots as $date => $times) {
                 $facultyAssignments[$f['id']][$date][$slot] = [
                     'assigned' => true,
                     'present'  => true,
-                    'sub'      => implode(',', $blockSubs)
+                    'sub'      => ''
                 ];
 
                 /* BLOCK NUMBER */
@@ -450,7 +475,7 @@ thead{
         <thead>
             <!-- HEADER ROW 1 -->
             <tr class="supervision-require">
-                <th colspan="10">Max Duties Required Per Faculty : <?= ceil($all_blocks_no/$facultyCount) ?></th>
+                <th colspan="10">Max Duties Required Per Faculty : <?= $avg_duties; ?></th>
             </tr>
             <tr>
                 <th rowspan="2" class="sr">Sr</th>

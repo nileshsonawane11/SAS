@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 require_once __DIR__ . '/tcpdf/tcpdf.php';
 error_reporting(1);
 include './Backend/config.php';
