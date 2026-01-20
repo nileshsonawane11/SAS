@@ -485,7 +485,7 @@ body {
         </div>
 
         <div class="section section2">
-            <h3 class="section-head">Documentation Settings (Front page)</h3>
+            <h3 class="section-head">Documentation Settings</h3>
             <div class="page1">
                 <div class="dom-alert"><sup>*</sup>Changes made in the given document will be applicable everywhere.</div>
                 <div class="header">
@@ -584,20 +584,6 @@ body {
                             <div class="editable" contenteditable="true" data-key="off_name"><?= $letter_data['off_name'] ?? '' ?></div>
                             <div class="editable" contenteditable="true" data-key="off_address"><?= $letter_data['off_address'] ?? '' ?></div>
                         </span>
-                    </div>
-                </div>
-            </div>
-
-            <br>
-            <h3 class="section-head">Documentation Settings (Back page)</h3>
-            <div class="page2">
-                <div class="dom-alert"><sup>*</sup>Changes made in the given document will be applicable everywhere.</div>
-                <div class="header" style="border:none;">                      
-                    <div class="editable" contenteditable="true" data-key="instruction_header" style="font-weight: bold;"><?= $letter_data['instruction_header'] ?? 'पर्यवेक्षकां करीता सूचना' ?></div>                  
-                </div>
-
-                    <div class="editable" contenteditable="true" data-key="bodypara">
-                        <?= $letter_data['bodypara'] ?? 'Enter Instructions' ?>
                     </div>
                 </div>
             </div>
