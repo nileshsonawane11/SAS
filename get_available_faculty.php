@@ -14,7 +14,7 @@ $res = mysqli_query($conn,"
 
 while($r=mysqli_fetch_assoc($res)){
     $sch = json_decode($r['schedule'],true);
-    if(isset($sch[$date]) && !(empty($sch[$date]))){
+    if(isset($sch[$date][$slot]) && !(empty($sch[$date][$slot]))){
         $assigned[] = $r['faculty_id'];
     }
 }

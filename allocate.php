@@ -104,6 +104,7 @@ fclose($handle);
 $slots = [];
 $slotStudents = [];
 $slotSubjects = [];
+$all_blocks_no = 0;
 
 foreach ($records as $r) {
 
@@ -178,16 +179,33 @@ foreach ($slots as &$t) {
    ===================================================== */
 $assigned = [];               // busy map
 $facultyAssignments = [];     // final output
-$facultyIndex = 0;            // round-robin pointer
+$facultyLoad = [];            // total blocks per faculty
+$all_blocks_no = 0;
 
+/* ================= INIT ================= */
+foreach ($faculty as $f) {
+    $facultyLoad[$f['id']] = 0;
+}
+
+$facultyCount = count($faculty);
+
+/* ================= HELPER ================= */
+function sortFacultyByLoad(&$faculty, $facultyLoad) {
+    usort($faculty, function ($a, $b) use ($facultyLoad) {
+        return $facultyLoad[$a['id']] <=> $facultyLoad[$b['id']];
+    });
+}
+/* ================= MAIN LOOP ================= */
 foreach ($slots as $date => $times) {
 
     foreach ($times as $slot => $totalBlocks) {
 
         /* faculty required */
-        $extra = (int)ceil($totalBlocks['blocks'] / $reliever);
+        $extra = ($reliever > 0) ? (int)ceil($totalBlocks['blocks'] / $reliever) : 0;
         $buffer = (int)ceil($totalBlocks['blocks'] * $extra_faculty);
         $totalFaculty = $totalBlocks['blocks'] + $extra + $buffer;
+
+        $all_blocks_no += $totalFaculty;
 
         $teachReq = (int)ceil($totalFaculty * $teaching_staff);
         $nonReq   = $totalFaculty - $teachReq;
@@ -195,99 +213,94 @@ foreach ($slots as $date => $times) {
         $assignedCount = 0;
         $attempts = 0;
 
-        while ($assignedCount < $totalFaculty && $attempts < $facultyCount * 2) {
+        while ($assignedCount < $totalFaculty && $attempts < $facultyCount * 3) {
 
-            $f =& $faculty[$facultyIndex];
-            $facultyIndex = ($facultyIndex + 1) % $facultyCount;
             $attempts++;
 
-            /* ❌ same date + slot */
-            if (isset($assigned[$f['id']][$date][$slot]['assigned'])) continue;
+            /* 👈 ALWAYS PICK LEAST-LOADED FACULTY */
+            sortFacultyByLoad($faculty, $facultyLoad);
 
-            // ===================== Check subject and Code ====================
+            $assignedThisLoop = false;
 
-            $blockSubRaw = $totalBlocks['sub_code'][$assignedCount] ?? '';
-            // Clean quotes and split into array
-            $blockSubs = explode(',', str_replace("'", "", $blockSubRaw));
+            foreach ($faculty as &$f) {
 
-            // Faculty courses (CSV → array)
-            $facultyCourses = explode(',', $f['courses'] ?? '');
+                /* ❌ same date + slot */
+                if (isset($assigned[$f['id']][$date][$slot])) continue;
 
-            // Faculty dept
-            $facultyDept = strtoupper(trim($f['dept_code'])) ?? '';
+                /* ❌ duties exhausted */
+                if ($f['duties'] <= 0 && $duties_restriction == 1) continue;
 
-            $match = false;
+                /* ❌ role quota */
+                if ($f['role'] === 'TS' && $teachReq <= 0 && $role_restriction == 1) continue;
+                if ($f['role'] === 'NTS' && $nonReq <= 0 && $role_restriction == 1) continue;
 
-            /* RULE 1: Buffer faculty */
-            if (empty($facultyCourses) && empty($facultyDept)) {
-                $match = false;
-            } else {
+                /* ================= SUBJECT / DEPT CHECK ================= */
+                $blockSubRaw = $totalBlocks['sub_code'][$assignedCount] ?? '';
+                $blockSubs = explode(',', str_replace("'", "", $blockSubRaw));
+
+                $facultyCourses = array_filter(explode(',', $f['courses'] ?? ''));
+                $facultyDept = strtoupper(trim($f['dept_code'] ?? ''));
+
+                $restricted = false;
 
                 foreach ($blockSubs as $sub) {
-
+                    $sub = trim($sub);
                     $subPrefix = strtoupper(substr($sub, 0, 2));
 
-                    /* RULE 2: Course-based match */
-                    // echo "$sub => ";print_r($facultyCourses);echo "<br>";
-                    if (!empty($facultyCourses) && !empty($sub) && in_array($sub, $facultyCourses) && $sub_restriction) {
-                        $match = true;
+                    if ($sub_restriction && !empty($facultyCourses) && in_array($sub, $facultyCourses)) {
+                        $restricted = true;
                         break;
                     }
 
-                    /* RULE 3: Dept-based match */
-                    if (!empty($facultyDept) && $facultyDept === $subPrefix && $dept_restriction) {
-                        $match = true;
+                    if ($dept_restriction && !empty($facultyDept) && $facultyDept === $subPrefix) {
+                        $restricted = true;
                         break;
                     }
                 }
-            }
 
-            if ($match) continue;
-            // ======================================================================
+                if ($restricted) continue;
+                /* ======================================================== */
 
-            /* ❌ duties exhausted */
-            if ($f['duties'] <= 0) continue;
+                /* ✅ ASSIGN */
+                $assigned[$f['id']][$date][$slot] = true;
 
-            /* ❌ role quota */
-            if ($f['role'] === 'TS' && $teachReq <= 0) continue;
-            if ($f['role'] === 'NTS' && $nonReq <= 0) continue;
+                $facultyAssignments[$f['id']][$date][$slot] = [
+                    'assigned' => true,
+                    'present'  => true,
+                    'sub'      => implode(',', $blockSubs)
+                ];
 
-            /* ✅ assign */
-            $assigned[$f['id']][$date][$slot]['assigned'] = true;
-            $facultyAssignments[$f['id']][$date][$slot]['assigned'] = true;
-            $facultyAssignments[$f['id']][$date][$slot]['present'] = true;
-            $facultyAssignments[$f['id']][$date][$slot]['sub'] = implode(',',$blockSubs);
+                /* BLOCK NUMBER */
+                static $lastBlockNo = 0;
 
-
-            static $lastBlockNo = 0; // remembers previous block number
-
-            if ($blockSubRaw !== '') {
-
-                if (isset($blocks[$assignedCount])) {
-
-                    // Take block number from array
-                    $block_no = $blocks[$assignedCount];
-                    $lastBlockNo = (int)$block_no;
-
-                } else {
-
-                    // Continue from previous block number
-                    $block_no = ++$lastBlockNo;
+                if ($blockSubRaw !== '') {
+                    if (isset($blocks[$assignedCount])) {
+                        $block_no = $blocks[$assignedCount];
+                        $lastBlockNo = (int)$block_no;
+                    } else {
+                        $block_no = ++$lastBlockNo;
+                    }
+                    $facultyAssignments[$f['id']][$date][$slot]['block'] = $block_no;
                 }
 
-                $facultyAssignments[$f['id']][$date][$slot]['block'] = $block_no;
+                /* UPDATE COUNTS */
+                $facultyLoad[$f['id']]++;
+                $assignedCount++;
+                $assignedThisLoop = true;
+
+                if ($duties_restriction == 1) {
+                    $f['duties']--;
+                }
+
+                if ($role_restriction == 1) {
+                    if ($f['role'] === 'TS') $teachReq--;
+                    else $nonReq--;
+                }
+
+                break; // ✅ move to next block
             }
 
-            $assignedCount++;
-
-            if($duties_restriction == 1){
-                $f['duties']--;
-            }
-
-            if($role_restriction == 1){
-                if ($f['role'] === 'TS') $teachReq--;
-                else $nonReq--; 
-            }
+            if (!$assignedThisLoop) break;
         }
     }
 }
@@ -303,7 +316,7 @@ foreach ($slots as $date => $times) {
 }
 
 // echo "<pre>";
-// print_r($admin_rules);
+// print_r($slots);
 // echo "</pre>";
 
 // ksort($allDatesSlots);
@@ -331,7 +344,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
             }
         }
     }
-    mysqli_query($conn, "Update Schedule set scheduled = 1 where id = '$s_id'");
+    $block_json = json_encode($slots, JSON_UNESCAPED_UNICODE);
+
+    $stmt = mysqli_prepare(
+        $conn,
+        "UPDATE Schedule SET scheduled = ?, blocks = ? WHERE id = ?"
+    );
+
+    $scheduled = 1;
+    mysqli_stmt_bind_param($stmt, "isi", $scheduled, $block_json, $s_id);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => mysqli_error($conn)
+        ]);
+        exit;
+    }
+
+    mysqli_stmt_close($stmt);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['back'])) {
@@ -340,6 +371,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['back'])) {
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
     header("Location: ./export_pdfs.php?s=$s_id");
+    exit;
+}
+
+if($schedule_row['scheduled']){
+    header("Location: ./slot_allocation.php?s=$s_id");
     exit;
 }
 ?>
@@ -376,6 +412,29 @@ thead{
     position: sticky;
     top: 0;
 }
+.supervision-require th{
+    text-align: left;
+    background: #ffdfdf;
+}
+.split-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+.split-cell span {
+    flex: 1;
+    text-align: center;
+}
+
+.split-cell span:first-child {
+    border-right: 1px solid #000;
+    padding-right: 6px;
+}
+.grand-total{
+    font-weight: bold;
+    background: #dddddd;
+}
 </style>
 </head>
 
@@ -390,6 +449,9 @@ thead{
     <table class="supervision">
         <thead>
             <!-- HEADER ROW 1 -->
+            <tr class="supervision-require">
+                <th colspan="10">Max Duties Required Per Faculty : <?= ceil($all_blocks_no/$facultyCount) ?></th>
+            </tr>
             <tr>
                 <th rowspan="2" class="sr">Sr</th>
                 <th rowspan="2">Supervisor</th>
@@ -399,7 +461,7 @@ thead{
                     <th colspan="<?= count($times) ?>"><?= htmlspecialchars($date) ?></th>
                 <?php endforeach; ?>
 
-                <th rowspan="2" class="signature">Signature</th>
+                <th rowspan="2" class="signature">Duties</th>
             </tr>
 
             <!-- HEADER ROW 2 -->
@@ -413,55 +475,77 @@ thead{
         </thead>
         <!-- BODY -->
         <?php $sr = 1; 
+        $duties_grabd_total = 0;
+        $blocks_grabd_total = 0;
         // echo "<pre>";print_r($facultyAssignments);echo "</pre>";?>
         <?php foreach ($facultyAssignments as $f_id => $assignments): ?>
-        <tr>
-            <td><?= $sr++ ?></td>
-            <td class="left"><?= $facultyName[$f_id] ?></td>
-            <td><?= $facultyMap[$f_id] ?? '-' ?></td>
+            <?php $sup_count = 0; ?>
+            <tr>
+                <td><?= $sr++ ?></td>
+                <td class="left"><?= $facultyName[$f_id] ?></td>
+                <td><?= $facultyMap[$f_id] ?? '-' ?></td>
 
-            <?php foreach ($allDatesSlots as $date => $times): ?>
-                <?php foreach ($times as $slot => $_): ?>
-                    <td class="<?= $class ?> cell"
-                        data-fid="<?= $fid ?>"
-                        data-date="<?= $date ?>"
-                        data-slot="<?= $slot ?>"
-                        data-sid="<?= $s_id ?>"
-                        data-present="<?= ($assignments[$date][$slot]['assigned'] ?? false)
-                            ? (!empty($assignments[$date][$slot]['present'])
-                                ? "true"
-                                : "false")
-                            : ""
-                        ?>"
-                        oncontextmenu="openDialog(event,this)">
-                        <?= ($assignments[$date][$slot]['assigned'] ?? false)
-                            ? (!empty($assignments[$date][$slot]['block'])
-                                ? "<strong>{$assignments[$date][$slot]['block']}</strong>"
-                                : "✓")
+                <?php foreach ($allDatesSlots as $date => $times): ?>
+                    <?php foreach ($times as $slot => $_): ?>
+                        <td class="<?= $class ?> cell"
+                            data-fid="<?= $fid ?>"
+                            data-date="<?= $date ?>"
+                            data-slot="<?= $slot ?>"
+                            data-sid="<?= $s_id ?>"
+                            data-present="<?= ($assignments[$date][$slot]['assigned'] ?? false)
+                                ? (!empty($assignments[$date][$slot]['present'])
+                                    ? "true"
+                                    : "false")
+                                : ""
+                            ?>"
+                            oncontextmenu="openDialog(event,this)">
+                            <?= ($assignments[$date][$slot]['assigned'] ?? false)
+                                ? (!empty($assignments[$date][$slot]['block'])
+                                    ? "<strong>{$assignments[$date][$slot]['block']}</strong>"
+                                    : "✓")
+                                : ""
+                            ?>
+                            <?= $assignments[$date][$slot]['sub'] ?? '' ?>
+                            <div class="con-tool"></div>
+                        </td>
+                        <?php ($assignments[$date][$slot]['assigned'] ?? false)
+                            ? $sup_count++
                             : ""
                         ?>
-                        <?= $assignments[$date][$slot]['sub'] ?? '' ?>
-                        <div class="con-tool"></div>
-                    </td>
+                    <?php endforeach; ?>
                 <?php endforeach; ?>
+                <?php $duties_grabd_total += $sup_count; ?>
+                <td><?= $sup_count ?></td>
+            </tr>
             <?php endforeach; ?>
+            <tr class="grand-total">
+                <td colspan="3">Total Blocks</td>
+                <?php foreach($slots as $date => $times): ?>
+                    <?php foreach ($times as $slot => $_): ?>
+                        <?php $blocks_grabd_total += (int)$slots[$date][$slot]['blocks'];?>
+                        <td><?= $slots[$date][$slot]['blocks'] ?></td>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+                <td class="split-cell">
+                    <span><?= $blocks_grabd_total ?></span>
+                    <span><?= $duties_grabd_total ?></span>
+                </td>
+            </tr>
+        <?php
+        
 
-            <td></td>
-        </tr>
-        <?php endforeach; 
+            $data = [
+                'facultyAssignments' => $facultyAssignments,
+                'facultyMap'         => $facultyMap,
+                'facultyRole'        => $facultyRole,
+                'allDatesSlots'      => $allDatesSlots,
+                'facultyName'    => $facultyName
+            ];
 
-        $data = [
-            'facultyAssignments' => $facultyAssignments,
-            'facultyMap'         => $facultyMap,
-            'facultyRole'        => $facultyRole,
-            'allDatesSlots'      => $allDatesSlots,
-            'facultyName'    => $facultyName
-        ];
-
-        file_put_contents(
-            './cache.json',
-            json_encode($data, JSON_PRETTY_PRINT)
-        );
+            file_put_contents(
+                './cache.json',
+                json_encode($data, JSON_PRETTY_PRINT)
+            );
         ?>
     </table>
 </div>

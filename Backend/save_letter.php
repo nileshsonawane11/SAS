@@ -46,7 +46,7 @@ if (!empty($_FILES)) {
         }
 
         // Generate new unique filename
-        $newName = 1 . "." . $ext;
+        $newName = 1 . "_$key." . $ext;
 
         // Move uploaded file
         if (!move_uploaded_file($file['tmp_name'], $uploadDir . $newName)) {

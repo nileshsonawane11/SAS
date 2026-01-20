@@ -41,7 +41,7 @@ $role = $role_arr[$role];
 /* ===============================
    2. BASIC VALIDATION
    =============================== */
-if ($faculty_name === '' || $email === '' || $mobile === '') {
+if ($faculty_name === '' || $mobile === '') {
     echo json_encode([
         'status' => 422,
         'message' => 'Required fields missing'

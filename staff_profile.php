@@ -556,7 +556,7 @@ if(mysqli_num_rows($staff_result) == 0){
                 </div>
                 <div class="field-group">
                     <div class="field-label">
-                        <i class="fas fa-envelope"></i> Email Address <sup class="danger">*</sup>
+                        <i class="fas fa-envelope"></i> Email Address
                     </div>
                     <div id="f_email" class="field-value editable" data-field="email"><?= $staff_data['email'] ?? '' ?></div>
                 </div>

@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/tcpdf/tcpdf.php';
-
+error_reporting(1);
 include './Backend/config.php';
 
 $s_id = $_GET['s'] ?? '';
@@ -23,28 +23,131 @@ $off_name = $letter_data['off_name'] ?? '';
 $official_designation = $letter_data['official_designation'] ?? '';
 $off_address = $letter_data['off_address'] ?? '';
 $signature = $letter_data['signature'] ?? '';
+$logo = $letter_data['logo'] ?? '';
+$institute_address = $letter_data['institute_address'] ?? '';
+$order_by = $letter_data['order_by'] ?? '';
+$ref_no = $letter_data['ref_no'] ?? '';
 
-function print_sign(){
+$ref_no = html_entity_decode(
+    trim(preg_replace('/<(br|\/p)>/i', "\n", strip_tags($ref_no))),
+    ENT_QUOTES,
+    'UTF-8'
+);
+
+$body_para_3 = preg_replace('/\s*<div>\s*/i', '<br>', $body_para_3);
+$body_para_3 = preg_replace('/\s*<\/div>\s*/i', '', $body_para_3);
+
+// $signaturePath = "./upload/$signature";
+// $logoPath = "./upload/$logo";
+
+function print_sign() {
     global $pdf;
-    global $signaturePath;
+    global $signature;
+    global $official_designation;
+    global $off_name;
+    global $off_address;
 
-    if (file_exists($signaturePath)) {
+    $signaturePath = "./upload/$signature";
 
-        $imgWidth  = 60;   // width of signature
-        $imgHeight = 25;   // height of signature
+    // ---- Estimate total height needed (image + text) ----
+    $requiredHeight = 35; // adjust if you change font sizes
 
-        // Page width & margins
+    $currentY = $pdf->GetY();
+    $pageHeight = $pdf->getPageHeight();
+    $bottomMargin = $pdf->getMargins()['bottom'];
+
+    // If not enough space → move to next page first
+    if ($currentY + $requiredHeight > ($pageHeight - $bottomMargin)) {
+        $pdf->AddPage();
+    }
+
+    // ---- Print signature image if valid ----
+    if (
+        !empty($signature) &&
+        is_file($signaturePath) &&
+        filesize($signaturePath) > 0
+    ) {
+
+        $imgWidth  = 60;
+        $imgHeight = 25;
+
         $pageWidth   = $pdf->getPageWidth();
         $rightMargin = $pdf->getMargins()['right'];
 
-        // X = page width − right margin − image width
-        $x = $pageWidth - $rightMargin - $imgWidth + 15;
-
-        // Y position (adjust as needed)
-        $y = $pdf->GetY() - 18;
+        $x = $pageWidth - $rightMargin - $imgWidth+8;
+        $y = $pdf->GetY();
 
         $pdf->Image($signaturePath, $x, $y, $imgWidth, $imgHeight);
+
+        // Move cursor below image
+        $pdf->Ln($imgHeight-5);
     }
+
+    // ---- Text block (always stays together) ----
+    $pdf->SetFont('times', 'B', 12);
+    $pdf->Cell(0, 6, strip_tags($official_designation), 0, 1, 'R');
+
+    $pdf->SetFont('times', '', 11);
+    $pdf->Cell(0, 5, strip_tags($off_name), 0, 1, 'R');
+
+    $pdf->Cell(0, 5, strip_tags($off_address), 0, 1, 'R');
+}
+
+
+function print_letter_head(){
+    global $pdf;
+    global $logo;
+    global $institute_name;
+    global $section_name;
+    global $institute_address;
+    global $order_by;
+    global $ref_no;
+
+    $pdf->setPrintHeader(false);
+    
+    $startY   = $pdf->GetY();
+    $leftM    = 20;
+    $logoW    = 30;
+    $margin   = 0;
+
+    if (!empty($logo)){
+        $logoPath = "./upload/$logo";
+        // Show logo
+        $pdf->Image($logoPath, $leftM+10, $startY-3, $logoW);
+        $margin = $logoW + 3;
+        // Text shifted right (center relative to page)
+        $pdf->SetXY($leftM + $margin, $startY);
+
+    } else {
+
+        // No logo → true center text
+        $pdf->SetXY($leftM + $margin, $startY);
+    }
+        
+    /* ---------- LETTERHEAD ---------- */
+    $pdf->SetFont('times','B',15);
+    $pdf->writeHTML($institute_name, true, false, true, false, 'C');$pdf->Ln(3);
+    $startY   = $pdf->GetY();
+    $margin ? $pdf->SetXY($leftM + $logoW + 3, $startY) : '';
+
+    $pdf->SetFont('times','',11);
+    $pdf->writeHTML($section_name, true, false, true, false, 'C');$pdf->Ln(3);
+    $startY   = $pdf->GetY();
+    $margin ? $pdf->SetXY($leftM + $logoW + 3, $startY) : '';
+
+    $pdf->SetFont('times','',11);
+    $pdf->writeHTML($institute_address, true, false, true, false, 'C');$pdf->Ln(3);
+
+    $pdf->Ln(2);
+    $pdf->Cell(0,0,'','T',1);
+
+    /* ---------- DATE ---------- */
+    $pdf->SetFont('times','B',11);
+    $pageWidth = $pdf->getPageWidth() - $pdf->getMargins()['left'] - $pdf->getMargins()['right'];
+    $pdf->Ln(-4);
+    $pdf->Cell(($pageWidth / 2), 0, 'Ref.No : '.$ref_no, 0, 0, 'L');
+    $pdf->Cell(($pageWidth / 2), 0, 'Date : ' . date('d-m-Y'), 0, 1, 'R');
+    $pdf->writeHTML("$order_by", true, false, true, false, 'L');
 }
 /* ===============================
    FETCH ASSIGNMENTS + FACULTY
@@ -69,7 +172,6 @@ $res = mysqli_query($conn, $sql);
 /* ===============================
    BUILD STRUCTURES
 ================================ */
-$signaturePath = "./upload/$signature";
 $facultyAssignments = [];
 $facultyName = [];
 $facultyMap = [];
@@ -111,7 +213,7 @@ function createPDF($title, $landscape = true) {
     $pdf->setPrintHeader(false);
     $pdf->setPrintFooter(false);
     $pdf->AddPage();
-    $pdf->SetFont('helvetica', '', 9);
+    $pdf->SetFont('times', '', 9);
     return $pdf;
 }
 
@@ -153,15 +255,11 @@ if ($action === 'overall') {
 $pdf = createPDF("Overall Supervision");
 
 /* -------- LETTERHEAD -------- */
-$pdf->SetFont('helvetica','B',15);
-$pdf->Cell(0,8,$institute_name,0,1,'C');
-$pdf->SetFont('helvetica','',11);
-$pdf->Cell(0,6,'Examination Supervision Allotment Sheet',0,1,'C');
-$pdf->Ln(4);
+print_letter_head();
 
 /* -------- LEGEND -------- */
 $pdf->Ln(6);
-$pdf->SetFont('helvetica','',9);
+$pdf->SetFont('times','',9);
 $pdf->Cell(20,6,'Slot Legend:',1,0);
 
 $legendText = '';
@@ -185,7 +283,7 @@ foreach ($dateSlotMap as $slots) $totalSlots += count($slots);
 $slotW = ($totalWidth - ($srW+$nameW+$deptW+$roleW+$signW)) / $totalSlots;
 
 /* -------- HEADER ROW 1 (DATES) -------- */
-$pdf->SetFont('helvetica','B',9);
+$pdf->SetFont('times','B',9);
 $pdf->Cell($srW,12,'Sr',1,0,'C');
 $pdf->Cell($nameW,12,'Faculty',1,0,'C');
 $pdf->Cell($deptW,12,'Dept',1,0,'C');
@@ -215,7 +313,7 @@ $pdf->Cell($signW,6,'',0,0);
 $pdf->Ln();
 
 /* -------- BODY -------- */
-$pdf->SetFont('helvetica','',9);
+$pdf->SetFont('times','',9);
 $sr = 1;
 
 foreach ($facultyAssignments as $name => $dates) {
@@ -238,10 +336,6 @@ foreach ($facultyAssignments as $name => $dates) {
 }
 
 /* -------- FOOTER -------- */
-$pdf->Ln(8);
-$pdf->SetFont('helvetica','B',10);$pdf->Ln();
-print_sign();
-$pdf->Cell(0,6,$official_designation,0,1,'R');
 
 $pdf->Output("Overall_Supervision_Matrix.pdf","I");
 exit;
@@ -264,29 +358,28 @@ if ($action === 'role') {
     $pdf = new TCPDF('L','mm','A4',true,'UTF-8',false);
     $pdf->SetMargins(6,14,6);
     $pdf->SetAutoPageBreak(true,10);
-
-    /* -------- LETTERHEAD -------- */
-    $pdf->SetFont('helvetica','B',15);
-    $pdf->Cell(0,8,$institute_name,0,1,'C');
-    $pdf->SetFont('helvetica','',11);
-    $pdf->Cell(0,6,'Examination Supervision Allotment Sheet',0,1,'C');
-    $pdf->Ln(4);
+    $pdf->setPrintHeader(false);
 
     foreach ($roleFaculty as $role => $facultyList) {
 
         $pdf->AddPage();
 
         /* ================= LETTERHEAD ================= */
-        $pdf->SetFont('helvetica','B',15);
-        $pdf->Cell(0,8,$institute_name,0,1,'C');
+        print_letter_head();
+        $role_arr = [
+            'TS' => 'Teaching',
+            'NTS' => 'Non-Teaching',
+            ''   => ''
+        ];
+        $role = $role_arr[$role];
 
-        $pdf->SetFont('helvetica','',11);
-        $pdf->Cell(0,6,"{$role} Faculty – Examination Supervision",0,1,'C');
+        $pdf->SetFont('times','B',11);
+        $pdf->Cell(0,6,"{$role} Staff – Examination Supervision",0,1,'C');
         $pdf->Ln(4);
 
         /* -------- LEGEND -------- */
         $pdf->Ln(6);
-        $pdf->SetFont('helvetica','',9);
+        $pdf->SetFont('times','',9);
         $pdf->Cell(20,6,'Slot Legend:',1,0);
 
         $legendText = '';
@@ -316,7 +409,7 @@ if ($action === 'role') {
         $slotW = ($totalPageWidth - ($srW + $nameW + $deptW + $signW)) / $totalSlots;
 
         /* ================= HEADER (DATES) ================= */
-        $pdf->SetFont('helvetica','B',9);
+        $pdf->SetFont('times','B',9);
 
         $pdf->Cell($srW,12,'Sr',1,0,'C');
         $pdf->Cell($nameW,12,'Supervisor',1,0,'C');
@@ -344,7 +437,7 @@ if ($action === 'role') {
         $pdf->Ln();
 
         /* ================= BODY ================= */
-        $pdf->SetFont('helvetica','',9);
+        $pdf->SetFont('times','',9);
         $sr = 1;
 
         foreach ($facultyList as $name => $dates) {
@@ -367,10 +460,7 @@ if ($action === 'role') {
         }
 
         /* ================= FOOTER ================= */
-        $pdf->Ln(8);
-        $pdf->SetFont('helvetica','B',10);$pdf->Ln();
-        print_sign();
-        $pdf->Cell(0,6,$official_designation,0,1,'R');
+        $pdf->SetFont('times','B',10);$pdf->Ln();
     }
 
     $pdf->Output('Role_Wise_Supervision.pdf','I');
@@ -392,13 +482,7 @@ if ($action === 'department') {
     $pdf = new TCPDF('L','mm','A4',true,'UTF-8',false);
     $pdf->SetMargins(6,14,6);
     $pdf->SetAutoPageBreak(true,10);
-
-    /* -------- LETTERHEAD -------- */
-    $pdf->SetFont('helvetica','B',15);
-    $pdf->Cell(0,8,$institute_name,0,1,'C');
-    $pdf->SetFont('helvetica','',11);
-    $pdf->Cell(0,6,'Examination Supervision Allotment Sheet',0,1,'C');
-    $pdf->Ln(4);
+    $pdf->setPrintHeader(false);
 
     /* ---- LOOP EACH DEPARTMENT ---- */
     foreach ($deptFaculty as $dept => $facultyList) {
@@ -406,16 +490,15 @@ if ($action === 'department') {
         $pdf->AddPage();
 
         /* ================= LETTERHEAD ================= */
-        $pdf->SetFont('helvetica','B',15);
-        $pdf->Cell(0,8,$institute_name,0,1,'C');
+        print_letter_head();
 
-        $pdf->SetFont('helvetica','',11);
+        $pdf->SetFont('times','B',11);
         $pdf->Cell(0,6,"{$dept} Department – Examination Supervision",0,1,'C');
         $pdf->Ln(4);
 
         /* -------- LEGEND -------- */
         $pdf->Ln(6);
-        $pdf->SetFont('helvetica','',9);
+        $pdf->SetFont('times','',9);
         $pdf->Cell(20,6,'Slot Legend:',1,0);
 
         $legendText = '';
@@ -445,7 +528,7 @@ if ($action === 'department') {
         $slotW = ($totalPageWidth - ($srW + $nameW + $deptW + $signW)) / $totalSlots;
 
         /* ================= HEADER (DATES) ================= */
-        $pdf->SetFont('helvetica','B',9);
+        $pdf->SetFont('times','B',9);
 
         $pdf->Cell($srW,12,'Sr',1,0,'C');
         $pdf->Cell($nameW,12,'Supervisor',1,0,'C');
@@ -473,7 +556,7 @@ if ($action === 'department') {
         $pdf->Ln();
 
         /* ================= BODY ================= */
-        $pdf->SetFont('helvetica','',9);
+        $pdf->SetFont('times','',9);
         $sr = 1;
 
         foreach ($facultyList as $name => $dates) {
@@ -496,10 +579,7 @@ if ($action === 'department') {
         }
 
         /* ================= FOOTER ================= */
-        $pdf->Ln(8);
-        $pdf->SetFont('helvetica','B',10);$pdf->Ln();
-        print_sign();
-        $pdf->Cell(0,6,$official_designation,0,1,'R');
+        $pdf->SetFont('times','B',10);$pdf->Ln();
     }
 
     $pdf->Output('Department_Wise_Supervision.pdf','I');
@@ -512,7 +592,7 @@ if ($action === 'department') {
 if ($action === 'individual') {
 
     $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
-    $pdf->SetMargins(15,20,15);
+    $pdf->SetMargins(15,15,15);
     $pdf->SetAutoPageBreak(true,20);
     $pdf->setPrintHeader(false);
 
@@ -523,61 +603,45 @@ if ($action === 'individual') {
     foreach ($facultyAssignments as $name => $dates) {
 
         $pdf->AddPage();
-
-        /* ---------- LETTERHEAD ---------- */
-        $pdf->SetFont('helvetica','B',14);
-        $pdf->Cell(0,8,$institute_name,0,1,'C');
-
-        $pdf->SetFont('helvetica','',11);
-        $pdf->Cell(0,6,$section_name,0,1,'C');
-        $pdf->Ln(6);
-        $pdf->Cell(0,0,'','T',1);
-        /* ---------- DATE ---------- */
-        $pdf->SetFont('helvetica','',10);
-        $pageWidth = $pdf->getPageWidth() - $pdf->getMargins()['left'] - $pdf->getMargins()['right'];
-
-        $pdf->Cell(($pageWidth / 2), 6, 'Ref.No : ____________', 0, 0, 'L');
-        $pdf->Cell(($pageWidth / 2), 6, 'Date : ' . date('d-m-Y'), 0, 1, 'R');
-
+    
+        print_letter_head();
         $pdf->Ln(8);
 
+        $pdf->SetFont('times','',11);
         /* ---------- ADDRESS ---------- */
         $f_dept = '';
         if (!empty($facultyMap[$name])) {
-            $f_dept = "$department ".$facultyMap[$name]."\n";
+            $f_dept = "$department ".$facultyMap[$name]."<br>";
         }
-        $pdf->MultiCell(0,6,
-            "To,\n".
-            "$facultyName[$name]\n".
+        $html = "To,<br>".$facultyName[$name]."<br>".
             "$f_dept".
-            $college_address,
-            0,'L'
-        );
+            $college_address;
+        $pdf->writeHTML($html, true, false, true, false, 'L');
         $pdf->Ln(6);
 
         /* ---------- SUBJECT ---------- */
-        $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,7,"Subject : $subject_name",0,1);
-        $pdf->Ln(3);
+        $pdf->SetFont('times','B',12);
+        $pdf->writeHTML("Subject : $subject_name", true, false, true, false, 'L');
+        $pdf->Ln(5);
 
         /* ---------- BODY ---------- */
-        $pdf->SetFont('helvetica','',11);
-        $pdf->MultiCell(0,7,
-            "$body_para_1\n\n".
-            "$body_para_2\n\n".
-            "$body_para_3",
-            0,'J'
-        );
+        $pdf->SetFont('times','',11);
+        $html = 
+        $body_para_1 . '<br><br>' .
+        $body_para_2 . '<br><br>' .
+        $body_para_3;
+
+        $pdf->writeHTML($html, true, false, true, false, 'L');
         $pdf->Ln(6);
 
         if($show_table == 'yes'){
             /* ---------- TABLE HEADER (FULL WIDTH) ---------- */
-            $pdf->SetFont('helvetica','B',10);
+            $pdf->SetFont('times','B',10);
             $pdf->Cell(20,8,'Sr.No',1,0,'C');
             $pdf->Cell(80,8,'Date',1,0,'C');
             $pdf->Cell(75,8,'Slot',1,1,'C');
 
-            $pdf->SetFont('helvetica','',10);
+            $pdf->SetFont('times','',10);
 
             $sr = 1;
             $srW   = 20;
@@ -620,17 +684,10 @@ if ($action === 'individual') {
 
         /* ---------- FOOTER ---------- */
         $pdf->Ln(12);
-        $pdf->SetFont('helvetica','',11);
-        $pdf->Cell(0,6,$closing_text,0,1,'R');
-        $pdf->Ln(30);
+        $pdf->SetFont('times','',12);
+        $pdf->writeHTML($closing_text, true, false, true, false, 'R');
 
         print_sign();
-        $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,6,$official_designation,0,1,'R');
-        $pdf->SetFont('helvetica','',10);
-        $pdf->Cell(0,6,$off_name,0,1,'R');
-        $pdf->SetFont('helvetica','',10);
-        $pdf->Cell(0,6,$off_address,0,1,'R');
     }
 
     /* ---------- OUTPUT ---------- */

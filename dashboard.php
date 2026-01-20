@@ -1,7 +1,7 @@
 <?php
 include './Backend/config.php';
 // Count blocks
-$result_blocks = mysqli_query($conn, "SELECT COUNT(*) as Block_count FROM Blocks");
+$result_blocks = mysqli_query($conn, "SELECT COUNT(*) as Block_count FROM blocks");
 $row_blocks = mysqli_fetch_assoc($result_blocks);
 $block_count = $row_blocks['Block_count'] ?? 0;
 

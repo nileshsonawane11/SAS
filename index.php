@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 include './Backend/config.php';
 ?>
 <!DOCTYPE html>
@@ -499,7 +500,7 @@ include './Backend/config.php';
             </clipPath>
             </defs>
             </svg><span>Manage Slots</span></div> -->
-            <div class="items" data-page="Admin_Panel.php"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div class="items" data-page="admin_panel.php"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M15.76 4.0375C16.3267 4.2125 16.8683 4.4375 17.385 4.7125L19.6763 3.3375C19.9152 3.1942 20.1951 3.13482 20.4716 3.16879C20.7481 3.20276 21.0054 3.32814 21.2025 3.525L22.475 4.7975C22.6719 4.99463 22.7972 5.25187 22.8312 5.52838C22.8652 5.8049 22.8058 6.08484 22.6625 6.32375L21.2875 8.615C21.5625 9.13167 21.7875 9.67333 21.9625 10.24L24.5537 10.8888C24.8241 10.9565 25.064 11.1126 25.2354 11.3322C25.4069 11.5519 25.5 11.8226 25.5 12.1012V13.8988C25.5 14.1774 25.4069 14.4481 25.2354 14.6678C25.064 14.8874 24.8241 15.0435 24.5537 15.1112L21.9625 15.76C21.7875 16.3267 21.5625 16.8683 21.2875 17.385L22.6625 19.6763C22.8058 19.9152 22.8652 20.1951 22.8312 20.4716C22.7972 20.7481 22.6719 21.0054 22.475 21.2025L21.2025 22.475C21.0054 22.6719 20.7481 22.7972 20.4716 22.8312C20.1951 22.8652 19.9152 22.8058 19.6763 22.6625L17.385 21.2875C16.8683 21.5625 16.3267 21.7875 15.76 21.9625L15.1112 24.5537C15.0435 24.8241 14.8874 25.064 14.6678 25.2354C14.4481 25.4069 14.1774 25.5 13.8988 25.5H12.1012C11.8226 25.5 11.5519 25.4069 11.3322 25.2354C11.1126 25.064 10.9565 24.8241 10.8888 24.5537L10.24 21.9625C9.67837 21.7889 9.13431 21.5629 8.615 21.2875L6.32375 22.6625C6.08484 22.8058 5.8049 22.8652 5.52838 22.8312C5.25187 22.7972 4.99463 22.6719 4.7975 22.475L3.525 21.2025C3.32814 21.0054 3.20276 20.7481 3.16879 20.4716C3.13482 20.1951 3.1942 19.9152 3.3375 19.6763L4.7125 17.385C4.43705 16.8657 4.21106 16.3216 4.0375 15.76L1.44625 15.1112C1.17615 15.0436 0.936373 14.8877 0.764953 14.6683C0.593534 14.4488 0.500286 14.1784 0.5 13.9V12.1025C0.500007 11.8238 0.593128 11.5532 0.764569 11.3335C0.936011 11.1138 1.17594 10.9577 1.44625 10.89L4.0375 10.2413C4.2125 9.67458 4.4375 9.13292 4.7125 8.61625L3.3375 6.325C3.1942 6.08609 3.13482 5.80615 3.16879 5.52963C3.20276 5.25312 3.32814 4.99588 3.525 4.79875L4.7975 3.525C4.99463 3.32814 5.25187 3.20276 5.52838 3.16879C5.8049 3.13482 6.08484 3.1942 6.32375 3.3375L8.615 4.7125C9.13167 4.4375 9.67333 4.2125 10.24 4.0375L10.8888 1.44625C10.9564 1.17615 11.1123 0.936373 11.3317 0.764953C11.5512 0.593534 11.8216 0.500286 12.1 0.5H13.8975C14.1762 0.500007 14.4468 0.593128 14.6665 0.764569C14.8862 0.936011 15.0423 1.17594 15.11 1.44625L15.76 4.0375ZM13 18C14.3261 18 15.5979 17.4732 16.5355 16.5355C17.4732 15.5979 18 14.3261 18 13C18 11.6739 17.4732 10.4021 16.5355 9.46447C15.5979 8.52678 14.3261 8 13 8C11.6739 8 10.4021 8.52678 9.46447 9.46447C8.52678 10.4021 8 11.6739 8 13C8 14.3261 8.52678 15.5979 9.46447 16.5355C10.4021 17.4732 11.6739 18 13 18Z" fill="white"></path>
             </svg><span>Setting</span></div>
             <div class="items" data-page="history.php"><svg width="30" height="30" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1215,7 +1216,12 @@ include './Backend/config.php';
 <!-- ==================== Documentation settings ========================= -->
 <script>
     function uploadImage(imgEl) {
-        const input = document.getElementById('signatureInput');
+        let input = '';
+        if(imgEl.dataset.key == 'signature'){
+            input = document.getElementById('signatureInput');
+        }else if(imgEl.dataset.key == 'logo'){
+            input = document.getElementById('LogoInput');
+        }
 
         input.onchange = () => {
             const file = input.files[0];
@@ -1249,7 +1255,13 @@ include './Backend/config.php';
             // IMAGE
             else if (el.tagName === 'IMG') {
                 if (el.dataset.key) {
-                    let file = document.getElementById('signatureInput');
+                    let file = '';
+                    if(el.dataset.key == 'signature'){
+                        file = document.getElementById('signatureInput');
+                    }else if(el.dataset.key == 'logo'){
+                        file = document.getElementById('LogoInput');
+                    }
+
                     if (file){
                         formData.append(el.dataset.key, file.files[0] || '');
                     }
@@ -1258,13 +1270,13 @@ include './Backend/config.php';
 
             // TEXT
             else {
-                formData.append(el.dataset.key, el.innerText.trim());
+                formData.append(el.dataset.key, el.innerHTML);
             }
         });
 
-        // formData.forEach((value, key) => {
-        //     console.log(`${key}: ${value}`);
-        // });
+        formData.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+        });
 
         fetch('./Backend/save_letter.php', {
             method: 'POST',
@@ -1272,6 +1284,7 @@ include './Backend/config.php';
         })
         .then(r => r.json())
         .then((res) => {
+            console.log(res);
             if(res.status == 200){
                 showSuccessAlert('successAlert')
             }

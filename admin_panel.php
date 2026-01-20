@@ -248,19 +248,23 @@ body {
 
     .header {
         text-align: center;
+        display: flex;
         padding-bottom: 30px;
         border-bottom: 2px solid #000;
+        align-items: center;
+        gap: 10px;
+        flex-direction: row;
     }
 
     .header h2 {
         margin: 5px 0;
-        font-size: 18px;
+        font-size: 19px;
         font-weight: bold;
     }
 
     .header p {
         margin: 0;
-        font-size: 14px;
+        font-size: 10px;
     }
 
     .date-ref {
@@ -310,7 +314,8 @@ body {
         text-align: right;
     }
 
-    .signature img {
+    .signature img,
+    .header img {
         width: 120px;
         display: block;
         margin-left: auto;
@@ -468,46 +473,53 @@ body {
             <div class="page">
                 <div class="dom-alert"><sup>*</sup>Changes made in the given document will be applicable everywhere.</div>
                 <div class="header">
-                    <h2 class="editable" contenteditable="true" data-key="college_name"><?= $letter_data['college_name'] ?? '' ?></h2>
-                    <p class="editable" contenteditable="true" data-key="section_name"><?= $letter_data['section_name'] ?? '' ?></p>
+                    <div>
+                        <img  src="./upload/<?= $letter_data['logo'] ?? '' ?>" id="LogoImg" data-key="logo" onclick="uploadImage(this)" style="cursor:pointer;" alt="Logo">
+                        <input  type="file"  accept="image/*" id="LogoInput" hidden>
+                    </div>
+                    <div>
+                        <div class="editable" contenteditable="true" data-key="college_name"><?= $letter_data['college_name'] ?? '' ?></div>
+                        <div class="editable" contenteditable="true" data-key="section_name"><?= $letter_data['section_name'] ?? '' ?></div>
+                        <div class="editable" contenteditable="true" data-key="institute_address"><?= $letter_data['institute_address'] ?? '' ?></div>
+                    </div>
                 </div>
 
                 <div class="date-ref">
                     <span><div class="date">Date : </div>________</span>
-                    <span><div class="ref-no">Ref : </div>________</span>
+                    <span><div class="ref-no">Ref : </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
                 </div>
-
+                <div class="editable" contenteditable="true" data-key="order_by"><?= $letter_data['order_by'] ?? '' ?></div>
                 <div class="content">
                     
                     <div class="online">
                         To,<br>
                         faculty_name Here,<br>
-                        <p class="editable" contenteditable="true" data-key="department">
+                        <div class="editable" contenteditable="true" data-key="department">
                             <?= $letter_data['department'] ?? '' ?>
-                        </p>
-                        <p class="editable" contenteditable="true" data-key="college_address">
+                        </div>
+                        <div class="editable" contenteditable="true" data-key="college_address">
                             <?= $letter_data['college_address'] ?? '' ?>
-                        </p>
-                    </div> 
+                        </div>
+                    </div>
 
                     <div class="inline">
                         Subject :
-                        <p class="subject editable" contenteditable="true" data-key="subject_name">
+                        <div class="subject editable" contenteditable="true" data-key="subject_name">
                             <?= $letter_data['subject_name'] ?? '' ?>
-                        </p>
+                        </div>
                     </div>
 
-                    <p class="editable" contenteditable="true" data-key="body_para_1">
+                    <div class="editable" contenteditable="true" data-key="body_para_1">
                         <?= $letter_data['body_para_1'] ?? '' ?>
-                    </p>
+                    </div>
 
-                    <p class="editable" contenteditable="true" data-key="body_para_2">
+                    <div class="editable" contenteditable="true" data-key="body_para_2">
                         <?= $letter_data['body_para_2'] ?? '' ?>
-                    </p>
+                    </div>
 
-                    <p class="editable" contenteditable="true" data-key="body_para_3">
+                    <div class="editable" contenteditable="true" data-key="body_para_3">
                         <?= $letter_data['body_para_3'] ?? '' ?>
-                    </p>
+                    </div>
 
                     <span class="inline">
                         <strong>Show Schedule :</strong>
@@ -548,13 +560,13 @@ body {
                     </table>
 
                     <div class="signature">
-                        <p class="editable" contenteditable="true" data-key="closing_text"><?= $letter_data['closing_text'] ?? '' ?></p>
+                        <div class="editable" contenteditable="true" data-key="closing_text"><?= $letter_data['closing_text'] ?? '' ?></div>
                         <span class="sign-area">
                             <img  src="./upload/<?= $letter_data['signature'] ?? '' ?>" id="signatureImg" data-key="signature" onclick="uploadImage(this)" style="cursor:pointer;" alt="Signature">
                             <input  type="file"  accept="image/*" id="signatureInput" hidden>
-                            <strong class="editable" contenteditable="true" data-key="official_designation"><?= $letter_data['official_designation'] ?? '' ?></strong>
-                            <span class="editable" contenteditable="true" data-key="off_name"><?= $letter_data['off_name'] ?? '' ?></span>
-                            <span class="editable" contenteditable="true" data-key="off_address"><?= $letter_data['off_address'] ?? '' ?></span>
+                            <div class="editable" contenteditable="true" data-key="official_designation"><?= $letter_data['official_designation'] ?? '' ?></div>
+                            <div class="editable" contenteditable="true" data-key="off_name"><?= $letter_data['off_name'] ?? '' ?></div>
+                            <div class="editable" contenteditable="true" data-key="off_address"><?= $letter_data['off_address'] ?? '' ?></div>
                         </span>
                     </div>
                 </div>
