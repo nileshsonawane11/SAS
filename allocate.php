@@ -16,6 +16,7 @@ $reliever = (int)$admin_rules['reliever'];
 $extra_faculty = (float)$admin_rules['extra_faculty'];
 $teaching_staff = (float)$admin_rules['teaching_staff'];
 $non_teaching_staff = (float)$admin_rules['non_teaching_staff'];
+$schedule_row = [];
 
 /* =====================================================
    LOAD FACULTY
@@ -332,6 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
             VALUES ('$key', '$s_id', '$schedule')
         ";
 
+
         try {
             mysqli_query($conn, $sql);
         } catch (mysqli_sql_exception $e) {
@@ -374,7 +376,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
     exit;
 }
 
-if($schedule_row['scheduled']){
+if($schedule_row['scheduled'] && !empty($schedule_row['scheduled'])){
     header("Location: ./slot_allocation.php?s=$s_id");
     exit;
 }
