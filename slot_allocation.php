@@ -18,6 +18,7 @@ SELECT
     bsl.block_name,
     f.faculty_name,
     f.dept_code,
+    f.role,
     s.blocks
 FROM block_supervisor_list bsl
 JOIN schedule s ON s.id = bsl.s_id
@@ -37,6 +38,7 @@ $res = mysqli_stmt_get_result($stmt);
 $facultyAssignments = [];
 $facultyName = [];
 $facultyDept = [];
+$facultyRole = []; // NEW: Store faculty role
 $allDatesSlots = [];
 $dutyCount = [];
 $conflicts = [];
@@ -47,18 +49,32 @@ while ($row = mysqli_fetch_assoc($res)) {
     $fid = $row['faculty_id'];
     $schedule = json_decode($row['schedule'], true);
     $slots_blocks = json_decode($row['blocks'], true);
+
     $facultyName[$fid] = $row['faculty_name'];
     $facultyDept[$fid] = $row['dept_code'];
+    $facultyRole[$fid] = $row['role'];
     $dutyCount[$fid] = 0;
+
+    // ⚠️ IMPORTANT: Ensure faculty is added even if schedule is empty
+    if (!isset($facultyAssignments[$fid])) {
+        $facultyAssignments[$fid] = [];
+    }
+
+    // If schedule is empty, still show faculty
+    if (empty($schedule)) {
+        continue;
+    }
 
     foreach ($schedule as $date => $slots) {
         foreach ($slots as $slot => $v) {
+
             /* CONFLICT CHECK */
             if (isset($facultyAssignments[$fid][$date][$slot])) {
                 $conflicts[$fid][$date][$slot] = true;
             }
 
             $facultyAssignments[$fid][$date][$slot]['assigned'] = true;
+
             if (isset($slots[$slot]['block'])) {
                 $facultyAssignments[$fid][$date][$slot]['block'] = $slots[$slot]['block'];
             }
@@ -68,15 +84,16 @@ while ($row = mysqli_fetch_assoc($res)) {
             if (isset($slots[$slot]['sub'])) {
                 $facultyAssignments[$fid][$date][$slot]['sub'] = $slots[$slot]['sub'];
             }
+
             $allDatesSlots[$date][$slot] = true;
             $dutyCount[$fid]++;
         }
     }
 }
 
-// echo "<pre>";
-// print_r($facultyAssignments);
-// echo "</pre>";
+echo "<pre>";
+print_r(count($facultyAssignments));
+echo "</pre>";
 
 /* SORT DATES & SLOTS */
 ksort($allDatesSlots);
@@ -92,6 +109,7 @@ $filterDept = $_GET['dept'] ?? '';
 $search = strtolower($_GET['search'] ?? '');
 $filterDate = $_GET['date'] ?? '';
 $filterSlot = $_GET['slot'] ?? '';
+$filterRole = $_GET['role'] ?? ''; // NEW: Role filter
 
 /* ===============================
    EXPORT HANDLER
@@ -393,10 +411,12 @@ $today = date('d-M-Y');
             transform: translateX(-50%);
             background: #111;
             color: #fff;
+            z-index: 999;
             padding: 4px 8px;
             font-size: 12px;
             border-radius: 6px;
             white-space: nowrap;
+            cursor: pointer;
         }
 
         .swap-source {
@@ -521,6 +541,43 @@ $today = date('d-M-Y');
             background: #dddddd;
         }
         
+        /* NEW: Role indicator styles */
+        .role-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 10px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        .role-ts {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .role-nts {
+            background-color: #059669;
+            color: white;
+        }
+        .role-cell {
+            width: 80px;
+            text-align: center;
+        }
+        .add-cell {
+            cursor: pointer;
+            text-align: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border: 2px dashed #b0b0b0;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .add-cell:hover {
+            background: #f1f1f1;
+            border-color: #888;
+            color: #222;
+        }
     </style>
 </head>
 
@@ -544,6 +601,14 @@ $today = date('d-M-Y');
                         <?php foreach (array_unique($facultyDept) as $d): ?>
                             <option <?= $filterDept == $d ? 'selected' : '' ?>><?= $d ?></option>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select class="inputfield form-select" name="role">
+                        <option value="">All Roles</option>
+                        <option value="TS" <?= $filterRole == 'TS' ? 'selected' : '' ?>>Teaching Staff</option>
+                        <option value="NTS" <?= $filterRole == 'NTS' ? 'selected' : '' ?>>Non-Teaching Staff</option>
                     </select>
                 </div>
 
@@ -592,6 +657,73 @@ $today = date('d-M-Y');
                 <button type="button" onclick="closeFullscreen()" class="exit-fullscreen"><i class="fas fa-solid fa-compress"></i></button>
             </div>
         </div>
+        
+        <!-- ================= STATISTICS ================= -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary text-white rounded p-2 me-3">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Faculty</h6>
+                                        <p class="mb-0 fw-bold">
+                                            <?= count($facultyAssignments) ?>
+                                            <small class="text-muted">
+                                                (TS: <?= count(array_filter($facultyRole, fn($r) => $r === 'TS')) ?>, 
+                                                NTS: <?= count(array_filter($facultyRole, fn($r) => $r === 'NTS')) ?>)
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success text-white rounded p-2 me-3">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Duties</h6>
+                                        <p class="mb-0 fw-bold"><?= array_sum($dutyCount) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning text-white rounded p-2 me-3">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Days</h6>
+                                        <p class="mb-0 fw-bold"><?= count($allDatesSlots) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info text-white rounded p-2 me-3">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Slots</h6>
+                                        <p class="mb-0 fw-bold">
+                                            <?= 
+                                                array_sum(array_map('count', $allDatesSlots))
+                                            ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= TABLE ================= -->
         <table class="supervision">
             <thead>               
@@ -599,6 +731,7 @@ $today = date('d-M-Y');
                 <th rowspan="4">Sr</th>
                 <th rowspan="4">Supervisor</th>
                 <th rowspan="4">Dept</th>
+                <th rowspan="4">Role</th> <!-- NEW: Role column -->
 
                 <?php foreach ($allDatesSlots as $date => $slots): ?>
                     <?php if ($filterDate && $filterDate !== $date) continue; ?>
@@ -617,7 +750,8 @@ $today = date('d-M-Y');
                         <?= htmlspecialchars($date) ?>
                     </th>
                 <?php endforeach; ?>
-                <th rowspan="4">Duties</th>
+                <th rowspan="4" class="signature">Duties Allocated</th>
+                <th rowspan="4" class="signature">Total Duties</th>
             </tr>
 
             <tr>
@@ -668,23 +802,43 @@ $today = date('d-M-Y');
                 $sr = 1;
                 $duties_grabd_total = 0;
                 $blocks_grabd_total = 0;
+                $blocks_required_grand_total = [];
+                $allocated_blocks_grabd_total = 0;
+                $filtered_faculty_count = 0;
             ?>
+             <tr>
+                    <td colspan="12" class="add-cell" onclick="openFacultyMenu(event,this)">
+                        <span class="add-icon">➕</span>
+                        <span class="add-text">Add Faculty</span>
+                    </td>
+                </tr>
             <?php foreach ($facultyAssignments as $fid => $assignments): ?>
 
                 <?php
-                $sup_count = 0;
+                $sup_count = 0; 
+                $blocks_assign = 0;
+                
+                // Apply filters
                 if ($filterDept && $facultyDept[$fid] != $filterDept) continue;
+                if ($filterRole && $facultyRole[$fid] != $filterRole) continue; // NEW: Role filter
                 if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) continue;
+                
+                $filtered_faculty_count++;
                 ?>
-
                 <tr class="tbl_row<?= $dutyCount[$fid] > 6 ? 'overload' : '' ?>">
                     <td><?= $sr++ ?></td>
                     <td class="left faculty-cell"
                         data-fid="<?= $fid ?>"
                         oncontextmenu="openFacultyMenu(event,this)">
                         <?= htmlspecialchars($facultyName[$fid]) ?>
+                       
                     </td>
                     <td><?= htmlspecialchars($facultyDept[$fid]) ?></td>
+                    <td class="role-cell">
+                         <span class="role-badge <?= $facultyRole[$fid] === 'TS' ? 'role-ts' : 'role-nts' ?>">
+                            <?= $facultyRole[$fid] ?>
+                        </span>
+                    </td>
 
                     <?php foreach ($allDatesSlots as $date => $slots): ?>
                         <?php if ($filterDate && $filterDate !== $date) continue; ?>
@@ -695,7 +849,9 @@ $today = date('d-M-Y');
                             $class = '';
                             if (isset($conflicts[$fid][$date][$slot])) $class = 'conflict';
 
-                            // echo "<pre>";print_r($assignments);echo "</pre>";
+                            // Get block number if exists
+                            $blockNumber = $assignments[$date][$slot]['block'] ?? '';
+                            $hasBlock = !empty($blockNumber);
                             ?>
 
                             <td class="<?= $class ?> cell"
@@ -710,42 +866,79 @@ $today = date('d-M-Y');
                                                     : ""
                                                 ?>"
                                 oncontextmenu="openDialog(event,this)">
-                                <?= ($assignments[$date][$slot]['assigned'] ?? false)
-                                    ? (!empty($assignments[$date][$slot]['block'])
-                                        ? "<strong>{$assignments[$date][$slot]['block']}   </strong>"
-                                        : "✓")
-                                    : ""
-                                ?>
-                                <?php ($assignments[$date][$slot]['assigned'] ?? false)
-                                    ? $sup_count++
-                                    : ""
-                                ?>
-                                <sub><?php echo $assignments[$date][$slot]['sub'] ?? '' ?></sub>
+                                <?php if ($assignments[$date][$slot]['assigned'] ?? false): ?>
+                                    <?php if ($hasBlock): ?>
+                                        <strong>✓</strong>
+                                    <?php else: ?>
+                                        *
+                                    <?php endif; ?>
+                                    <?php $sup_count++; ?>
+                                    <?php if ($hasBlock) $blocks_assign++; ?>
+                                <?php else: ?>
+                                <?php endif; ?>
                                 <div class="con-tool"></div>
                             </td>
 
                         <?php endforeach; ?>
                     <?php endforeach; ?><div id="facultyMenu" class="context-menu"></div>
-                    <?php $duties_grabd_total += $sup_count; ?>
-                    <td><?= $sup_count; ?></td>
+                    <?php 
+                        $duties_grabd_total += $sup_count; 
+                        $allocated_blocks_grabd_total += $blocks_assign;
+                    ?>
+                    <td><?= $blocks_assign ?></td>
+                    <td><?= $sup_count ?></td>
                 </tr>
 
             <?php endforeach; ?>
-            <tr class="grand-total">
-                <td colspan="3">Total Blocks</td>
-                <?php foreach ($slots_blocks as $date => $times): ?>
-    
-                    <?php foreach ($times as $slot => $_): ?>
-                        <?php 
-                            $blocks_grabd_total += (int)$slots_blocks[$date][$slot]['blocks']; 
-                        ?>
-                        <td><?= $slots_blocks[$date][$slot]['blocks']; ?></td>
-                    <?php endforeach; ?>
 
+            <?php 
+            // Calculate totals for displayed slots only
+            $displayed_slots_total = 0;
+            foreach ($slots_blocks as $date => $times): ?>
+                <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                <?php foreach ($times as $slot => $_): ?>
+                    <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                    <?php 
+                        $displayed_slots_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0);
+                        $blocks_grabd_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0); 
+                        $blocks_required_grand_total[$date][$slot] = (int)($slots_blocks[$date][$slot]['total_required'] ?? 0); 
+                    ?>
                 <?php endforeach; ?>
-                <td class="split-cell">
-                    <span><?= $blocks_grabd_total ?></span>
-                    <span><?= $duties_grabd_total ?></span>
+            <?php endforeach; ?>
+
+            <tr class="grand-total">
+                <td colspan="3">Total Blocks : </td>
+                <td><?= $blocks_grabd_total ?></td>
+                
+                <?php foreach ($slots_blocks as $date => $times): ?>
+                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                    <?php foreach ($times as $slot => $_): ?>
+                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                        <td><?= ($slots_blocks[$date][$slot]['blocks'] ?? 0)."<br> / ".($blocks_required_grand_total[$date][$slot] ?? 0); ?></td>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+                
+                <td >
+                    <?= $allocated_blocks_grabd_total ?>
+                </td>
+                <td>
+                    <?= $duties_grabd_total ?>
+                </td>
+            </tr>
+            
+            <!-- Summary Row -->
+            <tr class="table-info">
+                <td colspan="4" class="text-end"><strong>Display Summary:</strong></td>
+                <td colspan="<?= count($allDatesSlots) ?>">
+                    Showing <?= $filtered_faculty_count ?> faculty 
+                    <?= $filterDept ? "from $filterDept department" : "" ?>
+                    <?= $filterRole ? "($filterRole)" : "" ?>
+                    <?= $filterDate ? "on $filterDate" : "" ?>
+                    <?= $filterSlot ? "at $filterSlot" : "" ?>
+                    <?= $search ? "matching '$search'" : "" ?>
+                </td>
+                <td colspan="2" class="text-center">
+                    <small>TS: Teaching Staff | NTS: Non-Teaching Staff</small>
                 </td>
             </tr>
         </table>
@@ -753,10 +946,11 @@ $today = date('d-M-Y');
         <!-- ================= ACTIONS ================= -->
         <form method="POST" class="mt-3 text-end">
             <button class="btn btn-success export-btn" name="export">
-                Export PDF
+                <i class="fas fa-file-pdf"></i> Export PDF
             </button>
         </form>
 
+        <!-- ================= MODALS ================= -->
         <div class="modal fade" id="replaceFacultyModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content">
@@ -779,7 +973,8 @@ $today = date('d-M-Y');
                         </button>
 
                         <button type="button"
-                                class="btn btn-success"
+                                data-type=""
+                                class="btn btn-success replace-add-faculty"
                                 onclick="replaceFaculty()">
                             Replace
                         </button>
@@ -789,6 +984,7 @@ $today = date('d-M-Y');
             </div>
         </div>
 
+        <!-- ================= DIALOG ================= -->
         <div id="dialog" class="dialog-overlay">
             <div class="dialog">
                 <div class="dialog-header">
@@ -876,7 +1072,9 @@ $today = date('d-M-Y');
 
         /* ================= CELL CURSOR ================= */
         document.querySelectorAll('.cell').forEach(td => {
-            if (td.innerText.trim() !== '') td.style.cursor = 'pointer';
+            if (td.innerText.trim() !== '' && td.innerText.trim() !== '-') {
+                td.style.cursor = 'pointer';
+            }
         });
 
         function drawSwapRectangle(source, target) {
@@ -899,7 +1097,7 @@ $today = date('d-M-Y');
 
         /* ================= ENABLE SWAP ================= */
         function enableSwapMode() {
-            if (!cell || cell.innerText.trim() === '') {
+            if (!cell || cell.innerText.trim() === '' || cell.innerText.trim() === '-') {
                 alert("No faculty selected for swap");
                 return;
             }
@@ -909,7 +1107,7 @@ $today = date('d-M-Y');
             swapSource.classList.add("swap-source");
 
             closeDialog();
-            alert("Click another FILLED cell in the SAME SLOT to swap");
+            alert("Click another FILLED cell in the other SLOT to swap");
         }
 
         /* ================= CELL CLICK HANDLER ================= */
@@ -922,10 +1120,10 @@ $today = date('d-M-Y');
 
                     if (td === swapSource) return;
 
-                    if (td.innerText.trim() === '') {
-                        alert("Empty cell cannot be swapped");
-                        return;
-                    }
+                    // if (td.innerText.trim() === '' || td.innerText.trim() === '-') {
+                    //     alert("Empty cell cannot be swapped");
+                    //     return;
+                    // }
 
                     // 🔄 Clear previous target if exists
                     if (swapTarget && swapTarget !== td) {
@@ -945,7 +1143,7 @@ $today = date('d-M-Y');
                 }
 
                 /* ---------- NORMAL BLOCK UPDATE ---------- */
-                if (td.innerText.trim() !== '') {
+                if (td.innerText.trim() !== '' && td.innerText.trim() !== '-') {
                     let block = prompt("Enter Block No:");
                     if (block === null) return;
 
@@ -966,7 +1164,7 @@ $today = date('d-M-Y');
                         .then((data) => {
                             console.log(data);
                             if (data.status == 200) {
-                                td.innerHTML = block.trim() ? `<strong>${block}</strong>` : "✓";
+                                td.innerHTML = block.trim() ? `<strong>${block}</strong>` : "*";
                             } else {
                                 alert(data.msg);
                             }
@@ -1074,7 +1272,7 @@ $today = date('d-M-Y');
 
         function openDialog(e, td) {
             e.preventDefault();
-            if (td.innerText.trim() === '') return;
+            if (td.innerText.trim() === '' || td.innerText.trim() === '-') return;
 
             cell = td;
             resetDialog();
@@ -1136,7 +1334,7 @@ $today = date('d-M-Y');
                 .then(data => {
                     facultyList.innerHTML = `<option value="">Select Faculty</option>`;
                     data.forEach(f => {
-                        facultyList.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+                        facultyList.innerHTML += `<option value="${f.id}">${f.name} (${f.role})</option>`;
                     });
                 });
         }
@@ -1206,21 +1404,30 @@ $today = date('d-M-Y');
 
             selectedFacultyId = el.dataset.fid;
 
-            loadReplacementFaculty();
+            loadReplacementFaculty(el);
         }
 
-        function loadReplacementFaculty() {
+        function loadReplacementFaculty(el) {
             fetch('./Backend/get_available_faculty.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     faculty_id: selectedFacultyId,
-                    s_id : S_ID
+                    s_id : S_ID,
+                    role_filter: '<?= $filterRole ?>' // Pass role filter
                 })
             })
             .then(res => res.json())
             .then(data => {
-                console.log(data);
+                // console.log(data);
+                let task_btn = document.querySelector('.replace-add-faculty');
+                if(el.classList.contains('faculty-cell')){
+                    task_btn.dataset.type = "replace";
+                    task_btn.innerText = 'Replace';
+                }else if(el.classList.contains('add-cell')){
+                    task_btn.dataset.type = "add";
+                    task_btn.innerText = 'Add';
+                }
                 showFacultyReplaceDialog(data);
             });
         }
@@ -1235,7 +1442,7 @@ $today = date('d-M-Y');
                 list.forEach(f => {
                     const opt = document.createElement('option');
                     opt.value = f.id;
-                    opt.textContent = `${f.faculty_name} (${f.dept_code})`;
+                    opt.textContent = `${f.faculty_name} (${f.dept_code}) - ${f.role}`;
                     select.appendChild(opt);
                 });
             }
@@ -1247,32 +1454,86 @@ $today = date('d-M-Y');
         }
 
         function replaceFaculty() {
+            let task_btn = document.querySelector('.replace-add-faculty');
+            let task_type = task_btn.dataset.type;
+            task_btn.innerText = 'Processing...';
+            task_btn.disabled = true;
+            
             const newFacultyId = document.getElementById('newFaculty').value;
 
-            fetch('./Backend/replace_faculty.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    old_fid: selectedFacultyId,
-                    new_fid: newFacultyId,
-                    s_id: S_ID
+            if(task_type == 'replace'){
+                fetch('./Backend/replace_faculty.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        old_fid: selectedFacultyId,
+                        new_fid: newFacultyId,
+                        s_id: S_ID
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(resp => {
+                .then(res => res.json())
+                .then(resp => {
 
-                if (!resp.success) {
-                    alert(resp.error);
-                    return;
-                }
+                    if (!resp.success) {
+                        alert(resp.error);
+                        return;
+                    }
 
-                bootstrap.Modal
-                    .getInstance(document.getElementById('replaceFacultyModal'))
-                    .hide();
+                    task_btn.innerText = '';
+                    task_btn.disabled = false;
+                    bootstrap.Modal
+                        .getInstance(document.getElementById('replaceFacultyModal'))
+                        .hide();
 
-                location.reload();
-            });
+                    location.reload();
+                });
+            }else if(task_type == 'add'){
+                fetch('./Backend/add_to_supervision.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        faculty_id: newFacultyId,
+                        s_id: S_ID
+                    })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    console.log(resp)
+                    if (!resp.success) {
+                        alert(resp.error);
+                        return;
+                    }
+
+                    bootstrap.Modal
+                        .getInstance(document.getElementById('replaceFacultyModal'))
+                        .hide();
+
+                    location.reload();
+                });
+            }
         }
+        
+        // Quick filter shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+T for Teaching staff filter
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                window.location.href = '?s=<?= $s_id ?>&role=TS';
+            }
+            // Ctrl+N for Non-teaching staff filter
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                window.location.href = '?s=<?= $s_id ?>&role=NTS';
+            }
+            // Ctrl+A for All roles
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                window.location.href = '?s=<?= $s_id ?>';
+            }
+        });
+
+        // ++++++++++++++++++++++++++++++++++++
+        
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>

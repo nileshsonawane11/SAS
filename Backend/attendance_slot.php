@@ -191,6 +191,7 @@ $res = mysqli_query($conn, "
     FROM block_supervisor_list bsl
     JOIN faculty f ON f.id = bsl.faculty_id
     WHERE bsl.s_id='$s_id'
+    ORDER BY f.role DESC
 ");
 
 $rows = [];
@@ -242,8 +243,8 @@ foreach ($rows as $r) {
     $pdf->SetXY($x + 65, $y);
 
     $pdf->Cell(13, 12, $r['dept'], 1, 0, 'C');
-    $pdf->Cell(13, 12, $r['block'], 1, 0, 'C');
-    $pdf->Cell(45, 12, '-', 1, 0, 'C');
+    $pdf->Cell(13, 12, '', 1, 0, 'C');
+    $pdf->Cell(45, 12, '', 1, 0, 'C');
     $pdf->Cell(30, 12, '', 1, 0, 'C');
     $pdf->Cell(25, 12, '', 1, 1);
 }

@@ -49,7 +49,7 @@ if ($faculty_name === '' || $mobile === '') {
     exit;
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode([
         'status' => 422,
         'message' => 'Invalid email'

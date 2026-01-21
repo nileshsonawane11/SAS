@@ -231,7 +231,7 @@ $sr = 1;
 
 foreach ($rows as $r) {
     $pdf->Cell(15, 8, $sr++, 1, 0, 'C');
-    $pdf->Cell(35, 8, $r['block'], 1, 0, 'C');
+    $pdf->Cell(35, 8, '', 1, 0, 'C');
     $pdf->Cell(95, 8, $r['faculty'], 1, 0);
     $pdf->Cell(40, 8, $r['dept'], 1, 1, 'C');
 }

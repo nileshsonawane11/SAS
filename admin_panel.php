@@ -228,7 +228,18 @@ body {
     }
 
     /* A4 PRINT LAYOUT */
-    .page {
+    .page1 {
+        width: 100%;
+        max-width: 210mm;
+        position: relative;
+        min-height: 297mm;
+        margin: 20px auto;
+        background: #fff;
+        padding: 25mm 20mm;
+        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+
+    .page2 {
         width: 100%;
         max-width: 210mm;
         position: relative;
@@ -255,6 +266,7 @@ body {
         align-items: center;
         gap: 10px;
         flex-direction: row;
+        justify-content: center;
     }
 
     .header h2 {
@@ -312,7 +324,6 @@ body {
 
     .signature {
         margin-top: 50px;
-        text-align: right;
     }
 
     .signature img,
@@ -350,7 +361,11 @@ body {
         body {
             background: none;
         }
-        .page {
+        .page1 {
+            box-shadow: none;
+            margin: 0;
+        }
+        .page2 {
             box-shadow: none;
             margin: 0;
         }
@@ -484,7 +499,7 @@ body {
 
         <div class="section section2">
             <h3 class="section-head">Documentation Settings</h3>
-            <div class="page">
+            <div class="page1">
                 <div class="dom-alert"><sup>*</sup>Changes made in the given document will be applicable everywhere.</div>
                 <div class="header">
                     <div>
@@ -500,9 +515,10 @@ body {
 
                 <div class="date-ref">
                     <span><div class="date">Date : </div>________</span>
-                    <span><div class="ref-no">Ref : </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
+                    <span><div class="ref-no">Outword No. : </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
                 </div>
                 <div class="editable" contenteditable="true" data-key="order_by"><?= $letter_data['order_by'] ?? '' ?></div>
+                 <div class="editable" contenteditable="true" data-key="reference"><?= $letter_data['reference'] ?? '' ?></div>
                 <div class="content">
                     
                     <div class="online">
@@ -585,6 +601,7 @@ body {
                     </div>
                 </div>
             </div>
+
             <div class="text-center mt-4">
                 <button class="btn btn-primary px-4" onclick="saveLetter()">Save Document</button>
             </div>

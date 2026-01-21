@@ -1,6 +1,5 @@
 <?php
 header('Content-Type: application/json');
-// require './Backend/auth_guard.php';
 require_once "./Backend/config.php"; // must define $conn
 
 /* ================= RESPONSE HELPER ================= */
@@ -10,14 +9,6 @@ function respond($success, $message, $extra = []) {
         "message" => $message
     ], $extra));
     exit;
-}
-
-function hasSlot($schedule, $date, $slot) {
-    return (
-        isset($schedule[$date]) &&
-        isset($schedule[$date][$slot]) &&
-        !empty($schedule[$date][$slot]['assigned'])
-    );
 }
 
 /* ================= READ INPUT ================= */
@@ -32,7 +23,6 @@ $to   = $data['to'];
 
 /* ================= REQUIRED FIELDS ================= */
 $required = ['fid', 'date', 'slot', 's_id'];
-
 foreach ($required as $r) {
     if (empty($from[$r]) || empty($to[$r])) {
         respond(false, "Missing required field: $r");
@@ -51,18 +41,13 @@ $toSlot   = $to['slot'];
 
 $s_id     = $from['s_id'];
 
-/* ================= BASIC SAFETY ================= */
+/* ================= NO-OP PROTECTION ================= */
 if (
+    $fromFid === $toFid &&
     $fromDate === $toDate &&
     $fromSlot === $toSlot
 ) {
-    respond(false, "Cannot swap the same slot");
-}
-
-if (
-    $fromFid === $toFid
-) {
-    respond(false, "Cannot swap the same faculty");
+    respond(false, "Nothing to change");
 }
 
 /* ================= DB TRANSACTION ================= */
@@ -70,7 +55,7 @@ $conn->begin_transaction();
 
 try {
 
-    /* ================= FETCH BOTH FACULTY SCHEDULES ================= */
+    /* ================= FETCH FACULTY SCHEDULES ================= */
     $stmt = $conn->prepare("
         SELECT faculty_id, schedule
         FROM block_supervisor_list
@@ -82,54 +67,66 @@ try {
     $stmt->execute();
     $res = $stmt->get_result();
 
-    if ($res->num_rows !== 2) {
-        throw new Exception("One or both faculty records not found");
+    if ($res->num_rows < 1) {
+        throw new Exception("Faculty schedule not found");
     }
 
-    /* ================= DECODE SCHEDULES ================= */
-    $rows = [];
+    $rows = [
+        $fromFid => [],
+        $toFid   => []
+    ];
+
     while ($row = $res->fetch_assoc()) {
         $rows[$row['faculty_id']] =
             json_decode($row['schedule'], true) ?? [];
     }
 
-    /* ================= VALIDATE FROM SLOT ================= */
-    if (
-        empty($rows[$fromFid][$fromDate][$fromSlot]) ||
-        empty($rows[$fromFid][$fromDate][$fromSlot]['assigned'])
-    ) {
-        throw new Exception("Source slot is not assigned");
+    /* ================= SLOT STATES ================= */
+    $fromData = $rows[$fromFid][$fromDate][$fromSlot] ?? null;
+    $toData   = $rows[$toFid][$toDate][$toSlot] ?? null;
+
+    $fromHas = !empty($fromData['assigned']);
+    $toHas   = !empty($toData['assigned']);
+
+    /* ================= RULE ENFORCEMENT ================= */
+
+    // Empty ➜ Empty
+    if (!$fromHas && !$toHas) {
+        throw new Exception("Both source and target slots are empty");
     }
 
-    /* ================= VALIDATE TO SLOT ================= */
-    if (
-        empty($rows[$toFid][$toDate][$toSlot]) ||
-        empty($rows[$toFid][$toDate][$toSlot]['assigned'])
-    ) {
-        throw new Exception("Target slot is not assigned");
+    /* ================= APPLY MOVE / SWAP ================= */
+
+    // Slot ➜ Slot (SWAP)
+    if ($fromHas && $toHas) {
+
+        $rows[$fromFid][$fromDate][$fromSlot] = $toData;
+        $rows[$toFid][$toDate][$toSlot]       = $fromData;
+
+    }
+    // Slot ➜ Empty (MOVE)
+    elseif ($fromHas && !$toHas) {
+
+        $rows[$toFid][$toDate][$toSlot] = $fromData;
+        unset($rows[$fromFid][$fromDate][$fromSlot]);
+
+    }
+    // Empty ➜ Slot (REVERSE MOVE)
+    elseif (!$fromHas && $toHas) {
+
+        $rows[$fromFid][$fromDate][$fromSlot] = $toData;
+        unset($rows[$toFid][$toDate][$toSlot]);
+
     }
 
-    /* ================= CONFLICT PREVENTION ================= */
-    /* From faculty already has target slot */
-    if (hasSlot($rows[$fromFid], $toDate, $toSlot)) {
-        throw new Exception("Swap not allowed: source faculty already has $toDate ($toSlot)");
+    /* ================= CLEAN EMPTY DATES ================= */
+    foreach ([$fromFid, $toFid] as $fid) {
+        foreach ($rows[$fid] as $date => $slots) {
+            if (empty($slots)) {
+                unset($rows[$fid][$date]);
+            }
+        }
     }
-
-    /* To faculty already has source slot */
-    if (hasSlot($rows[$toFid], $fromDate, $fromSlot)) {
-        throw new Exception("Swap not allowed: target faculty already has $fromDate ($fromSlot)");
-    }
-
-    /* ================= PERFORM SWAP ================= */
-    $temp = $rows[$fromFid][$fromDate][$fromSlot];
-
-    $rows[$fromFid][$toDate][$toSlot] =
-        $rows[$toFid][$toDate][$toSlot];
-
-    $rows[$toFid][$fromDate][$fromSlot] = $temp;
-
-    unset($rows[$toFid][$toDate][$toSlot]);
-    unset($rows[$fromFid][$fromDate][$fromSlot]);
 
     /* ================= UPDATE DATABASE ================= */
     $update = $conn->prepare("
@@ -155,7 +152,7 @@ try {
     $conn->commit();
 
     /* ================= SUCCESS ================= */
-    respond(true, "Faculty slots swapped successfully", [
+    respond(true, "Faculty assignment updated successfully", [
         "from" => [
             "fid"  => $fromFid,
             "date" => $fromDate,
