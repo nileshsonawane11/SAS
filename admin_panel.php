@@ -502,9 +502,10 @@ body {
 
                 <div class="date-ref">
                     <span><div class="date">Date : </div>________</span>
-                    <span><div class="ref-no">Ref : </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
+                    <span><div class="ref-no">Outword No.: </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
                 </div>
                 <div class="editable" contenteditable="true" data-key="order_by"><?= $letter_data['order_by'] ?? '' ?></div>
+                <span><div class="refe">Reference : </div><div class="editable" contenteditable="true" data-key="reference"><?= $letter_data['reference'] ?? 'Time Table' ?></div></span>
                 <div class="content">
                     
                     <div class="online">
