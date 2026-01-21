@@ -1,4 +1,5 @@
 <?php
+    // require './Backend/auth_guard.php';
     include './Backend/config.php';
     $slot_id = $_GET['s'] ?? '';
     $row = '';

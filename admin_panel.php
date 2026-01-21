@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 include './Backend/config.php';
 
 $setting_row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel LIMIT 1"));
@@ -9,290 +10,375 @@ if(empty($setting_row)){
 $letter_data = json_decode($setting_row['letter_json'],true);
 ?>
 <style>
-    /* ==============================
-   ROOT VARIABLES
-================================ */
-:root {
-    --primary: #2563eb;
-    --primary-dark: #1e40af;
-    --success-bg: #ecfdf5;
-    --success-text: #065f46;
-    --border: #e5e7eb;
-    --text-main: #111827;
-    --text-muted: #6b7280;
-    --bg-soft: #f9fafb;
-    --white: #ffffff;
-}
+    :root {
+        --primary: #7c3aed;
+        --primary-dark: #6d28d9;
+        --primary-light: #8b5cf6;
+        --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        --sidebar-bg: #1e293b;
+        --sidebar-active: #334155;
+        --card-bg: #ffffff;
+        --text-dark: #1e293b;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --transition: all 0.3s ease;
+        --success-bg: #ecfdf5;
+        --success-text: #065f46;
+        --danger: #ef4444;
+    }
 
-.py-5 *{
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;;
-}
-/* ==============================
-   CARD / PANEL
-================================ */
-.panel-box {
-    background: var(--white);
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    margin-bottom: 90px;
-}
-.nav{
-    background-color: #ffff;
-}
-/* ==============================
-   TYPOGRAPHY
-================================ */
-.text-center {
-    text-align: center;
-}
-.section{
-    padding: 25px;
-    display: flex;
-    border-radius: 15px;
-    background: #f6f6f6;
-    gap: 15px;
-    flex-direction: column;
-}
-.fw-bold {
-    font-weight: 700;
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-.mb-4 {
-    margin: 30px;
-}
+    .py-5 {
+        padding: 25px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
 
-.mb-3 {
-    margin-bottom: 20px;
-}
+    /* Main Panel Container */
+    .panel-box {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 30px;
+        box-shadow: var(--shadow);
+        margin-bottom: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
 
-.mt-4 {
-    margin-top: 30px;
-}
+    /* Typography */
+    .text-center {
+        text-align: center;
+    }
 
-h2 {
-    font-size: 26px;
-    margin-bottom: 6px;
-}
+    .fw-bold {
+        font-weight: 700;
+    }
 
-h5 {
-    font-size: 17px;
-    margin-bottom: 15px;
-    color: var(--text-main);
-}
+    .fw-semibold {
+        font-weight: 600;
+    }
 
-/* ==============================
-   ALERTS
-================================ */
-.alert {
-    padding: 14px 18px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    position: fixed;
-    top: 10px;
-    right: 10px;
-}
+    .mb-4 {
+        margin-bottom: 30px;
+    }
 
-.alert-success {
-    background: var(--success-bg);
-    color: var(--success-text);
-    border: 1px solid #10b981;
-}
+    .mb-3 {
+        margin-bottom: 20px;
+    }
 
-.alert-dismissible .btn-close {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-}
+    .mt-4 {
+        margin-top: 30px;
+    }
 
-/* ==============================
-   LABELS
-================================ */
-.form-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 6px;
-    display: block;
-}
+    h2 {
+        font-size: 28px;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
 
-.form-check-label {
-    font-size: 14px;
-    color: var(--text-main);
-}
+    h3 {
+        font-size: 22px;
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
 
-/* ==============================
-   INPUTS
-================================ */
-.form-control {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: 14px;
-    transition: all 0.25s ease;
-}
+    h5 {
+        font-size: 18px;
+        color: var(--text-dark);
+        margin-bottom: 15px;
+    }
 
-.form-control::placeholder {
-    color: var(--text-muted);
-}
+    p {
+        color: var(--text-light);
+        font-size: 15px;
+        line-height: 1.5;
+    }
 
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
+    /* Section Styling */
+    .section {
+        background: #f8fafc;
+        border-radius: var(--radius);
+        padding: 25px;
+        border: 1px solid var(--border);
+        transition: var(--transition);
+    }
 
-/* ==============================
-   CHECKBOX & RADIO
-================================ */
-.form-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+    .section:hover {
+        box-shadow: var(--shadow);
+    }
 
-.form-check-input {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: var(--primary);
-}
+    .section-head {
+        font-size: 20px;
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 25px;
+        text-align: center;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border);
+    }
 
-.form-check-inline {
-    display: inline-flex;
-    align-items: center;
-    margin-right: 16px;
-}
+    /* Alert Styling */
+    .alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 20px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: var(--shadow-lg);
+        animation: slideIn 0.3s ease-out;
+    }
 
-/* ==============================
-   ROLE FIELDS BOX
-================================ */
-#roleFields {
-    background: var(--bg-soft);
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px dashed var(--border);
-    margin-top: 15px;
-}
-/* ==============================
-   BUTTONS
-================================ */
-.btn {
-    border-radius: 10px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.25s ease;
-}
+    .alert-success {
+        background: var(--success-bg);
+        color: var(--success-text);
+        border: 1px solid #10b981;
+    }
 
-.btn-primary {
-    background: var(--primary);
-    color: var(--white);
-    border: none;
-    padding: 14px 42px;
-}
+    .alert-dismissible {
+        padding-right: 40px;
+    }
 
-.btn-primary:hover {
-    background: var(--primary-dark);
-}
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+        color: inherit;
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.7;
+        transition: var(--transition);
+    }
 
-/* ==============================
-   UTILITIES
-================================ */
-.hidden,
-.d-none {
-    display: none;
-}
+    .btn-close:hover {
+        opacity: 1;
+    }
 
-.px-4 {
-    padding-left: 24px;
-    padding-right: 24px;
-}
-.section-head{
-    text-align: center;
-    margin-bottom: 15px;
-    color: #ff0000;
-}
-body {
+    .d-none {
+        display: none;
+    }
+
+    /* Form Controls */
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        transition: var(--transition);
+        background: white;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    /* Checkbox & Radio */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary);
+    }
+
+    .form-check-label {
+        font-size: 15px;
+        color: var(--text-dark);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .form-check-inline {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 20px;
+    }
+
+    /* Role Fields Section */
+    #roleFields {
+        background: white;
+        border-radius: var(--radius-sm);
+        padding: 20px;
+        border: 1px dashed var(--border);
+        margin-top: 15px;
+        transition: var(--transition);
+    }
+
+    #roleFields.hidden {
+        display: none;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 14px 28px;
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .px-4 {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    /* Document Editor Styling */
+    .page1, .page2 {
+        width: 100%;
+        max-width: 210mm;
+        min-height: 297mm;
+        margin: 30px auto;
+        background: white;
+        padding: 25mm 20mm;
+        box-shadow: var(--shadow-lg);
+        border-radius: 8px;
+        position: relative;
         font-family: "Times New Roman", serif;
-        background: #f5f5f5;
     }
 
-    /* A4 PRINT LAYOUT */
-    .page1 {
-        width: 100%;
-        max-width: 210mm;
-        position: relative;
-        min-height: 297mm;
-        margin: 20px auto;
-        background: #fff;
-        padding: 25mm 20mm;
-        box-shadow: 0 0 10px rgba(0,0,0,0.15);
-    }
-
-    .page2 {
-        width: 100%;
-        max-width: 210mm;
-        position: relative;
-        min-height: 297mm;
-        margin: 20px auto;
-        background: #fff;
-        padding: 25mm 20mm;
-        box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    .dom-alert {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 12px;
+        color: var(--danger);
+        font-style: italic;
+        background: rgba(239, 68, 68, 0.1);
+        padding: 5px 10px;
+        border-radius: 4px;
     }
 
     .editable {
         outline: none;
-        background-color: #f4f4f485;
-        border-radius: 8px;
-        padding: 8px;
-        margin: 10px 0;
+        background: rgba(248, 250, 252, 0.5);
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 5px 0;
+        min-height: 20px;
+        transition: var(--transition);
+        border: 1px dashed transparent;
+    }
+
+    .editable:hover,
+    .editable:focus {
+        background: rgba(124, 58, 237, 0.05);
+        border-color: var(--primary-light);
     }
 
     .header {
         text-align: center;
         display: flex;
-        padding-bottom: 30px;
-        border-bottom: 2px solid #000;
         align-items: center;
-        gap: 10px;
-        flex-direction: row;
         justify-content: center;
+        gap: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #000;
+        margin-bottom: 20px;
     }
 
     .header h2 {
+        font-size: 20px;
         margin: 5px 0;
-        font-size: 19px;
-        font-weight: bold;
     }
 
     .header p {
         margin: 0;
-        font-size: 10px;
+        font-size: 12px;
+    }
+
+    .header img {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        cursor: pointer;
+        transition: var(--transition);
+        border-radius: 4px;
+        border: 1px solid var(--border);
+    }
+
+    .header img:hover {
+        transform: scale(1.05);
+        border-color: var(--primary);
     }
 
     .date-ref {
         margin-top: 20px;
         font-size: 14px;
         display: flex;
-        flex-direction: row-reverse;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
     }
-    .date-ref span{
+
+    .date-ref span {
         display: flex;
         align-items: center;
-        flex-direction: row;
         gap: 10px;
     }
+
     .content {
         margin-top: 25px;
         font-size: 15px;
@@ -300,9 +386,16 @@ body {
     }
 
     .subject {
-        margin: 40px 0;
+        margin: 30px 0;
         font-size: 16px;
         font-weight: bold;
+    }
+
+    .inline {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 15px 0;
     }
 
     table {
@@ -317,78 +410,349 @@ body {
     }
 
     th, td {
-        padding: 6px;
+        padding: 8px;
         text-align: center;
     }
 
     .signature {
         margin-top: 50px;
-        text-align: right;
     }
 
-    .signature img,
-    .header img {
-        width: 120px;
-        display: block;
-        margin-left: auto;
-    }
-    .inline{
+    .sign-area {
+        margin-top: 40px;
         display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 10px 0px;
-    }
-    .sign-area{
-        margin-top: 70px;
-        display: flex;
-        width: 100%;
         flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
     }
-    .sign-area .editable{
-        margin: 0;
-        border-radius: 0;
+
+    .signature img {
+        width: 150px;
+        height: auto;
+        cursor: pointer;
+        transition: var(--transition);
+        border-radius: 4px;
+        border: 1px solid var(--border);
     }
-    .dom-alert{
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        font-size: 15px;
-        font-family: math;
-        color: red;
-        text-transform: capitalize;
+
+    .signature img:hover {
+        transform: scale(1.05);
+        border-color: var(--primary);
     }
+
+    /* Print Styles */
     @media print {
-        body {
+        .py-5 {
+            padding: 0;
             background: none;
         }
-        .page1 {
+        
+        .panel-box {
             box-shadow: none;
             margin: 0;
         }
-        .page2 {
+        
+        .page1, .page2 {
             box-shadow: none;
             margin: 0;
+            padding: 0;
+            border: none;
+        }
+        
+        .btn,
+        .section-head,
+        .dom-alert,
+        .editable:hover,
+        .editable:focus {
+            display: none !important;
+        }
+        
+        .editable {
+            background: none !important;
+            border: none !important;
         }
     }
-/* ==============================
-   RESPONSIVE
-================================ */
-@media (max-width: 768px) {
 
-    .panel-box {
-        padding: 25px;
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .page1, .page2 {
+            padding: 20mm 15mm;
+        }
     }
 
-    h2 {
-        font-size: 22px;
+    @media (max-width: 1024px) {
+        .py-5 {
+            padding: 20px;
+        }
+        
+        .panel-box {
+            padding: 25px;
+        }
+        
+        .section {
+            padding: 20px;
+        }
+        
+        h2 {
+            font-size: 24px;
+        }
+        
+        h3 {
+            font-size: 20px;
+        }
     }
 
-    .btn-primary {
-        width: 100%;
+    @media (max-width: 768px) {
+        .py-5 {
+            padding: 15px;
+        }
+        
+        .panel-box {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            padding: 15px;
+        }
+        
+        h2 {
+            font-size: 22px;
+        }
+        
+        h3 {
+            font-size: 18px;
+        }
+        
+        .header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .header img {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .date-ref {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .inline {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        table {
+            font-size: 12px;
+        }
+        
+        th, td {
+            padding: 6px;
+        }
     }
-}
 
-    </style>
+    @media (max-width: 480px) {
+        .py-5 {
+            padding: 10px;
+        }
+        
+        .panel-box {
+            padding: 15px;
+        }
+        
+        .section {
+            padding: 12px;
+        }
+        
+        h2 {
+            font-size: 20px;
+        }
+        
+        h3 {
+            font-size: 16px;
+        }
+        
+        .form-check-inline {
+            display: block;
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+        
+        .sign-area {
+            align-items: center;
+            text-align: center;
+        }
+        
+        .signature img {
+            width: 120px;
+        }
+        
+        .alert {
+            left: 10px;
+            right: 10px;
+            top: 10px;
+        }
+    }
+
+    /* Animation for alert */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    /* Scrollbar Styling */
+    .py-5::-webkit-scrollbar,
+    .panel-box::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .py-5::-webkit-scrollbar-track,
+    .panel-box::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+
+    .py-5::-webkit-scrollbar-thumb,
+    .panel-box::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    .py-5::-webkit-scrollbar-thumb:hover,
+    .panel-box::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Utility Classes */
+    .sub {
+        font-size: 12px;
+        color: var(--text-light);
+        font-style: italic;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    /* Input Number Styling */
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Focus styles for accessibility */
+    *:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+    }
+
+    /* Loading state for buttons */
+    .btn.loading {
+        position: relative;
+        color: transparent;
+    }
+
+    .btn.loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Tooltip for labels */
+    .form-label {
+        position: relative;
+    }
+
+    .form-label:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background: var(--text-dark);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 100;
+    }
+
+    /* Highlight required fields */
+    .required::after {
+        content: " *";
+        color: var(--danger);
+    }
+
+    /* Responsive table for document */
+    @media (max-width: 768px) {
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .page1, .page2 {
+            padding: 15mm 10mm;
+        }
+        
+        .editable {
+            padding: 6px 8px;
+        }
+    }
+</style>
 <div class="py-5">
     <div class="mb-4 text-center">
         <h2 class="fw-bold">Administration Settings</h2>
@@ -479,6 +843,19 @@ body {
                     <label for="deptOff" class="form-check-label">Off</label>
                 </div>
             </div>
+
+            <!-- 9 Strict duties restriction -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Assign Strict Duties <sub> (Role Restriction may Affect it.)</sub></label><br>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="duties_common" class="form-check-input" id="commonOn" <?php echo ($setting_row['strict_duties']) ? 'checked' : ''?>>
+                    <label for="deptOn" class="form-check-label">On</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="radio" name="duties_common" class="form-check-input" id="commonOff" <?php echo (!$setting_row['strict_duties']) ? 'checked' : ''?>>
+                    <label for="deptOff" class="form-check-label">Off</label>
+                </div>
+            </div>
             <div class="text-center mt-4">
                 <button id="saveBtn" class="btn btn-primary px-4" onclick="saveSettings()">Save Settings</button>
             </div>
@@ -502,10 +879,10 @@ body {
 
                 <div class="date-ref">
                     <span><div class="date">Date : </div>________</span>
-                    <span><div class="ref-no">Outword No.: </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
+                    <span><div class="ref-no">Outword No. : </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
                 </div>
                 <div class="editable" contenteditable="true" data-key="order_by"><?= $letter_data['order_by'] ?? '' ?></div>
-                <span><div class="refe">Reference : </div><div class="editable" contenteditable="true" data-key="reference"><?= $letter_data['reference'] ?? 'Time Table' ?></div></span>
+                 <div class="editable" contenteditable="true" data-key="reference"><?= $letter_data['reference'] ?? '' ?></div>
                 <div class="content">
                     
                     <div class="online">

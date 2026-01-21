@@ -1,4 +1,5 @@
 <?php 
+    // require './Backend/auth_guard.php';
     include "./Backend/config.php";
     $type = $_GET['type'] ?? '';
     $s = $_GET['s'] ?? '';

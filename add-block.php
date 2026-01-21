@@ -1,4 +1,5 @@
 <?php
+    // require './Backend/auth_guard.php';
     include './Backend/config.php';
     $block_id = $_GET['b'] ?? '';
     $row = '';

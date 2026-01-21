@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
+$user_id = '';
 
 define('REMEMBER_SECRET','CHANGE_THIS_TO_LONG_RANDOM_SECRET_123!@#');
 
@@ -23,6 +24,7 @@ if (isset($_SESSION['uid'])) {
     // Session timeout: 30 min
     if (isset($_SESSION['login_time']) && time() - $_SESSION['login_time'] <= 1800) {
         $_SESSION['login_time'] = time(); // refresh timer
+        $user_id = $_SESSION['uid'];
         return; // session valid, allow page
     }
 
@@ -45,6 +47,7 @@ if (!empty($_COOKIE['REMEMBERME'])) {
                 // restore session
                 $_SESSION['uid'] = $data['uid'];
                 $_SESSION['login_time'] = time();
+                $user_id = $_SESSION['uid'];
                 return; // allow page
             }
         }

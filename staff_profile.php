@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 include "./Backend/config.php";
 
 $id = $_GET['s'] ?? '';
@@ -28,9 +29,9 @@ if(mysqli_num_rows($staff_result) == 0){
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --gradient-bg: linear-gradient(120deg, rgb(245 200 255), rgba(174, 0, 255, 1));
+            --gradient-bg: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
             --menu-bg: #34495E;
-            --btn-bg: linear-gradient(270deg, rgb(232 127 255), rgba(174, 0, 255, 1));
+            --btn-bg: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
             --card-bg: #ffffff;
             --text-primary: #2C3E50;
             --text-secondary: #5D6D7E;

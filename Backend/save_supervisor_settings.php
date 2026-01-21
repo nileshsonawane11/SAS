@@ -16,7 +16,7 @@ if (!$data) {
 $numericFields = ['block_capacity', 'reliever', 'extra_faculty', 'teaching_staff', 'non_teaching_staff'];
 
 // Define allowed text fields
-$textFields = ['duties_restriction', 'role_restriction', 'sub_restriction', 'dept_restriction'];
+$textFields = ['duties_restriction', 'role_restriction', 'sub_restriction', 'dept_restriction', 'common_duties'];
 
 // Initialize validated array
 $validated = [];
@@ -36,7 +36,7 @@ foreach ($numericFields as $field) {
 // Validate text fields
 foreach ($textFields as $field) {
     if (!isset($data[$field])) {
-        echo json_encode(['status'=>'error','message'=>"Invalid or missing value for $field"]);
+        echo json_encode(['status'=>'error','message'=>"Invalid or missing value for $field", "data" => $data]);
         exit;
     }
     // Escape for SQL
@@ -54,7 +54,8 @@ UPDATE admin_panel SET
     teaching_staff = '{$validated['teaching_staff']}',
     non_teaching_staff = '{$validated['non_teaching_staff']}',
     sub_restriction = '{$validated['sub_restriction']}',
-    dept_restriction = '{$validated['dept_restriction']}'
+    dept_restriction = '{$validated['dept_restriction']}',
+    strict_duties = '{$validated['common_duties']}'
 WHERE id = 1
 ";
 

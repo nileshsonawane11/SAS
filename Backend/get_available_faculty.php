@@ -13,7 +13,7 @@ where old faculty is assigned.
 */
 
 $sql = "
-SELECT f.id, f.faculty_name, f.dept_code
+SELECT f.id, f.faculty_name, f.dept_code, f.role
 FROM faculty f
 WHERE f.id != $old_fid
 AND f.id NOT IN (

@@ -1,4 +1,5 @@
 <?php
+// require './Backend/auth_guard.php';
 include './Backend/config.php';
 
 /* ===============================
@@ -17,6 +18,7 @@ SELECT
     bsl.block_name,
     f.faculty_name,
     f.dept_code,
+    f.role,
     s.blocks
 FROM block_supervisor_list bsl
 JOIN schedule s ON s.id = bsl.s_id
@@ -36,6 +38,7 @@ $res = mysqli_stmt_get_result($stmt);
 $facultyAssignments = [];
 $facultyName = [];
 $facultyDept = [];
+$facultyRole = []; // NEW: Store faculty role
 $allDatesSlots = [];
 $dutyCount = [];
 $conflicts = [];
@@ -46,18 +49,32 @@ while ($row = mysqli_fetch_assoc($res)) {
     $fid = $row['faculty_id'];
     $schedule = json_decode($row['schedule'], true);
     $slots_blocks = json_decode($row['blocks'], true);
+
     $facultyName[$fid] = $row['faculty_name'];
     $facultyDept[$fid] = $row['dept_code'];
+    $facultyRole[$fid] = $row['role'];
     $dutyCount[$fid] = 0;
+
+    // ⚠️ IMPORTANT: Ensure faculty is added even if schedule is empty
+    if (!isset($facultyAssignments[$fid])) {
+        $facultyAssignments[$fid] = [];
+    }
+
+    // If schedule is empty, still show faculty
+    if (empty($schedule)) {
+        continue;
+    }
 
     foreach ($schedule as $date => $slots) {
         foreach ($slots as $slot => $v) {
+
             /* CONFLICT CHECK */
             if (isset($facultyAssignments[$fid][$date][$slot])) {
                 $conflicts[$fid][$date][$slot] = true;
             }
 
             $facultyAssignments[$fid][$date][$slot]['assigned'] = true;
+
             if (isset($slots[$slot]['block'])) {
                 $facultyAssignments[$fid][$date][$slot]['block'] = $slots[$slot]['block'];
             }
@@ -67,6 +84,7 @@ while ($row = mysqli_fetch_assoc($res)) {
             if (isset($slots[$slot]['sub'])) {
                 $facultyAssignments[$fid][$date][$slot]['sub'] = $slots[$slot]['sub'];
             }
+
             $allDatesSlots[$date][$slot] = true;
             $dutyCount[$fid]++;
         }
@@ -74,7 +92,7 @@ while ($row = mysqli_fetch_assoc($res)) {
 }
 
 // echo "<pre>";
-// print_r($facultyAssignments);
+// print_r(count($facultyAssignments));
 // echo "</pre>";
 
 /* SORT DATES & SLOTS */
@@ -91,6 +109,7 @@ $filterDept = $_GET['dept'] ?? '';
 $search = strtolower($_GET['search'] ?? '');
 $filterDate = $_GET['date'] ?? '';
 $filterSlot = $_GET['slot'] ?? '';
+$filterRole = $_GET['role'] ?? ''; // NEW: Role filter
 
 /* ===============================
    EXPORT HANDLER
@@ -111,416 +130,871 @@ $today = date('d-M-Y');
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <style>
-        body,
-        html {
-            height: 100%;
-            background-color: #fff;
+<style>
+    :root {
+        --primary: #7c3aed;
+        --primary-dark: #6d28d9;
+        --primary-light: #8b5cf6;
+        --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        --sidebar-bg: #1e293b;
+        --sidebar-active: #334155;
+        --card-bg: #ffffff;
+        --text-dark: #1e293b;
+        --text-light: #64748b;
+        --border: #b4b4b4;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+        --radius-sm: 8px;
+        --transition: all 0.3s ease;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    .container-fluid {
+        padding: 20px;
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .header {
+        background: white;
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Filter Form */
+    .header form {
+        display: flex;
+        flex-wrap: wrap;
+        /* gap: 12px; */
+        flex: 1;
+    }
+
+    .inputfield {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        transition: var(--transition);
+        background: white;
+        min-width: 180px;
+        flex: 1;
+    }
+
+    .inputfield:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .form-select, .form-control {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        transition: var(--transition);
+        background: white;
+        width: 100%;
+    }
+
+    .form-select:focus, .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 20px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+        background: #e2e8f0;
+        color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+        background: #cbd5e1;
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: white;
+    }
+
+    .btn-warning {
+        background: var(--warning);
+        color: white;
+    }
+
+    .btn-info {
+        background: var(--info);
+        color: white;
+    }
+
+    /* Statistics Cards */
+    .card {
+        background: white;
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition: var(--transition);
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .card-body {
+        padding: 0;
+    }
+
+    .bg-primary, .bg-success, .bg-warning, .bg-info {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .bg-primary { background: var(--primary); }
+    .bg-success { background: var(--success); }
+    .bg-warning { background: var(--warning); }
+    .bg-info { background: var(--info); }
+
+    /* Supervision Table */
+    .supervision {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        background: white;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        margin-bottom: 30px !important;
+    }
+
+    .supervision thead {
+        background: var(--primary);
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .supervision th, .supervision td {
+        border: 1px solid var(--border);
+        padding: 10px;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .supervision th {
+        font-weight: 600;
+        padding: 12px 10px;
+        background: var(--primary);
+        color: white;
+    }
+
+    .supervision td {
+        background: white;
+        transition: var(--transition);
+    }
+
+    .supervision tr:hover td {
+        background: #f8fafc;
+    }
+
+    /* Cell States */
+    .today {
+        background: #fff7ed !important;
+        font-weight: 600;
+    }
+
+    .overload {
+        background: #fef2f2 !important;
+    }
+
+    .conflict {
+        background: #fee2e2 !important;
+        color: #dc2626;
+        font-weight: 600;
+    }
+
+    .grand-total {
+        background: #f1f5f9 !important;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .table-info {
+        background: #eff6ff !important;
+        font-size: 12px;
+    }
+
+    /* Faculty Name Cell */
+    .left {
+        text-align: left !important;
+        font-weight: 500;
+        cursor: pointer;
+        padding-left: 15px !important;
+        min-width: 200px;
+    }
+
+    .faculty-cell:hover {
+        background: #f1f5f9;
+    }
+
+    /* Role Badges */
+    .role-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        font-size: 11px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .role-ts {
+        background: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+        border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+
+    .role-nts {
+        background: rgba(5, 150, 105, 0.1);
+        color: #059669;
+        border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+
+    .role-cell {
+        width: 80px;
+        min-width: 80px;
+    }
+
+    /* Cell Actions */
+    .cell {
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition);
+        min-width: 60px;
+    }
+
+    .cell:hover {
+        background: #f1f5f9 !important;
+        transform: scale(1.05);
+        z-index: 5;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .cell[data-present="false"] {
+        background: #fef2f2 !important;
+        color: #dc2626;
+        border: 1px solid #fca5a5 !important;
+    }
+
+    /* Swap Visual Effects */
+    .swap-source {
+        outline: 2px solid var(--primary);
+        background: #dbeafe !important;
+        position: relative;
+        z-index: 10;
+    }
+
+    .swap-target {
+        outline: 2px dashed var(--warning);
+        background: #fff7ed !important;
+        position: relative;
+        z-index: 10;
+    }
+
+    #swap-rect {
+        position: absolute;
+        border: 2px solid #0bf517ff;
+        background: rgba(175, 245, 11, 0.08);
+        pointer-events: none;
+        z-index: 9998;
+        display: none;
         }
 
-        body:fullscreen {
-            overflow: auto !important;
-            height: 100%;
-        }
+    .cell .con-tool {
+        display: none;
+    }
 
-        .container-fluid {
-            background-color: #fff;
-        }
+    .cell .con-tool::after {
+        content: "Click to swap here";
+        position: absolute;
+        top: -28px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #111;
+        color: #fff;
+        z-index: 999;
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        cursor: pointer;
+    }
 
-        table.supervision {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 12px;
-        }
-        thead{
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: #ffaeff;
-        }
-        .supervision th,
-        .supervision td {
-            border: 1px solid #000;
-            padding: 4px;
-            text-align: center;
-        }
+    /* Add Faculty Cell */
+    .add-cell {
+        cursor: pointer;
+        text-align: center;
+        padding: 15px !important;
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 14px;
+        transition: var(--transition);
+    }
 
-        .supervision th {
-            background: #ffaeff;
-        }
+    .add-cell:hover {
+        background: #f1f5f9;
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+    }
 
-        td.left {
-            text-align: left;
-            cursor: pointer;
-        }
+    .add-icon {
+        margin-right: 8px;
+        font-size: 16px;
+    }
 
-        .today {
-            background: #ffeeba !important;
-        }
+    /* Split Cell for Block Display */
+    .split-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 4px !important;
+    }
 
-        .overload {
-            background: #ffcccc;
-        }
+    .split-cell span {
+        display: block;
+        line-height: 1.2;
+    }
 
-        .conflict {
-            background: #ff6666;
-            color: #fff;
-        }
+    .split-cell span:first-child {
+        font-weight: 600;
+        color: var(--primary);
+    }
 
-        .signature {
-            width: 120px;
-        }
+    .split-cell span:last-child {
+        font-size: 11px;
+        color: var(--text-light);
+    }
 
-        .th-btn {
-            font-size: 13px;
-            padding: 5px;
-            width: 100%;
-        }
+    /* Fullscreen Buttons */
+    .fullscreen, .exit-fullscreen {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        border: none;
+        background: var(--primary);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+    }
 
-        .context-menu {
-            position: absolute;
-            background: #fff;
-            border: 1px solid #333;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, .2);
-            display: none;
-            z-index: 9999;
-            max-height: 300px;
-            overflow: auto;
-            font-size: 13px;
-        }
+    .fullscreen:hover, .exit-fullscreen:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
 
-        .context-menu div {
-            padding: 6px 10px;
-            cursor: pointer;
-        }
+    .exit-fullscreen {
+        display: none;
+    }
 
-        .context-menu div:hover {
-            background: #f0f0f0;
-        }
+    /* Export Button */
+    .export-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        background: var(--success);
+        color: white;
+        border-radius: 25px;
+        box-shadow: var(--shadow-lg);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
 
-        .inputfield {
-            font-size: 15px;
-            width: 100%;
-        }
+    .export-btn:hover {
+        background: #0da271;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
 
-        .col-md-1,
-        .col-md-2 {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    /* Modal/Dialog Styling */
+    .dialog-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+    }
 
-        .dialog-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
+    .dialog {
+        background: white;
+        border-radius: var(--radius);
+        width: 100%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        animation: slideIn 0.3s ease;
+    }
 
-        /* ================= DIALOG BOX ================= */
-        .dialog {
-            background: #ffffff;
-            width: 420px;
-            max-width: 95%;
-            border-radius: 14px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, .25);
-            animation: pop .25s ease-out;
-            overflow: hidden;
-            font-family: 'Inter', system-ui, sans-serif;
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
         }
-
-        /* ================= HEADER ================= */
-        .dialog-header {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            color: #fff;
-            padding: 14px 18px;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Close button */
-        .dialog-header span {
-            cursor: pointer;
-            font-size: 20px;
-            opacity: .9;
-        }
-
-        /* ================= BODY ================= */
-        .dialog-body {
-            padding: 18px;
-        }
-
-        .dialog-body label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        /* Radio groups */
-        .radio-group {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 14px;
-        }
-
-        .radio-group label {
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        /* ================= INPUTS ================= */
-        .dialog input[type="text"],
-        .dialog select,
-        .dialog textarea {
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            font-size: 14px;
-            transition: .2s;
-        }
-
-        .dialog input:focus,
-        .dialog select:focus,
-        .dialog textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, .15);
-        }
-
-        /* Search */
-        #facultySearch {
-            margin-bottom: 8px;
-        }
-
-        /* Faculty list */
-        #facultyList {
-            height: 130px;
-        }
-
-        /* ================= BUTTONS ================= */
-        .dialog-footer {
-            padding: 14px 18px;
-            background: #f9fafb;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            background: #1e40af;
-        }
-
-        .btn-cancel {
-            background: #e5e7eb;
-        }
-
-        .btn-cancel:hover {
-            background: #d1d5db;
-        }
-
-        .dialog-header .f_name {
-            font-size: 16px;
+        to {
             opacity: 1;
+            transform: translateY(0);
         }
+    }
 
-        /* ================= SECTIONS ================= */
-        .box {
-            margin-top: 12px;
-            padding: 12px;
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
+    .dialog-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px;
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
 
-        .export-btn {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-        }
+    .dialog-body {
+        padding: 20px;
+    }
 
-        .mb-3 {
-            padding-right: calc(var(--bs-gutter-x) * 1);
-            padding-left: calc(var(--bs-gutter-x) * 1);
-            margin: 0 !important;
-            padding-bottom: 10px;
-        }
+    .dialog-footer {
+        padding: 15px 20px;
+        background: #f8fafc;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        border-radius: 0 0 var(--radius) var(--radius);
+    }
 
-        .swap-target {
-            outline: 2px dashed #f59e0b;
-            background: #fff7ed;
-            position: relative;
-        }
+    /* Context Menu */
+    .context-menu {
+        position: fixed;
+        background: white;
+        border-radius: var(--radius-sm);
+        box-shadow: var(--shadow-lg);
+        min-width: 180px;
+        z-index: 10000;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
 
-        table {
-            margin-bottom: 4rem !important;
-        }
+    .context-menu div {
+        padding: 10px 15px;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 14px;
+        border-bottom: 1px solid var(--border);
+    }
 
-        .cell {
-            position: relative
-        }
+    .context-menu div:last-child {
+        border-bottom: none;
+    }
 
-        .cell .con-tool {
-            display: none;
-        }
+    .context-menu div:hover {
+        background: #f1f5f9;
+        color: var(--primary);
+    }
 
-        .cell .con-tool::after {
-            content: "Click to swap here";
-            position: absolute;
-            top: -28px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #111;
-            color: #fff;
-            padding: 4px 8px;
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .supervision {
             font-size: 12px;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        .swap-source {
-            outline: 2px solid #2563eb;
-            background: #dbeafe;
-        }
-
-        td[data-present="false"] {
-            background: #ff002657;
-            border: 2px solid #d50000;
-        }
-
-        /* td[data-present="false"] {
-    background: #ffebee;
-} */
-        .header {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-            width: 100%;
-            justify-content: space-between;
-        }
-
-        .or {
-            display: block;
-            width: 100%;
-            text-align: center;
-            margin: 10px 0px;
-        }
-
-        #swap-rect {
-            position: absolute;
-            border: 2px solid #0bf517ff;
-            background: rgba(175, 245, 11, 0.08);
-            pointer-events: none;
-            z-index: 9998;
-            display: none;
-        }
-
-        .tbl_row:hover {
-            background: #efefef;
-        }
-
-        .fullscreen,
-        .exit-fullscreen {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            border: none;
-            background: #111827;
-            /* dark slate */
-            color: #ffffff;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-            transition: all 0.25s ease;
-            z-index: 9999;
-        }
-
-        /* Exit button slightly shifted */
-        .exit-fullscreen {
-            right: 64px;
-        }
-
-        /* Hover effect */
-        .fullscreen:hover,
-        .exit-fullscreen:hover {
-            background: #2563eb;
-            /* blue */
-            transform: scale(1.08);
-        }
-
-        /* Active click */
-        .fullscreen:active,
-        .exit-fullscreen:active {
-            transform: scale(0.95);
-        }
-
-        /* Icon size */
-        .fullscreen i,
-        .exit-fullscreen i {
-            font-size: 18px;
-        }
-
-        /* Hide exit button initially */
-        .exit-fullscreen {
-            display: none;
-        }
-
-        /* ================= ANIMATION ================= */
-        @keyframes pop {
-            from {
-                transform: scale(.92);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        .split-cell {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 6px;
-        }
-        .split-cell span {
-            flex: 1;
-            text-align: center;
-        }
-
-        .split-cell span:first-child {
-            border-right: 1px solid #000;
-            padding-right: 6px;
-        }
-        .grand-total{
-            font-weight: bold;
-            background: #dddddd;
         }
         
-    </style>
+        .supervision th, 
+        .supervision td {
+            padding: 8px 6px;
+        }
+        
+        .left {
+            min-width: 150px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .container-fluid {
+            padding: 15px;
+        }
+        
+        .header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        /* .header form {
+            flex-direction: column;
+        } */
+        
+        .inputfield {
+            min-width: 100%;
+        }
+        
+        .supervision {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .left {
+            min-width: 180px;
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 5;
+        }
+        
+        .role-cell {
+            position: sticky;
+            left: 180px;
+            background: white;
+            z-index: 5;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 10px;
+        }
+        
+        .header {
+            padding: 15px;
+        }
+        
+        .supervision {
+            font-size: 11px;
+        }
+        
+        .supervision th, 
+        .supervision td {
+            padding: 6px 4px;
+        }
+        
+        .card-body .row {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .card-body .col-md-3 {
+            width: 100%;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        .export-btn {
+            bottom: 15px;
+            right: 15px;
+            padding: 10px 20px;
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .container-fluid {
+            padding: 8px;
+        }
+        
+        .header {
+            padding: 12px;
+        }
+        
+        .supervision {
+            font-size: 10px;
+        }
+        
+        .supervision th, 
+        .supervision td {
+            padding: 4px 3px;
+        }
+        
+        .left {
+            min-width: 120px;
+            font-size: 11px;
+            padding-left: 10px !important;
+        }
+        
+        .role-cell {
+            left: 120px;
+            min-width: 60px;
+            width: 60px;
+        }
+        
+        .role-badge {
+            padding: 2px 6px;
+            font-size: 9px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .fullscreen, .exit-fullscreen {
+            width: 36px;
+            height: 36px;
+            font-size: 14px;
+        }
+        
+        .export-btn {
+            bottom: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+    }
+
+    /* Print Styles */
+    @media print {
+        body {
+            background: white;
+            font-size: 12px;
+        }
+        
+        .container-fluid {
+            padding: 0;
+        }
+        
+        .header,
+        .card,
+        .btn,
+        .fullscreen,
+        .exit-fullscreen,
+        .export-btn,
+        .add-cell {
+            display: none !important;
+        }
+        
+        .supervision {
+            box-shadow: none;
+            border: 1px solid #000;
+        }
+        
+        .supervision th {
+            background: #f0f0f0 !important;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .cell:hover,
+        .swap-source,
+        .swap-target {
+            outline: none !important;
+            background: white !important;
+        }
+        
+        .conflict {
+            background: #f0f0f0 !important;
+        }
+        
+        .today {
+            background: #fff8e1 !important;
+        }
+    }
+
+    /* Utility Classes */
+    .text-end {
+        text-align: right;
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    .fw-bold {
+        font-weight: 600;
+    }
+    
+    .mb-0 {
+        margin-bottom: 0;
+    }
+    
+    .text-muted {
+        color: var(--text-light);
+    }
+    
+    .mt-3 {
+        margin-top: 15px;
+    }
+    
+    .d-flex {
+        display: flex;
+    }
+    
+    .align-items-center {
+        align-items: center;
+    }
+    
+    .me-3 {
+        margin-right: 15px;
+    }
+    
+    /* Animation for table rows */
+    .tbl_row {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Scrollbar Styling */
+    .dialog::-webkit-scrollbar,
+    .supervision::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .dialog::-webkit-scrollbar-track,
+    .supervision::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+
+    .dialog::-webkit-scrollbar-thumb,
+    .supervision::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    .dialog::-webkit-scrollbar-thumb:hover,
+    .supervision::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Tooltip for hover effects */
+    [title] {
+        position: relative;
+    }
+
+    [title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1e293b;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    /* Loading indicator */
+    .loading {
+        position: relative;
+        color: transparent !important;
+    }
+
+    .loading::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    @keyframes spin {
+        to {
+            transform: translate(-50%, -50%) rotate(360deg);
+        }
+    }
+</style>
 </head>
 
 <body>
@@ -543,6 +1017,14 @@ $today = date('d-M-Y');
                         <?php foreach (array_unique($facultyDept) as $d): ?>
                             <option <?= $filterDept == $d ? 'selected' : '' ?>><?= $d ?></option>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <select class="inputfield form-select" name="role">
+                        <option value="">All Roles</option>
+                        <option value="TS" <?= $filterRole == 'TS' ? 'selected' : '' ?>>Teaching Staff</option>
+                        <option value="NTS" <?= $filterRole == 'NTS' ? 'selected' : '' ?>>Non-Teaching Staff</option>
                     </select>
                 </div>
 
@@ -578,7 +1060,7 @@ $today = date('d-M-Y');
                     <button class="btn btn-primary">Filter</button>
                 </div>
                 <div class="col-md-1">
-                    <button class="btn" type="reset">
+                    <button class="btn" type="reset" style = "padding: 0;">
                         <a href="?s=<?= $s_id ?>" class="btn btn-secondary">
                             Clear
                         </a>
@@ -591,6 +1073,73 @@ $today = date('d-M-Y');
                 <button type="button" onclick="closeFullscreen()" class="exit-fullscreen"><i class="fas fa-solid fa-compress"></i></button>
             </div>
         </div>
+        
+        <!-- ================= STATISTICS ================= -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary text-white rounded p-2 me-3">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Faculty</h6>
+                                        <p class="mb-0 fw-bold">
+                                            <?= count($facultyAssignments) ?>
+                                            <small class="text-muted">
+                                                (TS: <?= count(array_filter($facultyRole, fn($r) => $r === 'TS')) ?>, 
+                                                NTS: <?= count(array_filter($facultyRole, fn($r) => $r === 'NTS')) ?>)
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success text-white rounded p-2 me-3">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Duties</h6>
+                                        <p class="mb-0 fw-bold"><?= array_sum($dutyCount) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning text-white rounded p-2 me-3">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Days</h6>
+                                        <p class="mb-0 fw-bold"><?= count($allDatesSlots) ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info text-white rounded p-2 me-3">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Total Slots</h6>
+                                        <p class="mb-0 fw-bold">
+                                            <?= 
+                                                array_sum(array_map('count', $allDatesSlots))
+                                            ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ================= TABLE ================= -->
         <table class="supervision">
             <thead>               
@@ -598,6 +1147,7 @@ $today = date('d-M-Y');
                 <th rowspan="4">Sr</th>
                 <th rowspan="4">Supervisor</th>
                 <th rowspan="4">Dept</th>
+                <th rowspan="4">Role</th> <!-- NEW: Role column -->
 
                 <?php foreach ($allDatesSlots as $date => $slots): ?>
                     <?php if ($filterDate && $filterDate !== $date) continue; ?>
@@ -616,7 +1166,8 @@ $today = date('d-M-Y');
                         <?= htmlspecialchars($date) ?>
                     </th>
                 <?php endforeach; ?>
-                <th rowspan="4">Duties</th>
+                <th rowspan="4" class="signature">Duties Allocated</th>
+                <th rowspan="4" class="signature">Total Duties</th>
             </tr>
 
             <tr>
@@ -667,23 +1218,43 @@ $today = date('d-M-Y');
                 $sr = 1;
                 $duties_grabd_total = 0;
                 $blocks_grabd_total = 0;
+                $blocks_required_grand_total = [];
+                $allocated_blocks_grabd_total = 0;
+                $filtered_faculty_count = 0;
             ?>
+             <tr>
+                    <td colspan="12" class="add-cell" onclick="openFacultyMenu(event,this)">
+                        <span class="add-icon">➕</span>
+                        <span class="add-text">Add Faculty</span>
+                    </td>
+                </tr>
             <?php foreach ($facultyAssignments as $fid => $assignments): ?>
 
                 <?php
-                $sup_count = 0;
+                $sup_count = 0; 
+                $blocks_assign = 0;
+                
+                // Apply filters
                 if ($filterDept && $facultyDept[$fid] != $filterDept) continue;
+                if ($filterRole && $facultyRole[$fid] != $filterRole) continue; // NEW: Role filter
                 if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) continue;
+                
+                $filtered_faculty_count++;
                 ?>
-
                 <tr class="tbl_row<?= $dutyCount[$fid] > 6 ? 'overload' : '' ?>">
                     <td><?= $sr++ ?></td>
                     <td class="left faculty-cell"
                         data-fid="<?= $fid ?>"
                         oncontextmenu="openFacultyMenu(event,this)">
                         <?= htmlspecialchars($facultyName[$fid]) ?>
+                       
                     </td>
                     <td><?= htmlspecialchars($facultyDept[$fid]) ?></td>
+                    <td class="role-cell">
+                         <span class="role-badge <?= $facultyRole[$fid] === 'TS' ? 'role-ts' : 'role-nts' ?>">
+                            <?= $facultyRole[$fid] ?>
+                        </span>
+                    </td>
 
                     <?php foreach ($allDatesSlots as $date => $slots): ?>
                         <?php if ($filterDate && $filterDate !== $date) continue; ?>
@@ -694,7 +1265,9 @@ $today = date('d-M-Y');
                             $class = '';
                             if (isset($conflicts[$fid][$date][$slot])) $class = 'conflict';
 
-                            // echo "<pre>";print_r($assignments);echo "</pre>";
+                            // Get block number if exists
+                            $blockNumber = $assignments[$date][$slot]['block'] ?? '';
+                            $hasBlock = !empty($blockNumber);
                             ?>
 
                             <td class="<?= $class ?> cell"
@@ -709,53 +1282,92 @@ $today = date('d-M-Y');
                                                     : ""
                                                 ?>"
                                 oncontextmenu="openDialog(event,this)">
-                                <?= ($assignments[$date][$slot]['assigned'] ?? false)
-                                    ? (!empty($assignments[$date][$slot]['block'])
-                                        ? "<strong>{$assignments[$date][$slot]['block']}   </strong>"
-                                        : "✓")
-                                    : ""
-                                ?>
-                                <?php ($assignments[$date][$slot]['assigned'] ?? false)
-                                    ? $sup_count++
-                                    : ""
-                                ?>
-                                <sub><?php echo $assignments[$date][$slot]['sub'] ?? '' ?></sub>
+                                <?php if ($assignments[$date][$slot]['assigned'] ?? false): ?>
+                                    <?php if ($hasBlock): ?>
+                                        <strong>✓</strong>
+                                    <?php else: ?>
+                                        *
+                                    <?php endif; ?>
+                                    <?php $sup_count++; ?>
+                                    <?php if ($hasBlock) $blocks_assign++; ?>
+                                <?php else: ?>
+                                <?php endif; ?>
                                 <div class="con-tool"></div>
                             </td>
 
                         <?php endforeach; ?>
-                    <?php endforeach; ?><div id="facultyMenu" class="context-menu"></div>
-                    <?php $duties_grabd_total += $sup_count; ?>
-                    <td><?= $sup_count; ?></td>
+                    <?php endforeach; ?>
+                    <!-- <div id="facultyMenu" class="context-menu"></div> -->
+                    <?php 
+                        $duties_grabd_total += $sup_count; 
+                        $allocated_blocks_grabd_total += $blocks_assign;
+                    ?>
+                    <td><?= $blocks_assign ?></td>
+                    <td><?= $sup_count ?></td>
                 </tr>
 
             <?php endforeach; ?>
-            <tr class="grand-total">
-                <td colspan="3">Total Blocks</td>
-                <?php foreach ($slots_blocks as $date => $times): ?>
-    
-                    <?php foreach ($times as $slot => $_): ?>
-                        <?php 
-                            $blocks_grabd_total += (int)$slots_blocks[$date][$slot]['blocks']; 
-                        ?>
-                        <td><?= $slots_blocks[$date][$slot]['blocks']; ?></td>
-                    <?php endforeach; ?>
 
+            <?php 
+            // Calculate totals for displayed slots only
+            $displayed_slots_total = 0;
+            foreach ($slots_blocks as $date => $times): ?>
+                <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                <?php foreach ($times as $slot => $_): ?>
+                    <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                    <?php 
+                        $displayed_slots_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0);
+                        $blocks_grabd_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0); 
+                        $blocks_required_grand_total[$date][$slot] = (int)($slots_blocks[$date][$slot]['total_required'] ?? 0); 
+                    ?>
                 <?php endforeach; ?>
-                <td class="split-cell">
-                    <span><?= $blocks_grabd_total ?></span>
-                    <span><?= $duties_grabd_total ?></span>
+            <?php endforeach; ?>
+
+            <tr class="grand-total">
+                <td colspan="3">Total Blocks : </td>
+                <td><?= $blocks_grabd_total ?></td>
+                
+                <?php foreach ($slots_blocks as $date => $times): ?>
+                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                    <?php foreach ($times as $slot => $_): ?>
+                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                        <td><?= ($slots_blocks[$date][$slot]['blocks'] ?? 0)."<br> / ".($blocks_required_grand_total[$date][$slot] ?? 0); ?></td>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+                
+                <td >
+                    <?= $allocated_blocks_grabd_total ?>
+                </td>
+                <td>
+                    <?= $duties_grabd_total ?>
                 </td>
             </tr>
+            
+            <!-- Summary Row -->
+            <!-- <tr class="table-info">
+                <td colspan="4" class="text-end"><strong>Display Summary:</strong></td>
+                <td colspan="<?= count($allDatesSlots) ?>">
+                    Showing <?= $filtered_faculty_count ?> faculty 
+                    <?= $filterDept ? "from $filterDept department" : "" ?>
+                    <?= $filterRole ? "($filterRole)" : "" ?>
+                    <?= $filterDate ? "on $filterDate" : "" ?>
+                    <?= $filterSlot ? "at $filterSlot" : "" ?>
+                    <?= $search ? "matching '$search'" : "" ?>
+                </td>
+                <td colspan="2" class="text-center">
+                    <small>TS: Teaching Staff | NTS: Non-Teaching Staff</small>
+                </td>
+            </tr> -->
         </table>
 
         <!-- ================= ACTIONS ================= -->
         <form method="POST" class="mt-3 text-end">
             <button class="btn btn-success export-btn" name="export">
-                Export PDF
+                <i class="fas fa-file-pdf"></i> Export PDF
             </button>
         </form>
 
+        <!-- ================= MODALS ================= -->
         <div class="modal fade" id="replaceFacultyModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content">
@@ -778,7 +1390,8 @@ $today = date('d-M-Y');
                         </button>
 
                         <button type="button"
-                                class="btn btn-success"
+                                data-type=""
+                                class="btn btn-success replace-add-faculty"
                                 onclick="replaceFaculty()">
                             Replace
                         </button>
@@ -788,6 +1401,7 @@ $today = date('d-M-Y');
             </div>
         </div>
 
+        <!-- ================= DIALOG ================= -->
         <div id="dialog" class="dialog-overlay">
             <div class="dialog">
                 <div class="dialog-header">
@@ -875,7 +1489,9 @@ $today = date('d-M-Y');
 
         /* ================= CELL CURSOR ================= */
         document.querySelectorAll('.cell').forEach(td => {
-            if (td.innerText.trim() !== '') td.style.cursor = 'pointer';
+            if (td.innerText.trim() !== '' && td.innerText.trim() !== '-') {
+                td.style.cursor = 'pointer';
+            }
         });
 
         function drawSwapRectangle(source, target) {
@@ -898,7 +1514,7 @@ $today = date('d-M-Y');
 
         /* ================= ENABLE SWAP ================= */
         function enableSwapMode() {
-            if (!cell || cell.innerText.trim() === '') {
+            if (!cell || cell.innerText.trim() === '' || cell.innerText.trim() === '-') {
                 alert("No faculty selected for swap");
                 return;
             }
@@ -908,7 +1524,7 @@ $today = date('d-M-Y');
             swapSource.classList.add("swap-source");
 
             closeDialog();
-            alert("Click another FILLED cell in the SAME SLOT to swap");
+            alert("Click another FILLED cell in the other SLOT to swap");
         }
 
         /* ================= CELL CLICK HANDLER ================= */
@@ -921,10 +1537,10 @@ $today = date('d-M-Y');
 
                     if (td === swapSource) return;
 
-                    if (td.innerText.trim() === '') {
-                        alert("Empty cell cannot be swapped");
-                        return;
-                    }
+                    // if (td.innerText.trim() === '' || td.innerText.trim() === '-') {
+                    //     alert("Empty cell cannot be swapped");
+                    //     return;
+                    // }
 
                     // 🔄 Clear previous target if exists
                     if (swapTarget && swapTarget !== td) {
@@ -944,7 +1560,7 @@ $today = date('d-M-Y');
                 }
 
                 /* ---------- NORMAL BLOCK UPDATE ---------- */
-                if (td.innerText.trim() !== '') {
+                if (td.innerText.trim() !== '' && td.innerText.trim() !== '-') {
                     let block = prompt("Enter Block No:");
                     if (block === null) return;
 
@@ -965,7 +1581,7 @@ $today = date('d-M-Y');
                         .then((data) => {
                             console.log(data);
                             if (data.status == 200) {
-                                td.innerHTML = block.trim() ? `<strong>${block}</strong>` : "✓";
+                                td.innerHTML = block.trim() ? `<strong>${block}</strong>` : "*";
                             } else {
                                 alert(data.msg);
                             }
@@ -1073,7 +1689,7 @@ $today = date('d-M-Y');
 
         function openDialog(e, td) {
             e.preventDefault();
-            if (td.innerText.trim() === '') return;
+            if (td.innerText.trim() === '' || td.innerText.trim() === '-') return;
 
             cell = td;
             resetDialog();
@@ -1135,7 +1751,7 @@ $today = date('d-M-Y');
                 .then(data => {
                     facultyList.innerHTML = `<option value="">Select Faculty</option>`;
                     data.forEach(f => {
-                        facultyList.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+                        facultyList.innerHTML += `<option value="${f.id}">${f.name} (${f.role})</option>`;
                     });
                 });
         }
@@ -1205,21 +1821,30 @@ $today = date('d-M-Y');
 
             selectedFacultyId = el.dataset.fid;
 
-            loadReplacementFaculty();
+            loadReplacementFaculty(el);
         }
 
-        function loadReplacementFaculty() {
+        function loadReplacementFaculty(el) {
             fetch('./Backend/get_available_faculty.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     faculty_id: selectedFacultyId,
-                    s_id : S_ID
+                    s_id : S_ID,
+                    role_filter: '<?= $filterRole ?>' // Pass role filter
                 })
             })
             .then(res => res.json())
             .then(data => {
-                console.log(data);
+                // console.log(data);
+                let task_btn = document.querySelector('.replace-add-faculty');
+                if(el.classList.contains('faculty-cell')){
+                    task_btn.dataset.type = "replace";
+                    task_btn.innerText = 'Replace';
+                }else if(el.classList.contains('add-cell')){
+                    task_btn.dataset.type = "add";
+                    task_btn.innerText = 'Add';
+                }
                 showFacultyReplaceDialog(data);
             });
         }
@@ -1234,7 +1859,7 @@ $today = date('d-M-Y');
                 list.forEach(f => {
                     const opt = document.createElement('option');
                     opt.value = f.id;
-                    opt.textContent = `${f.faculty_name} (${f.dept_code})`;
+                    opt.textContent = `${f.faculty_name} (${f.dept_code}) - ${f.role}`;
                     select.appendChild(opt);
                 });
             }
@@ -1246,32 +1871,86 @@ $today = date('d-M-Y');
         }
 
         function replaceFaculty() {
+            let task_btn = document.querySelector('.replace-add-faculty');
+            let task_type = task_btn.dataset.type;
+            task_btn.innerText = 'Processing...';
+            task_btn.disabled = true;
+            
             const newFacultyId = document.getElementById('newFaculty').value;
 
-            fetch('./Backend/replace_faculty.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    old_fid: selectedFacultyId,
-                    new_fid: newFacultyId,
-                    s_id: S_ID
+            if(task_type == 'replace'){
+                fetch('./Backend/replace_faculty.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        old_fid: selectedFacultyId,
+                        new_fid: newFacultyId,
+                        s_id: S_ID
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(resp => {
+                .then(res => res.json())
+                .then(resp => {
 
-                if (!resp.success) {
-                    alert(resp.error);
-                    return;
-                }
+                    if (!resp.success) {
+                        alert(resp.error);
+                        return;
+                    }
 
-                bootstrap.Modal
-                    .getInstance(document.getElementById('replaceFacultyModal'))
-                    .hide();
+                    task_btn.innerText = '';
+                    task_btn.disabled = false;
+                    bootstrap.Modal
+                        .getInstance(document.getElementById('replaceFacultyModal'))
+                        .hide();
 
-                location.reload();
-            });
+                    location.reload();
+                });
+            }else if(task_type == 'add'){
+                fetch('./Backend/add_to_supervision.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        faculty_id: newFacultyId,
+                        s_id: S_ID
+                    })
+                })
+                .then(res => res.json())
+                .then(resp => {
+                    console.log(resp)
+                    if (!resp.success) {
+                        alert(resp.error);
+                        return;
+                    }
+
+                    bootstrap.Modal
+                        .getInstance(document.getElementById('replaceFacultyModal'))
+                        .hide();
+
+                    location.reload();
+                });
+            }
         }
+        
+        // Quick filter shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+T for Teaching staff filter
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                window.location.href = '?s=<?= $s_id ?>&role=TS';
+            }
+            // Ctrl+N for Non-teaching staff filter
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                window.location.href = '?s=<?= $s_id ?>&role=NTS';
+            }
+            // Ctrl+A for All roles
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                window.location.href = '?s=<?= $s_id ?>';
+            }
+        });
+
+        // ++++++++++++++++++++++++++++++++++++
+        
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
