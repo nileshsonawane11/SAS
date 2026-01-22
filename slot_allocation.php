@@ -78,6 +78,9 @@ while ($row = mysqli_fetch_assoc($res)) {
             if (isset($slots[$slot]['block'])) {
                 $facultyAssignments[$fid][$date][$slot]['block'] = $slots[$slot]['block'];
             }
+            if (isset($slots[$slot]['block_type'])) {
+                $facultyAssignments[$fid][$date][$slot]['block_type'] = $slots[$slot]['block_type'];
+            }
             if (isset($slots[$slot]['present'])) {
                 $facultyAssignments[$fid][$date][$slot]['present'] = $slots[$slot]['present'];
             }
@@ -91,9 +94,9 @@ while ($row = mysqli_fetch_assoc($res)) {
     }
 }
 
-echo "<pre>";
-print_r(count($facultyAssignments));
-echo "</pre>";
+// echo "<pre>";
+// print_r(count($facultyAssignments));
+// echo "</pre>";
 
 /* SORT DATES & SLOTS */
 ksort($allDatesSlots);
@@ -781,7 +784,7 @@ $today = date('d-M-Y');
                 <?php endforeach; ?>
             </tr>
 
-            <tr>
+            <!-- <tr>
                 <?php foreach ($allDatesSlots as $date => $slots): ?>
                     <?php if ($filterDate && $filterDate !== $date) continue; ?>
 
@@ -796,7 +799,7 @@ $today = date('d-M-Y');
                         </th>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
-            </tr>
+            </tr> -->
             </thead> 
             <?php 
                 $sr = 1;
@@ -851,7 +854,8 @@ $today = date('d-M-Y');
 
                             // Get block number if exists
                             $blockNumber = $assignments[$date][$slot]['block'] ?? '';
-                            $hasBlock = !empty($blockNumber);
+                            $blockType = $assignments[$date][$slot]['block_type'] ?? '';
+                            $hasBlock = ($blockType == 'real');
                             ?>
 
                             <td class="<?= $class ?> cell"
@@ -868,13 +872,13 @@ $today = date('d-M-Y');
                                 oncontextmenu="openDialog(event,this)">
                                 <?php if ($assignments[$date][$slot]['assigned'] ?? false): ?>
                                     <?php if ($hasBlock): ?>
-                                        <strong>✓</strong>
+                                        <strong><?php echo !empty($blockNumber) ? $blockNumber : '✓'; ?></strong>
                                     <?php else: ?>
                                         *
                                     <?php endif; ?>
                                     <?php $sup_count++; ?>
                                     <?php if ($hasBlock) $blocks_assign++; ?>
-                                <?php else: ?>
+                                    <?php else: ?>
                                 <?php endif; ?>
                                 <div class="con-tool"></div>
                             </td>
@@ -1164,6 +1168,7 @@ $today = date('d-M-Y');
                         .then((data) => {
                             console.log(data);
                             if (data.status == 200) {
+                                location.reload();
                                 td.innerHTML = block.trim() ? `<strong>${block}</strong>` : "*";
                             } else {
                                 alert(data.msg);

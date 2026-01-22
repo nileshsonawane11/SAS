@@ -411,7 +411,6 @@ foreach ($allBlocks as $block) {
             $facultyAssignments[$fid][$date][$slot] = [
                 'assigned' => true,
                 'present'  => true,
-                'block'    => $blockNo,
                 'sub'      => $block['sub'],
                 'block_type' => $block['block_type'],
                 'subjects' => $block['subjects_array']
@@ -479,7 +478,6 @@ foreach ($allBlocks as $block) {
                 $facultyAssignments[$fid][$date][$slot] = [
                     'assigned' => true,
                     'present'  => true,
-                    'block'    => $blockNo,
                     'sub'      => $block['sub'],
                     'block_type' => $block['block_type'],
                     'subjects' => $block['subjects_array']
@@ -966,8 +964,7 @@ form{
                                     $blockInfo = $isAssigned ? $assignments[$date][$slot] : null;
                                     $blockType = $blockInfo['block_type'] ?? '';
                                     $class = $isAssigned ? "assigned assigned-$blockType" : 'empty';
-                                    $blockNumber = $blockInfo['block'] ?? '';
-                                    $hasBlockNumber = !empty($blockNumber);
+                                    $hasBlockNumber = ($blockType == 'real');
                                     
                                     // Check if this is a real block
                                     $isRealBlock = ($blockType === 'real');

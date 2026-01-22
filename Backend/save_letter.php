@@ -1,8 +1,15 @@
 <?php
 include './config.php';
 
-$response = [];
+/* ===============================
+   0. LOAD EXISTING DATA
+   =============================== */
 $data = [];
+
+$res = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE id = 1");
+if ($row = mysqli_fetch_assoc($res)) {
+    $data = json_decode($row['letter_json'], true) ?? [];
+}
 
 /* ===============================
    1. HANDLE IMAGE (SIGNATURE)
@@ -15,29 +22,30 @@ if (!is_dir($uploadDir)) {
 if (!empty($_FILES)) {
     foreach ($_FILES as $key => $file) {
 
-        // Check for upload errors
+        // ❗ No new file → KEEP OLD
+        if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+
         if ($file['error'] !== UPLOAD_ERR_OK) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Error uploading file: " . $key
+                "message" => "Error uploading file: $key"
             ]);
             exit;
         }
 
-        // Validate file type (allow only images)
         $allowedExt = ['png', 'jpg', 'jpeg'];
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, $allowedExt)) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Invalid file type upload ['png', 'jpg', 'jpeg']"
+                "message" => "Invalid file type"
             ]);
             exit;
         }
 
-        // Validate file size (e.g., max 2MB)
-        $maxSize = 2 * 1024 * 1024; // 2MB
-        if ($file['size'] > $maxSize) {
+        if ($file['size'] > (2 * 1024 * 1024)) {
             echo json_encode([
                 "status" => "error",
                 "message" => "File Size must be less than 2MB"
@@ -45,19 +53,25 @@ if (!empty($_FILES)) {
             exit;
         }
 
-        // Generate new unique filename
-        $newName = 1 . "_$key." . $ext;
+        // Optional: delete old file
+        if (!empty($data[$key])) {
+            $oldPath = $uploadDir . $data[$key];
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+        }
 
-        // Move uploaded file
+        $newName = "1_{$key}." . $ext;
+
         if (!move_uploaded_file($file['tmp_name'], $uploadDir . $newName)) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Failed to move uploaded file: " . $key
+                "message" => "Failed to move uploaded file: $key"
             ]);
             exit;
         }
 
-        // Store filename in JSON
+        // ✅ Override only this image
         $data[$key] = $newName;
     }
 }
@@ -69,6 +83,9 @@ foreach ($_POST as $key => $value) {
     $data[$key] = trim($value);
 }
 
+/* ===============================
+   3. SAVE
+   =============================== */
 $json = json_encode($data, JSON_UNESCAPED_UNICODE);
 
 $stmt = mysqli_prepare(
