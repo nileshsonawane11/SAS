@@ -619,7 +619,7 @@ if ($action === 'role') {
 
             foreach ($dateSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    $val = !empty(($dates[$date][$slot]['block']))
+                    $val = (!empty(($dates[$date][$slot]['block_type'])) && $dates[$date][$slot]['block_type'] === 'real')
                         ? '✓'
                         : (isset($dates[$date][$slot]['assigned']) ? '*' : '');
                     $pdf->SetFont('dejavusans', '', 10);
@@ -680,10 +680,9 @@ if ($action === 'department') {
 
         $pdf->SetFont('times','B',11);
         $pdf->Cell(0,6,"{$dept} Department – Examination Supervision",0,1,'C');
-        $pdf->Ln(4);
 
         /* -------- LEGEND -------- */
-        $pdf->Ln(6);
+        $pdf->Ln(1);
         $pdf->SetFont('times','',9);
         $pdf->Cell(20,6,'Slot Legend:',1,0);
 
@@ -747,7 +746,7 @@ if ($action === 'department') {
         $sr = 1;
 
         foreach ($facultyList as $name => $dates) {
-            $pdf->SetFont('times','',10);
+            $pdf->SetFont('times','',9);
             $rowH = 8;
             $originalDept = $dates['_original_dept'] ?? $dept;
 
@@ -762,7 +761,7 @@ if ($action === 'department') {
                         ? '✓'
                         : (isset($dates[$date][$slot]['assigned']) ? '✓' : '');
 
-                    $pdf->SetFont('dejavusans','',10);
+                    $pdf->SetFont('dejavusans','',9);
                     $pdf->Cell($slotW,$rowH,$val,1,0,'C');
                 }
             }
@@ -772,9 +771,9 @@ if ($action === 'department') {
         }
 
         /* ================= FOOTER ================= */
-        $pdf->SetFont('times','B',10);
-        $pdf->Ln(10);
-        print_sign();
+        // $pdf->SetFont('times','B',10);
+        // $pdf->Ln(10);
+        // print_sign();
     }
 
     $pdf->Output('Department_Wise_Supervision.pdf','I');

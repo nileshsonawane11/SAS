@@ -882,7 +882,7 @@ $letter_data = json_decode($setting_row['letter_json'],true);
                     <span><div class="ref-no">Outword No. : </div><div class="editable" contenteditable="true" data-key="ref_no"><?= $letter_data['ref_no'] ?? '' ?></div></span>
                 </div>
                 <div class="editable" contenteditable="true" data-key="order_by"><?= $letter_data['order_by'] ?? '' ?></div>
-                 <div class="editable" contenteditable="true" data-key="reference"><?= $letter_data['reference'] ?? '' ?></div>
+                <div class="inline" style="min-width: max-content;">Reference : <div class="editable" contenteditable="true" data-key="reference"><?= $letter_data['reference'] ?? '' ?></div></div>
                 <div class="content">
                     
                     <div class="online">

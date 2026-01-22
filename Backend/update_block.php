@@ -28,7 +28,7 @@ while ($row = $result->fetch_assoc()) {
     if (
         isset($sch[$date][$slot]['block']) &&
         strtoupper($sch[$date][$slot]['block']) === $block &&
-        $otherFid != $fid
+        $otherFid != $fid && ($sch[$date][$slot]['block']) !== ''
     ) {
         echo json_encode([
             'status' => 400,

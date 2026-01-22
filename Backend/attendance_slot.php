@@ -176,10 +176,11 @@ $pdf->Ln(5);
 $pdf->SetFont('helvetica', 'B', 9);
 
 $pdf->Cell(7, 12, 'Sr', 1, 0, 'C');
-$pdf->Cell(65, 12, 'Faculty', 1, 0, 'C');
-$pdf->Cell(13, 12, 'Dept', 1, 0, 'C');
-$pdf->Cell(13, 12, 'Block', 1, 0, 'C');
-$pdf->Cell(45, 12, 'Answersheet', 1, 0, 'C');
+$pdf->Cell(55, 12, 'Faculty', 1, 0, 'C');
+$pdf->Cell(10, 12, '#', 1, 0, 'C');
+$pdf->Cell(20, 12, 'Dept', 1, 0, 'C');
+$pdf->Cell(11, 12, 'Block', 1, 0, 'C');
+$pdf->Cell(40, 12, 'Answersheet', 1, 0, 'C');
 $pdf->Cell(30, 12, 'Rep.Time', 1, 0, 'C');
 $pdf->Cell(25, 12, 'Signature', 1, 1, 'C');
 
@@ -203,28 +204,51 @@ while ($row = mysqli_fetch_assoc($res)) {
     if (!isset($sch[$date][$slot])) continue;
 
     $block = '';
-    if (!empty($sch[$date][$slot]['block'])) {
+    $status = '';
+    if (isset($sch[$date][$slot]['block']) && !empty($sch[$date][$slot]['block'])) {
         $block = trim($sch[$date][$slot]['block']);
+    }
+    if (isset($sch[$date][$slot]['block_type']) && !empty($sch[$date][$slot]['block_type'])){
+        $block_type = $sch[$date][$slot]['block_type'];
+        if($block_type == 'real'){
+            $status = '✓';
+        }else if($block_type == 'buffer'){
+            $status = '*';
+        }
     }
 
     $rows[] = [
         'faculty' => $row['faculty_name'],
         'dept'    => $row['dept_code'],
-        'block'   => $block
+        'block'   => $block,
+        'status'  => $status,
+        'block_type' => $sch[$date][$slot]['block_type']
     ];
 }
 
-$blockSort = [];
-$blankSort = [];
+$blockSort  = [];
+$blankSort  = [];
+$blocktype  = [];
+$bufferSort = [];
 
 foreach ($rows as $i => $r) {
+
     $blockSort[$i] = $r['block'];
+
+    // Blank blocks ('' or '-')
     $blankSort[$i] = ($r['block'] === '' || $r['block'] === '-');
+
+    // Block type
+    $blocktype[$i] = $r['block_type'];
+
+    // Buffer should go LAST
+    $bufferSort[$i] = ($r['block_type'] === 'buffer') ? 1 : 0;
 }
 
 array_multisort(
-    $blankSort, SORT_ASC,
-    $blockSort, SORT_NATURAL, SORT_ASC,
+    $bufferSort, SORT_ASC,        // non-buffer first, buffer last
+    $blankSort,  SORT_ASC,        // real blocks before blanks
+    $blockSort,  SORT_NATURAL, SORT_ASC,
     $rows
 );
 
@@ -239,12 +263,14 @@ foreach ($rows as $r) {
     $y = $pdf->GetY();
 
     // Faculty (MultiCell safe)
-    $pdf->MultiCell(65, 12, $r['faculty'], 1, 'L');
-    $pdf->SetXY($x + 65, $y);
-
-    $pdf->Cell(13, 12, $r['dept'], 1, 0, 'C');
-    $pdf->Cell(13, 12, '', 1, 0, 'C');
-    $pdf->Cell(45, 12, '', 1, 0, 'C');
+    $pdf->MultiCell(55, 12, $r['faculty'], 1, 'L');
+    $pdf->SetXY($x + 55, $y);
+    $pdf->SetFont('dejavusans','',10);
+    $pdf->Cell(10, 12, $r['status'], 1, 0, 'C');
+    $pdf->SetFont('helvetica', '', 9);
+    $pdf->Cell(20, 12, $r['dept'], 1, 0, 'C');
+    $pdf->Cell(11, 12, $r['block'], 1, 0, 'C');
+    $pdf->Cell(40, 12, '', 1, 0, 'C');
     $pdf->Cell(30, 12, '', 1, 0, 'C');
     $pdf->Cell(25, 12, '', 1, 1);
 }
