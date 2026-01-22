@@ -69,7 +69,7 @@ while ($row = mysqli_fetch_assoc($res)) {
         foreach ($slots as $slot => $v) {
 
             /* CONFLICT CHECK */
-            if (isset($facultyAssignments[$fid][$date][$slot])) {
+            if (!empty($facultyAssignments[$fid][$date][$slot])) {
                 $conflicts[$fid][$date][$slot] = true;
             }
 
@@ -269,6 +269,12 @@ $today = date('d-M-Y');
 
     .btn-warning {
         background: var(--warning);
+        color: white;
+    }
+
+    .btn-error {
+        display: none;
+        background: var(--danger);
         color: white;
     }
 
@@ -991,7 +997,9 @@ $today = date('d-M-Y');
         top: 50%;
         transform: translate(-50%, -50%);
     }
-
+    .modal-footer{
+        flex-wrap: nowrap;
+    }
     @keyframes spin {
         to {
             transform: translate(-50%, -50%) rotate(360deg);
@@ -1279,7 +1287,7 @@ $today = date('d-M-Y');
                                 data-date="<?= $date ?>"
                                 data-slot="<?= $slot ?>"
                                 data-sid="<?= $s_id ?>"
-                                data-present="<?= ($assignments[$date][$slot]['assigned'] ?? false)
+                                data-present="<?= (($blockType != '') ?? false)
                                                     ? (!empty($assignments[$date][$slot]['present'])
                                                         ? "true"
                                                         : "false")
@@ -1290,10 +1298,13 @@ $today = date('d-M-Y');
                                     <?php if ($hasBlock): ?>
                                         <strong><?php echo !empty($blockNumber) ? $blockNumber : '✓'; ?></strong>
                                     <?php else: ?>
-                                        *
+                                            <?php if ($blockType == 'buffer'): ?>
+                                                * 
+                                            <?php else: ?> 
+                                            <?php endif; ?>
                                     <?php endif; ?>
                                     <?php $sup_count++; ?>
-                                    <?php if ($hasBlock) $blocks_assign++; ?>
+                                    <?php if ($hasBlock && $assignments[$date][$slot]['present']) $blocks_assign++; ?>
                                     <?php else: ?>
                                 <?php endif; ?>
                                 <div class="con-tool"></div>
@@ -1392,7 +1403,12 @@ $today = date('d-M-Y');
                                 data-bs-dismiss="modal">
                             Cancel
                         </button>
-
+                        <button type="button"
+                                data-type=""
+                                class="btn btn-error delete-add-faculty"
+                                onclick="deleteFaculty(this)">
+                            Delete
+                        </button>
                         <button type="button"
                                 data-type=""
                                 class="btn btn-success replace-add-faculty"
@@ -1445,6 +1461,7 @@ $today = date('d-M-Y');
 
                 <div class="dialog-footer">
                     <button class="btn btn-cancel" onclick="closeDialog()">Cancel</button>
+                    <button class="btn btn-error delete-cell" onclick="deletecell()">Delete</button>
                     <button class="btn btn-warning" onclick="enableSwapMode()">Swap</button>
                     <button class="btn btn-primary" onclick="submitStatus()">Submit</button>
                 </div>
@@ -1694,12 +1711,18 @@ $today = date('d-M-Y');
 
         function openDialog(e, td) {
             e.preventDefault();
-            if (td.innerText.trim() === '' || td.innerText.trim() === '-') return;
+            if (td.innerText.trim() != ''){
+                console.log(td.innerText.trim());
+                document.querySelector(".delete-cell").style.display = "flex";
+            }else{
+                document.querySelector(".delete-cell").style.display = "none";
+            }
 
             cell = td;
             resetDialog();
 
             curr = {
+                td : td.innerText.trim(),
                 fid: td.dataset.fid,
                 date: td.dataset.date,
                 slot: td.dataset.slot,
@@ -1785,6 +1808,7 @@ $today = date('d-M-Y');
         /* Submit */
         function submitStatus() {
             let data = {
+                td : curr.td,
                 fid: curr.fid,
                 date: curr.date,
                 slot: curr.slot,
@@ -1818,6 +1842,41 @@ $today = date('d-M-Y');
             closeDialog();
         }
 
+        // delete particular schedule
+        function deletecell() {
+
+            if (!confirm("Are you sure you want to delete this schedule?")) {
+                return;
+            }
+
+            let data = {
+                action: 'delete',
+                fid: curr.fid,
+                date: curr.date,
+                slot: curr.slot,
+                s_id: curr.s_id
+            };
+
+            fetch("change_faculty_slot.php", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(resp => {
+                console.log(resp);
+                if (resp.status === 200 || resp.status === 'ok') {
+                    location.reload();   // safest
+                } else {
+                    alert("Failed to delete schedule");
+                }
+            });
+
+            closeDialog();
+        }
+
         //replace faculty directly
         let selectedFacultyId = null;
 
@@ -1846,9 +1905,13 @@ $today = date('d-M-Y');
                 if(el.classList.contains('faculty-cell')){
                     task_btn.dataset.type = "replace";
                     task_btn.innerText = 'Replace';
+                    document.querySelector('.delete-add-faculty').style.display = 'flex';
+                    document.querySelector('.delete-add-faculty').dataset.fid = selectedFacultyId;
                 }else if(el.classList.contains('add-cell')){
                     task_btn.dataset.type = "add";
                     task_btn.innerText = 'Add';
+                    document.querySelector('.delete-add-faculty').style.display = 'none';
+                    document.querySelector('.delete-add-faculty').dataset.fid = '';
                 }
                 showFacultyReplaceDialog(data);
             });
@@ -1934,6 +1997,39 @@ $today = date('d-M-Y');
                 });
             }
         }
+
+        function deleteFaculty(el) {
+            let f_id = el.dataset.fid;
+
+            if (!f_id) return;
+
+            if (!confirm("Delete faculty only if no real schedule exists. Continue?")) {
+                return;
+            }
+
+            fetch('./Backend/faculty_action.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    action: 'delete_faculty',
+                    fid: f_id,
+                    s_id: S_ID
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                bootstrap.Modal
+                        .getInstance(document.getElementById('replaceFacultyModal'))
+                        .hide();
+
+                alert(data.msg);
+
+                if (data.status === 'ok') {
+                    location.reload();
+                }
+            });
+        }
         
         // Quick filter shortcuts
         document.addEventListener('keydown', function(e) {
@@ -1957,7 +2053,6 @@ $today = date('d-M-Y');
         // ++++++++++++++++++++++++++++++++++++
         
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

@@ -100,8 +100,11 @@ try {
     // Slot ➜ Slot (SWAP)
     if ($fromHas && $toHas) {
 
-        $rows[$fromFid][$fromDate][$fromSlot] = $toData;
-        $rows[$toFid][$toDate][$toSlot]       = $fromData;
+        $rows[$fromFid][$toDate][$toSlot] = $toData;
+        $rows[$toFid][$fromDate][$fromSlot]       = $fromData;
+
+        $rows[$fromFid][$fromDate][$fromSlot] = [];
+        $rows[$toFid][$toDate][$toSlot]       = [];
 
     }
     // Slot ➜ Empty (MOVE)
@@ -174,5 +177,6 @@ try {
             "from" => $from,
             "to"   => $to
         ]
+        
     ]);
 }

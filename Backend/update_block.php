@@ -56,6 +56,7 @@ $schedule = json_decode($row['schedule'], true);
 /* ===============================
    3. UPDATE JSON
 ================================ */
+$schedule[$date][$slot]['block_type'] = "real";
 $schedule[$date][$slot]['assigned'] = true;
 $schedule[$date][$slot]['block']    = $block;
 

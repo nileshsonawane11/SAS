@@ -35,7 +35,7 @@ try {
     $checkFaculty = $conn->prepare("
         SELECT id
         FROM faculty
-        WHERE id = ? AND status = 'ON'
+        WHERE id = ?
     ");
     $checkFaculty->bind_param("i", $faculty_id);
     $checkFaculty->execute();

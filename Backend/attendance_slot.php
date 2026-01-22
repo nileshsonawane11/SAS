@@ -222,7 +222,8 @@ while ($row = mysqli_fetch_assoc($res)) {
         'dept'    => $row['dept_code'],
         'block'   => $block,
         'status'  => $status,
-        'block_type' => $sch[$date][$slot]['block_type']
+        'block_type' => $sch[$date][$slot]['block_type'] ?? 'buffer',
+        'present' => $sch[$date][$slot]['present']
     ];
 }
 
@@ -256,6 +257,8 @@ $pdf->SetFont('helvetica', '', 9);
 $sr = 1;
 
 foreach ($rows as $r) {
+
+    if($r['present'] == false) continue;
 
     $pdf->Cell(7, 12, $sr++, 1, 0, 'C');
 

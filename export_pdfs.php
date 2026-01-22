@@ -1,5 +1,12 @@
 <?php
 // require './Backend/auth_guard.php';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+error_reporting(0);
+ini_set('display_errors', 0);
+
+require 'vendor/autoload.php';
+
 require_once __DIR__ . '/tcpdf/tcpdf.php';
 error_reporting(1);
 include './Backend/config.php';
@@ -186,7 +193,8 @@ SELECT
     f.faculty_name,
     f.dept_code,
     f.dept_name,
-    f.role
+    f.role,
+    f.email
 FROM block_supervisor_list bsl
 JOIN faculty f ON f.id = bsl.faculty_id
 WHERE bsl.s_id = '$s_id'
@@ -205,6 +213,7 @@ $facultyMap = [];
 $facultydept = [];
 $facultyRole = [];
 $allDatesSlots = [];
+$facultyEmail = [];
 
 while ($row = mysqli_fetch_assoc($res)) {
 
@@ -214,6 +223,7 @@ while ($row = mysqli_fetch_assoc($res)) {
     $facultyMap[$fid] = $row['dept_code'];
     $facultyRole[$fid] = $row['role'];
     $facultydept[$fid] = $row['dept_name'];
+    $facultyEmail[$fid] = $row['email'];
 
     foreach ($schedule as $date => $slots) {
         foreach ($slots as $slot => $v) {
@@ -445,7 +455,7 @@ if ($action === 'overall') {
         foreach ($dateSlotMap as $date => $slots) {
             foreach ($slots as $slot) {
 
-                $assigned = isset($assignments[$date][$slot]);
+                $assigned = isset($assignments[$date][$slot]) && $assignments[$date][$slot]['present'] == true;
                 $blockInfo = $assigned ? $assignments[$date][$slot] : null;
                 $blockType = $blockInfo['block_type'] ?? '';
                 $hasBlock  = !empty($blockInfo['block']);
@@ -619,9 +629,9 @@ if ($action === 'role') {
 
             foreach ($dateSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    $val = (!empty(($dates[$date][$slot]['block_type'])) && $dates[$date][$slot]['block_type'] === 'real')
+                    $val = (!empty(($dates[$date][$slot]['block_type'])) && $dates[$date][$slot]['block_type'] === 'real' && ($dates[$date][$slot]['present'] == true))
                         ? '✓'
-                        : (isset($dates[$date][$slot]['assigned']) ? '*' : '');
+                        : ((isset($dates[$date][$slot]['assigned']) && ($dates[$date][$slot]['present'] == true)) ? '*' : '');
                     $pdf->SetFont('dejavusans', '', 10);
                     $pdf->Cell($slotW, $rowH, $val, 1, 0, 'C');
                 }
@@ -759,7 +769,7 @@ if ($action === 'department') {
 
                     $val = !empty($dates[$date][$slot]['block'])
                         ? '✓'
-                        : (isset($dates[$date][$slot]['assigned']) ? '✓' : '');
+                        : ((isset($dates[$date][$slot]['assigned']) && ($dates[$date][$slot]['present'] == true)) ? '✓' : '');
 
                     $pdf->SetFont('dejavusans','',9);
                     $pdf->Cell($slotW,$rowH,$val,1,0,'C');
@@ -857,15 +867,34 @@ if ($action === 'individual') {
 
             foreach ($dates as $date => $slots) {
 
-                $slotCount  = count($slots);
-                $totalH     = $slotCount * $rowH;
+                /* ---- FILTER ONLY PRESENT SLOTS ---- */
+                $presentSlots = [];
+
+                foreach ($slots as $slot => $slotData) {
+                    if (
+                        is_array($slotData) &&
+                        array_key_exists('present', $slotData) &&
+                        $slotData['present'] === true
+                    ) {
+                        $presentSlots[$slot] = $slotData;
+                    }
+                }
+
+                /* ---- SKIP DATE IF NO PRESENT SLOT ---- */
+                if (count($presentSlots) === 0) {
+                    continue;
+                }
+
+                /* ---- CALCULATE HEIGHT BASED ON PRESENT SLOTS ---- */
+                $slotCount = count($presentSlots);
+                $totalH    = $slotCount * $rowH;
 
                 /* ---- STORE START POSITION ---- */
                 $x = $pdf->GetX();
                 $y = $pdf->GetY();
 
                 /* ---- SR.NO (MERGED) ---- */
-                $pdf->Cell($srW, $totalH, $sr++, 1,0, 'C');
+                $pdf->Cell($srW, $totalH, $sr++, 1, 0, 'C');
 
                 /* ---- DATE (MERGED) ---- */
                 $pdf->Cell(
@@ -877,12 +906,9 @@ if ($action === 'individual') {
                     'C'
                 );
 
-                /* ---- MOVE TO SLOT COLUMN (IMPORTANT FIX) ---- */
-                // $pdf->SetXY($x + $srW + $dateW, $y);
-
-                /* ---- SLOT ROWS (NORMAL CELLS) ---- */
-                foreach ($slots as $slot => $_) {
-                    $pdf->setX(115);
+                /* ---- SLOT ROWS (ONLY PRESENT ONES) ---- */
+                foreach ($presentSlots as $slot => $slotData) {
+                    $pdf->setX($x + $srW + $dateW);
                     $pdf->Cell($slotW, $rowH, $slot, 1, 1, 'C');
                 }
             }
@@ -1112,6 +1138,176 @@ if ($action === 'exam_analysis') {
     exit;
 }
 
+if ($action === 'individual_email') {
+
+    uksort($facultyAssignments, function ($a, $b) use ($facultyMap) {
+        return strcmp($facultyMap[$a], $facultyMap[$b]);
+    });
+
+    $ref = 0;
+
+    foreach ($facultyAssignments as $name => $dates) {
+
+        /* ================= CREATE PDF PER FACULTY ================= */
+
+        $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
+        $pdf->SetMargins(15,15,15);
+        $pdf->SetAutoPageBreak(true,20);
+        $pdf->setPrintHeader(false);
+
+        $pdf->AddPage();
+        $ref++;
+        print_letter_head($ref);
+        $pdf->Ln(5);
+
+        /* ---------- ADDRESS ---------- */
+        $pdf->SetFont('times','',11);
+
+        $f_dept = '';
+        if (!empty($facultyMap[$name]) && $facultyRole[$name] == 'TS') {
+            $f_dept = "";
+        } else {
+            $f_dept = $facultyMap[$name].",<br>";
+        }
+
+        $f_department = '';
+        if (!empty($facultydept[$name]) && $facultyRole[$name] == 'TS') {
+            $f_department = "Lecturer In ".ucwords(strtolower($facultydept[$name])).",<br>";
+        }
+
+        $html = "To,<br>".$facultyName[$name].",<br>".
+                $f_dept.
+                $f_department.
+                $college_address;
+
+        $pdf->writeHTML($html, true, false, true, false, 'L');
+        $pdf->Ln(2);
+
+        /* ---------- SUBJECT ---------- */
+        $pdf->SetFont('times','B',12);
+        $pdf->writeHTML("Subject : $subject_name", true, false, true, false, 'L');
+        $pdf->Ln(2);
+
+        /* ---------- BODY ---------- */
+        $pdf->SetFont('times','',11);
+        $pdf->writeHTML(
+            $body_para_1.'<br><br>'.
+            $body_para_2.'<br>'.
+            $body_para_3,
+            true,false,true,false,'L'
+        );
+
+        /* ---------- TABLE ---------- */
+        if ($show_table == 'yes') {
+
+            $pdf->Ln(2);
+            $pdf->SetFont('times','B',10);
+            $pdf->Cell(20,8,'Sr.No',1,0,'C');
+            $pdf->Cell(80,8,'Date',1,0,'C');
+            $pdf->Cell(75,8,'Slot',1,1,'C');
+
+            $pdf->SetFont('times','',10);
+
+            $sr = 1;
+            $rowH = 8;
+
+            foreach ($dates as $date => $slots) {
+
+                /* ---- FILTER ONLY PRESENT SLOTS ---- */
+                $presentSlots = [];
+
+                foreach ($slots as $slot => $slotData) {
+                    if (
+                        is_array($slotData) &&
+                        array_key_exists('present', $slotData) &&
+                        $slotData['present'] === true
+                    ) {
+                        $presentSlots[$slot] = $slotData;
+                    }
+                }
+
+                /* ---- SKIP DATE IF NO PRESENT SLOT ---- */
+                if (count($presentSlots) === 0) {
+                    continue;
+                }
+
+                /* ---- HEIGHT BASED ON PRESENT SLOTS ---- */
+                $slotCount = count($presentSlots);
+                $totalH    = $slotCount * $rowH;
+
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+
+                /* ---- SR NO ---- */
+                $pdf->Cell(20, $totalH, $sr++, 1, 0, 'C');
+
+                /* ---- DATE ---- */
+                $pdf->Cell(
+                    80,
+                    $totalH,
+                    date('d-M-Y', strtotime($date)),
+                    1,
+                    0,
+                    'C'
+                );
+
+                /* ---- SLOT COLUMN ---- */
+                $pdf->SetXY($x + 100, $y);
+
+                foreach ($presentSlots as $slot => $slotData) {
+                    $pdf->Cell(75, $rowH, $slot, 1, 1, 'C');
+                }
+            }
+        }
+
+        /* ---------- FOOTER ---------- */
+        $pdf->Ln(3);
+        $pdf->writeHTML($closing_text, true,false,true,false,'L');
+        $pdf->Ln(10);
+        print_sign();
+
+        /* ================= GET PDF STRING ================= */
+        $pdfContent = $pdf->Output('', 'S');
+
+        /* ================= SEND EMAIL ================= */
+
+        $mail = new PHPMailer(true);
+
+        try {
+
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'livestrike.in@gmail.com'; // Change to your email
+            $mail->Password = 'sdie phiv vbgk qymy'; // Use App Password if required
+            $mail->SMTPSecure = 'tls';
+            $mail->Port = 587;
+
+            $mail->setFrom('livestrike.in@gmail.com', 'LiveStrike'); // Sender
+            $mail->addAddress($facultyEmail[$name]);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Appointment Letter - Examination Duty';
+            $mail->Body    = 'Please find attached your appointment letter.';
+
+            $mail->addStringAttachment(
+                $pdfContent,
+                'Appointment_Letter_'.$facultyName[$name].'.pdf'
+            );
+
+            $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Mail failed for $name : ".$mail->ErrorInfo);
+        }
+
+        $mail->clearAddresses();
+        $mail->clearAttachments();
+    }
+
+    echo "All individual PDFs generated and emailed successfully.";
+    exit;
+}
 }
 ?>
 
@@ -1511,6 +1707,17 @@ if ($action === 'exam_analysis') {
                         <div class="button-desc">Create detailed analysis reports for examination results and statistics.</div>
                         <div class="button-footer">
                             <span class="button-type">Analytics</span>
+                            <i class="fas fa-arrow-right button-arrow"></i>
+                        </div>
+                    </button>
+
+                    <!-- Individual Appointment Letters -->
+                    <button type="submit" name="action" value="individual_email" class="action-button">
+                        <i class="fas fa-envelope"></i>
+                        <div class="button-title">Individual Appointment Email</div>
+                        <div class="button-desc">Send personalized appointment letters to each faculty member.</div>
+                        <div class="button-footer">
+                            <span class="button-type">Personalized</span>
                             <i class="fas fa-arrow-right button-arrow"></i>
                         </div>
                     </button>

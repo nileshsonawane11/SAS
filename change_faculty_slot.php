@@ -5,10 +5,12 @@ error_reporting(E_ALL);
 /* ========== READ JSON ========== */
 $data = json_decode(file_get_contents("php://input"), true);
 
+$action = $data['action'] ?? '';
+$td          = $data['td'] ?? '';
 $fid          = (int)($data['fid'] ?? 0);
 $date         = $data['date'] ?? '';
 $slot         = $data['slot'] ?? '';
-$s_id         = (int)($data['s_id'] ?? 0);
+$s_id         = ($data['s_id'] ?? '');
 $present      = $data['present'] ?? 'yes';
 $reason       = $data['reason'] ?? '';
 $replace_id   = (int)($data['replace_id'] ?? 0);
@@ -37,12 +39,63 @@ if (!$row = $res->fetch_assoc()) {
 
 $schedule = json_decode($row['schedule'], true) ?: [];
 
+if ($action === 'delete') {
+
+    /* ---------- DELETE ONLY REQUIRED SLOT ---------- */
+    if (isset($schedule[$date][$slot])) {
+
+        unset($schedule[$date][$slot]);
+
+        // If date has no slots left → remove date
+        if (empty($schedule[$date])) {
+            unset($schedule[$date]);
+        }
+
+    } else {
+        echo json_encode([
+            'status' => 404,
+            'msg' => 'Slot not found'
+        ]);
+        exit;
+    }
+
+    /* ---------- SAVE BACK TO DB ---------- */
+    $newSchedule = json_encode($schedule, JSON_UNESCAPED_UNICODE);
+
+    $update = $conn->prepare("
+        UPDATE block_supervisor_list
+        SET schedule = ?
+        WHERE faculty_id = ?
+          AND s_id = ?
+        LIMIT 1
+    ");
+    $update->bind_param("sii", $newSchedule, $fid, $s_id);
+
+    if ($update->execute()) {
+        echo json_encode([
+            'status' => 'ok'
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 500,
+            'msg' => 'Update failed'
+        ]);
+    }
+
+    exit;
+}
+
 /* ========== PRESENT = YES ========== */
 if ($present === 'yes') {
 
     $schedule[$date][$slot]['present'] = true;
     $schedule[$date][$slot]['reason'] = '';
     $schedule[$date][$slot]['other_reason'] = '';
+
+    if($td == '' && empty($td)){
+        $schedule[$date][$slot]['assigned'] = true;
+        $schedule[$date][$slot]['block_type'] = 'buffer';
+    }
 
     $json = json_encode($schedule, JSON_UNESCAPED_UNICODE);
 
@@ -126,7 +179,8 @@ try {
     $newSch[$date][$slot] = [
         'assigned' => true,
         'present'  => true,
-        'replaced' => $fid
+        'replaced' => $fid,
+        'block_type' => 'buffer'
     ];
 
     $jsonNew = json_encode($newSch, JSON_UNESCAPED_UNICODE);
