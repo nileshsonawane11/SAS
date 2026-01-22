@@ -675,6 +675,22 @@ $today = date('d-M-Y');
         color: var(--primary);
     }
 
+    .col-md-3 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+
+    .n-1 {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background-color: black;
+    }
+
     /* Responsive Design */
     @media (max-width: 1200px) {
         .supervision {
@@ -749,14 +765,11 @@ $today = date('d-M-Y');
             padding: 6px 4px;
         }
         
-        .card-body .row {
-            flex-direction: column;
-            gap: 15px;
-        }
         
-        .card-body .col-md-3 {
+        .card-body {
             width: 100%;
         }
+
         
         .btn {
             padding: 8px 16px;
@@ -997,6 +1010,16 @@ $today = date('d-M-Y');
             transform: translate(-50%, -50%) rotate(360deg);
         }
     }
+    .card-body .row {
+            --bs-gutter-x : 1.5rem;
+            --bs-gutter-y: 0;
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: calc(-1 * var(--bs-gutter-y));
+            margin-right: calc(-.5 * var(--bs-gutter-x));
+            margin-left: calc(-.5 * var(--bs-gutter-x));
+            align-items: center;
+        }
 </style>
 </head>
 
@@ -1113,6 +1136,17 @@ $today = date('d-M-Y');
                             </div>
                             <div class="col-md-3">
                                 <div class="d-flex align-items-center">
+                                    <div class="text-white rounded p-2 me-3 n-1">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Required Duties</h6>
+                                        <p class="mb-0 fw-bold" id="required_duties">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
                                     <div class="bg-warning text-white rounded p-2 me-3">
                                         <i class="fas fa-calendar-day"></i>
                                     </div>
@@ -1222,7 +1256,7 @@ $today = date('d-M-Y');
                 $duties_grabd_total = 0;
                 $blocks_grabd_total = 0;
                 $blocks_required_grand_total = [];
-                $allocated_blocks_grabd_total = 0;
+                $allocated_blocks_grabd_total = 252;
                 $filtered_faculty_count = 0;
             ?>
              <tr>
@@ -1452,6 +1486,21 @@ $today = date('d-M-Y');
         </div>
         <div id="swap-rect"></div>
     </div>
+    
+    <?php
+    // Check if all filters are empty
+    $all_filters_empty = empty($filterDept) && empty($search) && empty($filterDate) && empty($filterSlot) && empty($filterRole);
+    
+    // Check if values are different
+    if ($all_filters_empty && $blocks_grabd_total != $allocated_blocks_grabd_total) {
+        echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            alert("WARNING: Required blocks (' . $blocks_grabd_total . ') do not match allocated blocks (' . $allocated_blocks_grabd_total . '). Please review the allocation.");
+        });
+        </script>';
+    }
+    ?>
+    
     <script>
         let S_ID = '<?= $s_id ?>';
         let cell = null;
@@ -1955,6 +2004,8 @@ $today = date('d-M-Y');
         });
 
         // ++++++++++++++++++++++++++++++++++++
+
+        document.querySelector('#required_duties').innerText= "<?=$blocks_grabd_total?>"
         
     </script>
 
