@@ -1,17 +1,23 @@
 <?php
-// require './Backend/auth_guard.php';
+require './Backend/auth_guard.php';
 include './Backend/config.php';
 
 // Count blocks
-$result_blocks = mysqli_query($conn, "SELECT COUNT(*) as Block_count FROM blocks");
+$owner = $user_data['_id'];
+$result_blocks = mysqli_query($conn, "SELECT COUNT(*) as Block_count FROM blocks where Created_by = $owner");
 $row_blocks = mysqli_fetch_assoc($result_blocks);
 $block_count = $row_blocks['Block_count'] ?? 0;
 
 // Count faculty
-$result_faculty = mysqli_query($conn, "SELECT COUNT(*) as Faculty_count FROM faculty");
+$result_faculty = mysqli_query($conn, "SELECT COUNT(*) as Faculty_count FROM faculty where Created_by = $owner");
 $row_faculty = mysqli_fetch_assoc($result_faculty);
 $faculty_count = $row_faculty['Faculty_count'] ?? 0;
 ?>
+<style>
+    .pls{
+        display: flex;
+    }
+</style>
 <div class="animate-fadeIn">
     <div class="count-bar">
         <div class="count-container">
@@ -47,7 +53,17 @@ $faculty_count = $row_faculty['Faculty_count'] ?? 0;
             <div>Action</div>
         </div>
         <?php
-        $schedule_result = mysqli_query($conn, "SELECT * FROM schedule ORDER BY created_at DESC LIMIT 5");
+        $stmt = $conn->prepare("
+            SELECT *
+            FROM schedule
+            WHERE Created_by = ?
+            ORDER BY created_at DESC
+            LIMIT 5
+        ");
+
+        $stmt->bind_param("i", $user_data['_id']);
+        $stmt->execute();
+        $schedule_result = $stmt->get_result();
         $count = 1;
         
         if(mysqli_num_rows($schedule_result) > 0) {

@@ -1,3 +1,7 @@
+<?php
+require './Backend/auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+?>
 <div class="add-container">
     <button class="add-slot">
         <svg width="25" height="25" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,7 +27,7 @@
         <tbody>
             <?php
                 include './Backend/config.php'; 
-                $result = mysqli_query($conn,"SELECT * FROM exam_slots");
+                $result = mysqli_query($conn,"SELECT * FROM exam_slots WHERE Created_by = '$owner'");
                 $count = 1;
                 while($row = mysqli_fetch_assoc($result)){ 
             ?>

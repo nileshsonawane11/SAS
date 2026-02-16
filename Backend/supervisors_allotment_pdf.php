@@ -1,6 +1,8 @@
 <?php
 include '../tcpdf/tcpdf.php';
 include 'config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 $s = $_GET['s'] ?? '';
 if (!$s) die('Invalid Schedule');
@@ -14,7 +16,7 @@ $dateTimeMap = [];
 $q = mysqli_query($conn, "
     SELECT DISTINCT schedule_date, schedule_time
     FROM block_schedule
-    WHERE s_id = '$s'
+    WHERE s_id = '$s' AND Created_by = '$owner'
     ORDER BY schedule_date, schedule_time
 ");
 
@@ -46,7 +48,7 @@ $q = mysqli_query($conn, "
     FROM block_supervisor bsv
     JOIN block_schedule bs ON bs.id = bsv.block_schedule_id
     JOIN faculty f ON f.id = bsv.faculty_id
-    WHERE bs.s_id = '$s'
+    WHERE bs.s_id = '$s' AND bs.Created_by = '$owner'
     ORDER BY f.dept_code, bsv.is_extra, bs.schedule_date, bs.schedule_time
 ");
 

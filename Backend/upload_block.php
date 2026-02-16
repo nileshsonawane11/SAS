@@ -2,6 +2,8 @@
 header('Content-Type: application/json');
 require '../vendor/autoload.php';
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -108,8 +110,8 @@ for ($i = 1; $i < count($rows); $i++) {
     }
 
     // Duplicate block check
-    $check = $conn->prepare("SELECT id FROM blocks WHERE block_no = ?");
-    $check->bind_param("s", $block_no);
+    $check = $conn->prepare("SELECT id FROM blocks WHERE block_no = ? AND Created_by = ?");
+    $check->bind_param("si", $block_no, $owner);
     $check->execute();
     $check->store_result();
 
@@ -121,16 +123,17 @@ for ($i = 1; $i < count($rows); $i++) {
     // Insert block
     $stmt = $conn->prepare("
         INSERT INTO blocks 
-        (block_no, place, capacity, double_sit)
-        VALUES (?, ?, ?, ?)
+        (block_no, place, capacity, double_sit, Created_by)
+        VALUES (?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "ssis",
+        "ssisi",
         $block_no,
         $place,
         $capacity,
-        $double_sit
+        $double_sit,
+        $owner
     );
 
     if ($stmt->execute()) {

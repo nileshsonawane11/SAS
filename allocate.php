@@ -1,12 +1,14 @@
 <?php
+require './Backend/auth_guard.php';
 include './Backend/config.php';
+$owner = $user_data['_id'] ?? 0;
 
 $s_id = $_GET['s'] ?? '';
 
 /* =====================================================
    LOAD Admin Rules
    ===================================================== */
-$admin_rules = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel WHERE id = 1"));
+$admin_rules = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel WHERE admin = '$owner'"));
 $duties_restriction = $admin_rules['duties_restriction'];
 $role_restriction = $admin_rules['role_restriction'];
 $sub_restriction = $admin_rules['sub_restriction'];
@@ -22,7 +24,7 @@ $schedule_row = [];
 /* =====================================================
    LOAD FACULTY
    ===================================================== */
-$schedule_result = mysqli_query($conn,"SELECT * FROM schedule WHERE id = '$s_id'");
+$schedule_result = mysqli_query($conn,"SELECT * FROM schedule WHERE id = '$s_id' AND Created_by = '$owner'");
 if(mysqli_num_rows($schedule_result) > 0){
     $schedule_row = mysqli_fetch_assoc($schedule_result);
     
@@ -34,7 +36,7 @@ if(mysqli_num_rows($schedule_result) > 0){
     $task_name = $schedule_row['task_name'];
     $task_type = $schedule_row['task_type'];
 
-    $block_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM blocks ORDER BY CAST(block_no AS UNSIGNED)"));
+    $block_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM blocks WHERE Created_by = '$owner' ORDER BY CAST(block_no AS UNSIGNED)"));
 
     $blocks = [];
 
@@ -55,7 +57,7 @@ $faculty = [];
 $q = mysqli_query($conn, "
     SELECT id, faculty_name, dept_code, duties, role, courses
     FROM faculty
-    WHERE status='ON' AND duties>0
+    WHERE status='ON' AND duties>0 AND Created_by = '$owner'
     ORDER BY duties DESC, faculty_name ASC
 ");
 
@@ -625,15 +627,15 @@ unset($slot);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save'])) {
         // Clear existing assignments
-        mysqli_query($conn, "DELETE FROM block_supervisor_list WHERE s_id = '$s_id'");
+        mysqli_query($conn, "DELETE FROM block_supervisor_list WHERE s_id = '$s_id'AND Created_by = '$owner'");
         
         // Save new assignments
         foreach ($facultyAssignments as $key => $value) {
             $schedule = mysqli_real_escape_string($conn, json_encode($value));
             
             $sql = "
-                INSERT INTO block_supervisor_list (faculty_id, s_id, schedule)
-                VALUES ('$key', '$s_id', '$schedule')
+                INSERT INTO block_supervisor_list (faculty_id, s_id, schedule, Created_by)
+                VALUES ('$key', '$s_id', '$schedule', '$owner')
                 ON DUPLICATE KEY UPDATE schedule = VALUES(schedule)
             ";
             
@@ -645,11 +647,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt = mysqli_prepare(
             $conn,
-            "UPDATE Schedule SET scheduled = ?, blocks = ? WHERE id = ?"
+            "UPDATE Schedule SET scheduled = ?, blocks = ? WHERE id = ? AND Created_by = ?"
         );
         
         $scheduled = 1;
-        mysqli_stmt_bind_param($stmt, "isi", $scheduled, $block_json, $s_id);
+        mysqli_stmt_bind_param($stmt, "isii", $scheduled, $block_json, $s_id, $owner);
         
         if (!mysqli_stmt_execute($stmt)) {
             echo json_encode([

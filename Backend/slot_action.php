@@ -1,6 +1,7 @@
 <?php
 include './config.php';
-
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 /* ---------------- SETTINGS ---------------- */
 header('Content-Type: application/json');
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -60,6 +61,7 @@ if ($action === 'add') {
         AND mode = '$slot_mode'
         AND start_time = '$slot_start_time'
         AND end_time = '$slot_end_time'
+        AND Created_by = '$owner'
     ");
 
     if (mysqli_num_rows($check) > 0) {
@@ -73,9 +75,9 @@ if ($action === 'add') {
 
     $sql = "
         INSERT INTO exam_slots
-            (exam_name, mode, start_time, end_time)
+            (exam_name, mode, start_time, end_time, Created_by)
         VALUES
-            ('$exam_name', '$slot_mode', '$slot_start_time', '$slot_end_time')
+            ('$exam_name', '$slot_mode', '$slot_start_time', '$slot_end_time', '$owner')
     ";
 
     if (mysqli_query($conn, $sql)) {
@@ -114,6 +116,7 @@ if ($action === 'update') {
         AND mode = '$slot_mode'
         AND start_time = '$slot_start_time'
         AND end_time = '$slot_end_time'
+        AND Created_by = '$owner'
         AND id != '$slot_id'
     ");
 
@@ -132,7 +135,7 @@ if ($action === 'update') {
             mode = '$slot_mode',
             start_time = '$slot_start_time',
             end_time = '$slot_end_time'
-        WHERE id = '$slot_id'
+        WHERE id = '$slot_id' AND Created_by = '$owner'
     ";
 
     if (mysqli_query($conn, $sql)) {
@@ -164,7 +167,7 @@ if ($action === 'delete') {
         exit;
     }
 
-    if (mysqli_query($conn, "DELETE FROM exam_slots WHERE id = '$slot_id'")) {
+    if (mysqli_query($conn, "DELETE FROM exam_slots WHERE id = '$slot_id' AND Created_by = '$owner'")) {
         $response = [
             'status'  => 200,
             'message' => 'Slot deleted successfully',

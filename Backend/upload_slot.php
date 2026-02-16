@@ -3,6 +3,8 @@ header('Content-Type: application/json');
 
 require '../vendor/autoload.php';
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -127,9 +129,10 @@ for ($i = 1; $i < count($rows); $i++) {
         AND mode = ?
         AND start_time = ?
         AND end_time = ?
+        AND Created_by = ?
     ");
 
-    $check->bind_param("ssss", $exam_name, $mode, $start_time, $end_time);
+    $check->bind_param("ssssi", $exam_name, $mode, $start_time, $end_time, $owner);
     $check->execute();
     $check->store_result();
 
@@ -141,16 +144,17 @@ for ($i = 1; $i < count($rows); $i++) {
     /* Insert slot */
     $stmt = $conn->prepare("
         INSERT INTO exam_slots
-        (exam_name, mode, start_time, end_time)
-        VALUES (?, ?, ?, ?)
+        (exam_name, mode, start_time, end_time, Created_by)
+        VALUES (?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "ssss",
+        "ssssi",
         $exam_name,
         $mode,
         $start_time,
-        $end_time
+        $end_time,
+        $owner
     );
 
     if ($stmt->execute()) {

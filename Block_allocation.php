@@ -1,15 +1,16 @@
 <?php 
-// include './Backend/auth_guard.php';
+include './Backend/auth_guard.php';
 include './Backend/config.php';
+$owner = $user_data['_id'] ?? 0;
 $s = $_GET['s'] ?? '';
 
-$schedule_result = mysqli_query($conn,"SELECT * FROM schedule WHERE id = '$s'");
+$schedule_result = mysqli_query($conn,"SELECT * FROM schedule WHERE id = '$s' AND Created_by = '$owner'");
 if(mysqli_num_rows($schedule_result) > 0){
     $schedule_row = mysqli_fetch_assoc($schedule_result);
     $task_name = $schedule_row['task_name'];
     $task_type = $schedule_row['task_type'];
 
-    $block_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM blocks"));
+    $block_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM blocks WHERE Created_by = '$owner'"));
 
     $blocks = [];
     $created_blocks = [];
@@ -30,13 +31,13 @@ if(mysqli_num_rows($schedule_result) > 0){
 
     // echo "<pre>";print_r($block_rows); echo "</pre>";
 
-    $created_blocks_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM block_schedule WHERE s_id = '$s'"));
+    $created_blocks_rows = mysqli_fetch_all(mysqli_query($conn,"SELECT * FROM block_schedule WHERE s_id = '$s' AND Created_by = '$owner'"));
     
     foreach($created_blocks_rows as $block){
         $created_blocks[] = $block[1];
     }
 
-    $slot_result =  mysqli_query($conn,"SELECT * FROM exam_slots WHERE exam_name = '$task_type'");
+    $slot_result =  mysqli_query($conn,"SELECT * FROM exam_slots WHERE exam_name = '$task_type' AND Created_by = '$owner'");
 
     // echo "<pre>";print_r($created_blocks_rows); echo "</pre>";
 ?>

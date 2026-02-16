@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -23,17 +25,18 @@ if ($action === 'add') {
 
     $stmt = $conn->prepare("
         INSERT INTO faculty 
-        (faculty_name, courses, dept_code, role, duties, status)
-        VALUES (?, ?, ?, ?, ?, ?)
+        (faculty_name, courses, dept_code, role, duties, status, Created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->bind_param(
-        "ssssis",
+        "ssssisi",
         $faculty_name,
         $courses,
         $dept_code,
         $role,
         $duties,
-        $status
+        $status,
+        $owner
     );
 
     if ($stmt->execute()) {
@@ -55,17 +58,18 @@ if ($action === 'update' && $staff_id) {
             role = ?,
             duties = ?,
             status = ?
-        WHERE id = ?
+        WHERE id = ? AND Created_by = ?
     ");
     $stmt->bind_param(
-        "ssssisi",
+        "ssssisii",
         $faculty_name,
         $courses,
         $dept_code,
         $role,
         $duties,
         $status,
-        $staff_id
+        $staff_id,
+        $owner
     );
 
     if ($stmt->execute()) {

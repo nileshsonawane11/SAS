@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 error_reporting(1);
 
 $data = json_decode(file_get_contents("php://input"), true);
@@ -53,9 +55,9 @@ if ($time == '') {
 /* Prevent duplicate block at same date & time */
 $check = $conn->prepare(
     "SELECT id FROM block_schedule 
-     WHERE block_no = ? AND schedule_date = ? AND schedule_time = ?"
+     WHERE block_no = ? AND schedule_date = ? AND schedule_time = ? AND Created_by = ?"
 );
-$check->bind_param("sss", $block_no, $date, $time);
+$check->bind_param("sssi", $block_no, $date, $time, $owner);
 $check->execute();
 $check->store_result();
 
@@ -69,10 +71,10 @@ if ($check->num_rows > 0) {
 }
 
 $stmt = $conn->prepare(
-    "INSERT INTO block_schedule (block_no, course_code, schedule_date, schedule_time, s_id)
-     VALUES (?, ?, ?, ?, ?)"
+    "INSERT INTO block_schedule (block_no, course_code, schedule_date, schedule_time, s_id, Created_by)
+     VALUES (?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param("sssss", $block_no, $course_code, $date, $time, $s);
+$stmt->bind_param("sssssi", $block_no, $course_code, $date, $time, $s, $owner);
 
 if ($stmt->execute()) {
     echo json_encode([

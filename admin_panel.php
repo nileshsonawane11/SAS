@@ -1,13 +1,14 @@
 <?php
-// require './Backend/auth_guard.php';
+require './Backend/auth_guard.php';
 include './Backend/config.php';
+$owner = $user_data['_id'] ?? 0;
 
-$setting_row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel LIMIT 1"));
-if(empty($setting_row)){
-    echo "No Setting Data Found";
-    exit;
-}
-$letter_data = json_decode($setting_row['letter_json'],true);
+$setting_row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM admin_panel Where admin = '$owner' LIMIT 1"));
+// if(empty($setting_row)){
+//     echo "No Setting Data Found";
+//     exit;
+// }
+$letter_data = json_decode($setting_row['letter_json'] ?? '',true);
 ?>
 <style>
     :root {
@@ -92,7 +93,6 @@ $letter_data = json_decode($setting_row['letter_json'],true);
     h3 {
         font-size: 22px;
         color: var(--text-dark);
-        margin-bottom: 20px;
         font-weight: 600;
     }
 
@@ -772,7 +772,7 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             <h3 class="section-head">Supervisor Allocation Settings</h3>
             <!-- 1 Duties Restriction -->
             <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="maxDutiesCheck" <?php echo ($setting_row['duties_restriction']) ? 'checked' : ''?>>
+                <input type="checkbox" class="form-check-input" id="maxDutiesCheck" <?php echo ($setting_row['duties_restriction'] ?? false) ? 'checked' : ''?>>
                 <label class="form-check-label fw-semibold" for="maxDutiesCheck">Duties Restriction (Max Duties)</label>
             </div>
 
@@ -780,6 +780,12 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             <div class="mb-3">
                 <label class="form-label fw-semibold">Block Capacity</label>
                 <input type="number" value="<?php echo ($setting_row['block_capacity']) ?? 0 ?>" class="form-control" placeholder="Enter block capacity">
+            </div>
+
+            <!-- 2 Supervision Rate -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Supervision Rate</label>
+                <input type="number" value="<?php echo ($setting_row['duty_rate']) ?? 0 ?>" class="form-control" placeholder="Enter Rate">
             </div>
 
             <!-- 3 Strength per reliever -->
@@ -798,7 +804,7 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             <div class="mb-3">
                 <label class="form-label fw-semibold">Restriction of Role</label>
                 <div class="form-check">
-                    <input class="form-check-input" <?php echo ($setting_row['role_restriction']) ? 'checked' : ''?> type="checkbox" id="roleRestrictionCheck" onchange="toggleRoleFields(this, 'roleFields')">
+                    <input class="form-check-input" <?php echo ($setting_row['role_restriction'] ?? false) ? 'checked' : ''?> type="checkbox" id="roleRestrictionCheck" onchange="toggleRoleFields(this, 'roleFields')">
                     <label class="form-check-label" for="roleRestrictionCheck">
                         Enable Role Restriction (Teaching & Non-Teaching Staff)
                     </label>
@@ -806,7 +812,7 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             </div>
 
             <!-- Teaching / Non-teaching staff -->
-            <div id="roleFields" class="<?php echo ($setting_row['role_restriction']) ? '' : 'hidden'?>">
+            <div id="roleFields" class="<?php echo ($setting_row['role_restriction'] ?? false) ? '' : 'hidden'?>">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Teaching Staff (%)</label>
                     <input type="number" min="0" id="teaching" max="100" oninput="syncPercentages(this, document.getElementById('nonTeaching'))"  value="<?php echo ($setting_row['teaching_staff']*100) ?? 0 ?>" class="form-control" placeholder="Teaching staff percentage">
@@ -822,11 +828,11 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             <div class="mb-3">
                 <label class="form-label fw-semibold">Subject Restriction</label><br>
                 <div class="form-check form-check-inline">
-                    <input type="radio" name="subjectRestriction" class="form-check-input" id="subjectOn" <?php echo ($setting_row['sub_restriction']) ? 'checked' : ''?>>
+                    <input type="radio" name="subjectRestriction" class="form-check-input" id="subjectOn" <?php echo ($setting_row['sub_restriction'] ?? false) ? 'checked' : ''?>>
                     <label for="subjectOn" class="form-check-label">On</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input type="radio" name="subjectRestriction" class="form-check-input" id="subjectOff" <?php echo (!$setting_row['sub_restriction']) ? 'checked' : ''?>>
+                    <input type="radio" name="subjectRestriction" class="form-check-input" id="subjectOff" <?php echo ($setting_row['sub_restriction'] ?? false) ? '' : 'checked'?>>
                     <label for="subjectOff" class="form-check-label">Off</label>
                 </div>
             </div>
@@ -835,11 +841,11 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             <div class="mb-3">
                 <label class="form-label fw-semibold">Department Restriction</label><br>
                 <div class="form-check form-check-inline">
-                    <input type="radio" name="deptRestriction" class="form-check-input" id="deptOn" <?php echo ($setting_row['dept_restriction']) ? 'checked' : ''?>>
+                    <input type="radio" name="deptRestriction" class="form-check-input" id="deptOn" <?php echo ($setting_row['dept_restriction'] ?? false) ? 'checked' : ''?>>
                     <label for="deptOn" class="form-check-label">On</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input type="radio" name="deptRestriction" class="form-check-input" id="deptOff" <?php echo (!$setting_row['dept_restriction']) ? 'checked' : ''?>>
+                    <input type="radio" name="deptRestriction" class="form-check-input" id="deptOff" <?php echo ($setting_row['dept_restriction'] ?? false) ? '' : 'checked'?>>
                     <label for="deptOff" class="form-check-label">Off</label>
                 </div>
             </div>
@@ -848,11 +854,11 @@ $letter_data = json_decode($setting_row['letter_json'],true);
             <div class="mb-3">
                 <label class="form-label fw-semibold">Assign Strict Duties <sub> (Role Restriction may Affect it.)</sub></label><br>
                 <div class="form-check form-check-inline">
-                    <input type="radio" name="duties_common" class="form-check-input" id="commonOn" <?php echo ($setting_row['strict_duties']) ? 'checked' : ''?>>
+                    <input type="radio" name="duties_common" class="form-check-input" id="commonOn" <?php echo ($setting_row['strict_duties'] ?? false) ? 'checked' : ''?>>
                     <label for="deptOn" class="form-check-label">On</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input type="radio" name="duties_common" class="form-check-input" id="commonOff" <?php echo (!$setting_row['strict_duties']) ? 'checked' : ''?>>
+                    <input type="radio" name="duties_common" class="form-check-input" id="commonOff" <?php echo ($setting_row['strict_duties'] ?? false) ? '' : 'checked'?>>
                     <label for="deptOff" class="form-check-label">Off</label>
                 </div>
             </div>
@@ -919,10 +925,10 @@ $letter_data = json_decode($setting_row['letter_json'],true);
                         <strong>Show Schedule :</strong>
                         <span class="inline" data-key="show_table">
                             <label>
-                                <input type="radio" class="tble-view" name="table-view" value="yes" onchange="toggleScheduleTable(this)" <?php echo ($letter_data['show_table'] == 'yes') ? 'checked' : '' ?>> YES
+                                <input type="radio" class="tble-view" name="table-view" value="yes" onchange="toggleScheduleTable(this)" <?php echo (isset($letter_data['show_table']) && ($letter_data['show_table'] == 'yes')) ? 'checked' : '' ?>> YES
                             </label>
                             <label>
-                                <input type="radio" class="tble-view" name="table-view" value="no" onchange="toggleScheduleTable(this)" <?php echo ($letter_data['show_table'] == 'no') ? 'checked' : '' ?>> NO
+                                <input type="radio" class="tble-view" name="table-view" value="no" onchange="toggleScheduleTable(this)" <?php echo (isset($letter_data['show_table']) && ($letter_data['show_table'] == 'no')) ? 'checked' : '' ?>> NO
                             </label>
                         </span>
                     </span>

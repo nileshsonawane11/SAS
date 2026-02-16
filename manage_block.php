@@ -1,3 +1,7 @@
+<?php
+require './Backend/auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+?>
 <div class="animate-fadeIn">
     <div class="add-container">
         <button class="add-block">
@@ -29,7 +33,7 @@
             <tbody>
                 <?php
                 include './Backend/config.php'; 
-                $result = mysqli_query($conn, "SELECT id, block_no, place, double_sit FROM blocks ORDER BY CAST(block_no AS UNSIGNED)");
+                $result = mysqli_query($conn, "SELECT id, block_no, place, double_sit FROM blocks WHERE Created_by = '$owner' ORDER BY CAST(block_no AS UNSIGNED)");
                 $count = 1;
                 
                 if(mysqli_num_rows($result) > 0) {

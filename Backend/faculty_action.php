@@ -1,5 +1,8 @@
 <?php
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+
 $data = json_decode(file_get_contents("php://input"), true);
 
 $action = $data['action'] ?? '';
@@ -22,10 +25,10 @@ if ($action === 'delete_faculty') {
     $stmt = $conn->prepare("
         SELECT schedule 
         FROM block_supervisor_list 
-        WHERE faculty_id = ? AND s_id = ?
+        WHERE faculty_id = ? AND s_id = ? AND Created_by = ?
         LIMIT 1
     ");
-    $stmt->bind_param("is", $fid, $s_id);
+    $stmt->bind_param("isi", $fid, $s_id, $owner);
     $stmt->execute();
     $res = $stmt->get_result();
 
@@ -73,10 +76,10 @@ if ($action === 'delete_faculty') {
        =============================== */
     $del = $conn->prepare("
         DELETE FROM block_supervisor_list 
-        WHERE faculty_id = ? AND s_id = ?
+        WHERE faculty_id = ? AND s_id = ? AND Created_by = ?
         LIMIT 1
     ");
-    $del->bind_param("is", $fid, $s_id);
+    $del->bind_param("isi", $fid, $s_id, $owner);
 
     if ($del->execute()) {
         echo json_encode([

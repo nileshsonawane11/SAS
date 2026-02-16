@@ -184,6 +184,7 @@ while ($row = mysqli_fetch_assoc($res)) {
 
     $sch = json_decode($row['schedule'], true);
     if (!isset($sch[$date][$slot])) continue;
+    if ($sch[$date][$slot]['present'] == false) continue;
 
     $block = '';
     if (is_array($sch[$date][$slot]) && !empty($sch[$date][$slot]['block'])) {
@@ -220,20 +221,18 @@ array_multisort(
 /* ================= TABLE HEADER (NO TOP BORDER) ================= */
 $pdf->SetFont('helvetica', 'B', 10);
 
-$pdf->Cell(15, 8, 'Sr', 1, 0, 'C');
-$pdf->Cell(35, 8, 'Block', 1, 0, 'C');
-$pdf->Cell(95, 8, 'Faculty', 1, 0, 'C');
-$pdf->Cell(40, 8, 'Dept', 1, 1, 'C');
+$pdf->Cell(30, 8, 'Sr', 1, 0, 'C');
+$pdf->Cell(100, 8, 'Faculty', 1, 0, 'C');
+$pdf->Cell(55, 8, 'Dept', 1, 1, 'C');
 
 /* ================= TABLE BODY ================= */
 $pdf->SetFont('helvetica', '', 10);
 $sr = 1;
 
 foreach ($rows as $r) {
-    $pdf->Cell(15, 8, $sr++, 1, 0, 'C');
-    $pdf->Cell(35, 8, '', 1, 0, 'C');
-    $pdf->Cell(95, 8, $r['faculty'], 1, 0);
-    $pdf->Cell(40, 8, $r['dept'], 1, 1, 'C');
+    $pdf->Cell(30, 8, $sr++, 1, 0, 'C');
+    $pdf->Cell(100, 8, $r['faculty'], 1, 0);
+    $pdf->Cell(55, 8, $r['dept'], 1, 1, 'C');
 }
 
 /* ================= OUTPUT ================= */

@@ -1,6 +1,7 @@
 <?php
-// require './Backend/auth_guard.php';
+require './Backend/auth_guard.php';
 include './Backend/config.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 $date = $_GET['date'];
 $slot = $_GET['slot'];
@@ -10,7 +11,7 @@ $assigned = [];
 
 $res = mysqli_query($conn,"
     SELECT schedule, faculty_id
-    FROM block_supervisor_list WHERE s_id = '$s'
+    FROM block_supervisor_list WHERE s_id = '$s' AND Created_by = '$owner'
 ");
 
 while($r=mysqli_fetch_assoc($res)){
@@ -20,7 +21,7 @@ while($r=mysqli_fetch_assoc($res)){
     }
 }
 
-$where = $assigned ? "WHERE id NOT IN(".implode(',',$assigned).") AND status = 'ON'" : "";
+$where = $assigned ? "WHERE id NOT IN(".implode(',',$assigned).") AND status = 'ON' AND Created_by = '$owner'" : "";
 
 $q = mysqli_query($conn,"
     SELECT id, faculty_name, dept_code

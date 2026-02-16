@@ -1,3 +1,7 @@
+<?php
+require './Backend/auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+?>
 <div class="animate-fadeIn">
     <div class="history-list">
         <div class="block-data">
@@ -9,7 +13,7 @@
         </div>
         <?php
         include './Backend/config.php';
-        $schedule_result = mysqli_query($conn, "SELECT * FROM schedule ORDER BY created_at DESC");
+        $schedule_result = mysqli_query($conn, "SELECT * FROM schedule WHERE Created_by = '$owner' ORDER BY created_at DESC");
         $count = 1;
         
         if(mysqli_num_rows($schedule_result) > 0) {

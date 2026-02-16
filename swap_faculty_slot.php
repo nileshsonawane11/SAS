@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 require_once "./Backend/config.php"; // must define $conn
+require './Backend/auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 /* ================= RESPONSE HELPER ================= */
 function respond($success, $message, $extra = []) {
@@ -59,11 +61,11 @@ try {
     $stmt = $conn->prepare("
         SELECT faculty_id, schedule
         FROM block_supervisor_list
-        WHERE faculty_id IN (?, ?) AND s_id = ?
+        WHERE faculty_id IN (?, ?) AND s_id = ? AND Created_by = ?
         FOR UPDATE
     ");
 
-    $stmt->bind_param("iis", $fromFid, $toFid, $s_id);
+    $stmt->bind_param("iisi", $fromFid, $toFid, $s_id, $owner);
     $stmt->execute();
     $res = $stmt->get_result();
 
@@ -135,7 +137,7 @@ try {
     $update = $conn->prepare("
         UPDATE block_supervisor_list
         SET schedule = ?
-        WHERE faculty_id = ? AND s_id = ?
+        WHERE faculty_id = ? AND s_id = ? AND Created_by = ?
     ");
 
     foreach ([$fromFid, $toFid] as $fid) {
@@ -145,7 +147,7 @@ try {
             throw new Exception("JSON encoding failed for faculty $fid");
         }
 
-        $update->bind_param("sis", $json, $fid, $s_id);
+        $update->bind_param("sisi", $json, $fid, $s_id, $owner);
 
         if (!$update->execute()) {
             throw new Exception("Database update failed for faculty $fid");

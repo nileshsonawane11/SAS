@@ -1,21 +1,20 @@
 <?php
-// require './Backend/auth_guard.php';
+require './Backend/auth_guard.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-error_reporting(0);
-ini_set('display_errors', 0);
 
 require 'vendor/autoload.php';
 
 require_once __DIR__ . '/tcpdf/tcpdf.php';
 error_reporting(1);
 include './Backend/config.php';
-
+$owner = $user_data['_id'] ?? 0;
 $s_id = $_GET['s'] ?? '';
 if (!$s_id) die('Invalid Schedule');
-$result = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE id = 1");
+$result = mysqli_query($conn, "SELECT letter_json, duty_rate FROM admin_panel WHERE admin = '$owner'");
 $row = mysqli_fetch_assoc($result);
-$letter_data = json_decode($row['letter_json'], true);
+$rate_per_duty = $row['duty_rate'] ?? 0;
+$letter_data = json_decode($row['letter_json'] ?? [], true);
 
 $institute_name = $letter_data['college_name'] ?? '';
 $section_name = $letter_data['section_name'] ?? '';
@@ -197,12 +196,12 @@ SELECT
     f.email
 FROM block_supervisor_list bsl
 JOIN faculty f ON f.id = bsl.faculty_id
-WHERE bsl.s_id = '$s_id'
+WHERE bsl.s_id = '$s_id' AND bsl.Created_by = '$owner'
 ORDER BY f.role DESC, f.dept_code ASC
 ";
 
 $res = mysqli_query($conn, $sql);
-$res2 = mysqli_fetch_assoc(mysqli_query($conn, "SELECT blocks from schedule where id = '$s_id'"));
+$res2 = mysqli_fetch_assoc(mysqli_query($conn, "SELECT blocks from schedule where id = '$s_id' AND Created_by = '$owner'"));
 $blocks_json = json_decode($res2['blocks'], true);
 /* ===============================
    BUILD STRUCTURES
@@ -462,7 +461,7 @@ if ($action === 'overall') {
 
                 if ($assigned) {
                     $sup_count++;
-                    if ($hasBlock) $blocks_assign++;
+                    if ($blockType === 'real') $blocks_assign++;
 
                     $symbol = ($blockType === 'real') ? '✓' : '*';
                 } else {
@@ -947,7 +946,7 @@ if ($action === 'faculty_signature') {
     $Faculty_sql = "
         SELECT *
         FROM faculty
-        WHERE status = 'ON'
+        WHERE status = 'ON' AND Created_by = '$owner'
         ORDER BY role DESC, dept_code ASC
     ";    
     $faculty_result = mysqli_query($conn,$Faculty_sql);
@@ -1306,6 +1305,225 @@ if ($action === 'individual_email') {
     }
 
     echo "All individual PDFs generated and emailed successfully.";
+    exit;
+}
+
+if ($action === 'billing') {
+
+    $pdf = createPDF("Supervision Billing", false);
+
+    /* ================= LETTERHEAD ================= */
+    print_letter_head();
+    $pdf->Ln(3);
+
+    $pdf->SetFont('times','B',12);
+    $pdf->Cell(0,8,'SUPERVISION BILLING REPORT',0,1,'C');
+    $pdf->Ln(3);
+    /* ================= PAGE & WIDTH SETUP ================= */
+    $pageWidth = 297 - 12;
+
+    $srW    = 10;
+    $nameW  = 65;
+    $deptW  = 30;
+    $roleW  = 22;
+    $dutyW  = 20;
+    $amtW   = 20;
+    $totalW = 30;
+
+    /* ================= SLOT COUNT ================= */
+    $slotCount = 0;
+    foreach ($dateSlotMap as $slots) {
+        $slotCount += count($slots);
+    }
+
+    $slotW = ($srW + $nameW + $deptW + $roleW + $dutyW + $amtW);
+
+    /* ================= HEADER ================= */
+    $pdf->SetFont('times', 'B', 10);
+
+    $pdf->Cell($srW, 10, '#', 1, 0, 'C');
+    $pdf->Cell($nameW, 10, 'Supervisor', 1, 0, 'C');
+    $pdf->Cell($deptW, 10, 'Dept', 1, 0, 'C');
+    $pdf->Cell($roleW, 10, 'Role', 1, 0, 'C');
+    $pdf->Cell($dutyW, 10, 'Duties', 1, 0, 'C');
+    $pdf->Cell($amtW, 10, 'Rate', 1, 0, 'C');
+    $pdf->Cell($totalW, 10, 'Total', 1, 1, 'C');
+
+    /* ================= BODY ================= */
+    $pdf->SetFont('times', '', 9);
+
+    $sr = 1;
+    $duties_grand_total = 0;
+    $blocks_grand_total = 0;
+    $amount_grand_total = 0;
+
+    foreach ($facultyAssignments as $f_id => $assignments) {
+
+        $rowH = 8;
+        $sup_count = 0;
+        $real_blocks = 0;
+
+        $pdf->Cell($srW, $rowH, $sr++, 1, 0, 'C');
+        $pdf->Cell($nameW, $rowH, $facultyName[$f_id] ?? 'Unknown', 1, 0, 'L');
+        $pdf->Cell($deptW, $rowH, $facultyMap[$f_id] ?? '-', 1, 0, 'C');
+        $pdf->Cell($roleW, $rowH, $facultyRole[$f_id] ?? '-', 1, 0, 'C');
+
+        foreach ($dateSlotMap as $date => $slots) {
+            foreach ($slots as $slot) {
+
+                $assigned = isset($assignments[$date][$slot]) &&
+                            $assignments[$date][$slot]['present'] === true;
+
+                $blockType = $assignments[$date][$slot]['block_type'] ?? '';
+
+                if ($assigned) {
+                    $sup_count++;
+                    if ($blockType === 'real') {
+                        $real_blocks++;
+                    }
+                }
+            }
+        }
+
+        /* ===== BILLING CALC ===== */
+        $total_amount  = $real_blocks * $rate_per_duty;
+
+        $pdf->Cell($dutyW, $rowH, $real_blocks, 1, 0, 'C');
+        $pdf->Cell($amtW, $rowH, $rate_per_duty, 1, 0, 'C');
+        $pdf->Cell($totalW, $rowH, $total_amount, 1, 1, 'C');
+
+        $duties_grand_total += $sup_count;
+        $blocks_grand_total += $real_blocks;
+        $amount_grand_total += $total_amount;
+    }
+
+    $pdf->SetFont('times', 'B', 10);
+    $pdf->Cell($slotW, $rowH, "Total Amount", 1, 0, '');
+    $pdf->Cell($totalW, $rowH, $amount_grand_total, 1, 1, 'C');
+
+    //comitte
+    // Fetch all committee members
+    $res = mysqli_query($conn, "SELECT * FROM committee WHERE Created_by = '$owner' AND status = 1 ORDER BY id ASC");
+    // Add a page
+    $pdf->AddPage();
+
+    print_letter_head();
+    $pdf->Ln(3);
+
+    $pdf->SetFont('times','B',12);
+    $pdf->Cell(0,8,'COMMITTEE BILLING REPORT',0,1,'C');
+    $pdf->Ln(3);
+
+    // Table header
+    $pdf->SetFont('helvetica', 'B', 12);
+    $tbl_header = '
+    <table border="1" cellpadding="5">
+        <tr style="color:#000;text-align:center">
+            <th width="30">Sr</th>
+            <th width="220">Name</th>
+            <th width="80">Designation</th>
+            <th width="70">Dept</th>
+            <th width="50">Rate</th>
+            <th width="40">Days</th>
+            <th width="60">Amount</th>
+        </tr>
+    ';
+    $tbl_footer = '</table>';
+    $tbl = '';
+
+    // Table content
+    $totalAmount = 0;
+    while($row = mysqli_fetch_assoc($res)){
+        $amount = $row['rate'] * $row['duty'];
+        $totalAmount += $amount;
+        $sr = 0;
+        $tbl .= '
+        <tr>
+            <td>'.++$sr.'</td>
+            <td>'.$row['member_name'].'</td>
+            <td>'.$row['designation'].'</td>
+            <td>'.$row['department'].'</td>
+            <td>'.$row['rate'].'</td>
+            <td>'.$row['duty'].'</td>
+            <td>'.$amount.'</td>
+        </tr>
+        ';
+    }
+
+    // Add total row
+    $tbl .= '
+    <tr style="font-weight:bold;">
+        <td colspan="6" align="right">Total Amount</td>
+        <td colspan="2">'.$totalAmount.'</td>
+    </tr>
+    ';
+
+    // Output the table
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->writeHTML($tbl_header.$tbl.$tbl_footer, true, false, false, false, '');
+
+    //peons
+    // Fetch all committee members
+    $res = mysqli_query($conn, "SELECT * FROM peons WHERE Created_by = '$owner' AND status = 1 ORDER BY id ASC");
+
+    // Add a page
+    $pdf->AddPage();
+
+    print_letter_head();
+    $pdf->Ln(3);
+
+    $pdf->SetFont('times','B',12);
+    $pdf->Cell(0,8,'PEON BILLING REPORT',0,1,'C');
+    $pdf->Ln(3);
+
+    // Table header
+    $pdf->SetFont('helvetica', 'B', 12);
+    $tbl_header = '
+    <table border="1" cellpadding="5">
+        <tr style="color:#000;text-align:center">
+            <th width="30">Sr</th>
+            <th width="240">Name</th>
+            <th width="120">Dept</th>
+            <th width="50">Rate</th>
+            <th width="40">Days</th>
+            <th width="60">Amount</th>
+        </tr>
+    ';
+    $tbl_footer = '</table>';
+    $tbl = '';
+
+    // Table content
+    $totalAmount = 0;
+    while($row = mysqli_fetch_assoc($res)){
+        $amount = $row['rate'] * $row['duties'];
+        $totalAmount += $amount;
+        $sr = 0;
+        $tbl .= '
+        <tr>
+            <td>'.++$sr.'</td>
+            <td>'.$row['name'].'</td>
+            <td>'.$row['dept'].'</td>
+            <td>'.$row['rate'].'</td>
+            <td>'.$row['duties'].'</td>
+            <td>'.$amount.'</td>
+        </tr>
+        ';
+    }
+
+    // Add total row
+    $tbl .= '
+    <tr style="font-weight:bold;">
+        <td colspan="5" align="right">Total Amount</td>
+        <td colspan="2">'.$totalAmount.'</td>
+    </tr>
+    ';
+
+    // Output the table
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->writeHTML($tbl_header.$tbl.$tbl_footer, true, false, false, false, '');
+
+    /* ================= OUTPUT ================= */
+    $pdf->Output("Supervision_Billing_Report.pdf", "I");
     exit;
 }
 }
@@ -1711,8 +1929,21 @@ if ($action === 'individual_email') {
                         </div>
                     </button>
 
+                    <!-- billing -->
+                    <button type="submit" name="action" value="billing" class="action-button">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <div class="button-title">Billing Report</div>
+                        <div class="button-desc">
+                            Generate detailed billing reports including invoices, payments, and financial summaries.
+                        </div>
+                        <div class="button-footer">
+                            <span class="button-type">Billing</span>
+                            <i class="fas fa-arrow-right button-arrow"></i>
+                        </div>
+                    </button>
+
                     <!-- Individual Appointment Letters -->
-                    <button type="submit" name="action" value="individual_email" class="action-button">
+                    <!-- <button type="submit" name="action" value="individual_email" class="action-button">
                         <i class="fas fa-envelope"></i>
                         <div class="button-title">Individual Appointment Email</div>
                         <div class="button-desc">Send personalized appointment letters to each faculty member.</div>
@@ -1720,7 +1951,7 @@ if ($action === 'individual_email') {
                             <span class="button-type">Personalized</span>
                             <i class="fas fa-arrow-right button-arrow"></i>
                         </div>
-                    </button>
+                    </button> -->
                 </div>
             </form>
 

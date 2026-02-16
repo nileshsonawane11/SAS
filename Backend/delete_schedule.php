@@ -1,5 +1,7 @@
 <?php
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 header('Content-Type: application/json');
 
@@ -13,8 +15,8 @@ if (!$s_id) {
 /* ===============================
    DELETE FROM DATABASE
 ================================ */
-$stmt = mysqli_prepare($conn, "DELETE FROM schedule WHERE id = ?");
-mysqli_stmt_bind_param($stmt, "s", $s_id);
+$stmt = mysqli_prepare($conn, "DELETE FROM schedule WHERE id = ? AND Created_by = ?");
+mysqli_stmt_bind_param($stmt, "si", $s_id, $owner);
 mysqli_stmt_execute($stmt);
 
 if (mysqli_stmt_affected_rows($stmt) <= 0) {

@@ -1,11 +1,12 @@
 <?php
-    // require './Backend/auth_guard.php';
+    require './Backend/auth_guard.php';
     include './Backend/config.php';
     $block_id = $_GET['b'] ?? '';
+    $owner = $user_data['_id'] ?? 0;
     $row = '';
 
     if(!empty($block_id)){
-        $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM blocks WHERE id = '$block_id'"));
+        $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM blocks WHERE id = '$block_id' AND Created_by = '$owner'"));
     }
 
     $block_no = $row['block_no'] ?? '';

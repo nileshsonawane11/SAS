@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 require_once "./config.php"; // provides $conn
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 /* ================= RESPONSE HELPER ================= */
 function respond($success, $message, $extra = []) {
@@ -35,9 +37,9 @@ try {
     $checkFaculty = $conn->prepare("
         SELECT id
         FROM faculty
-        WHERE id = ?
+        WHERE id = ? AND Created_by = ?
     ");
-    $checkFaculty->bind_param("i", $faculty_id);
+    $checkFaculty->bind_param("ii", $faculty_id, $owner);
     $checkFaculty->execute();
     $checkFaculty->store_result();
 
@@ -49,10 +51,10 @@ try {
     $check = $conn->prepare("
         SELECT id
         FROM block_supervisor_list
-        WHERE faculty_id = ? AND s_id = ?
+        WHERE faculty_id = ? AND s_id = ? AND Created_by = ?
         FOR UPDATE
     ");
-    $check->bind_param("is", $faculty_id, $s_id);
+    $check->bind_param("isi", $faculty_id, $s_id, $owner);
     $check->execute();
     $check->store_result();
 
@@ -64,11 +66,11 @@ try {
     $emptySchedule = json_encode(new stdClass()); // {}
 
     $insert = $conn->prepare("
-        INSERT INTO block_supervisor_list (faculty_id, s_id, schedule)
-        VALUES (?, ?, ?)
+        INSERT INTO block_supervisor_list (faculty_id, s_id, schedule, Created_by)
+        VALUES (?, ?, ?, ?)
     ");
 
-    $insert->bind_param("iss", $faculty_id, $s_id, $emptySchedule);
+    $insert->bind_param("issi", $faculty_id, $s_id, $emptySchedule, $owner);
 
     if (!$insert->execute()) {
         throw new Exception("Failed to add faculty to supervision list");

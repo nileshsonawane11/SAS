@@ -1,5 +1,8 @@
 <?php
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+
 error_reporting(E_ALL);
 
 $s_id  = $_POST['s_id'];
@@ -14,9 +17,9 @@ $block = strtoupper(trim($_POST['block']));
 $checkStmt = $conn->prepare("
     SELECT faculty_id, schedule
     FROM block_supervisor_list
-    WHERE s_id = ?
+    WHERE s_id = ? AND Created_by = ?
 ");
-$checkStmt->bind_param("i", $s_id);
+$checkStmt->bind_param("ii", $s_id, $owner);
 $checkStmt->execute();
 $result = $checkStmt->get_result();
 
@@ -44,9 +47,9 @@ while ($row = $result->fetch_assoc()) {
 $getStmt = $conn->prepare("
     SELECT schedule
     FROM block_supervisor_list
-    WHERE s_id = ? AND faculty_id = ?
+    WHERE s_id = ? AND faculty_id = ? AND Created_by = ?
 ");
-$getStmt->bind_param("ii", $s_id, $fid);
+$getStmt->bind_param("iii", $s_id, $fid, $owner);
 $getStmt->execute();
 $res = $getStmt->get_result();
 
@@ -68,9 +71,9 @@ $jsonSchedule = json_encode($schedule, JSON_UNESCAPED_UNICODE);
 $updateStmt = $conn->prepare("
     UPDATE block_supervisor_list
     SET schedule = ?
-    WHERE s_id = ? AND faculty_id = ?
+    WHERE s_id = ? AND faculty_id = ? AND Created_by = ?
 ");
-$updateStmt->bind_param("sii", $jsonSchedule, $s_id, $fid);
+$updateStmt->bind_param("siii", $jsonSchedule, $s_id, $fid, $owner);
 $updateStmt->execute();
 
 /* ===============================

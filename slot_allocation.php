@@ -1,7 +1,7 @@
 <?php
-// require './Backend/auth_guard.php';
+require './Backend/auth_guard.php';
 include './Backend/config.php';
-
+$owner = $user_data['_id'] ?? 0 ;
 /* ===============================
    VALIDATE SCHEDULE ID
 ================================ */
@@ -23,7 +23,7 @@ SELECT
 FROM block_supervisor_list bsl
 JOIN schedule s ON s.id = bsl.s_id
 JOIN faculty f ON f.id = bsl.faculty_id
-WHERE bsl.s_id = ?
+WHERE bsl.s_id = ? AND s.Created_by = '$owner'
 ORDER BY f.faculty_name
 ";
 
@@ -364,7 +364,7 @@ $today = date('d-M-Y');
 
     /* Cell States */
     .today {
-        background: #fff7ed !important;
+        background: #ff0000 !important;
         font-weight: 600;
     }
 
@@ -681,6 +681,28 @@ $today = date('d-M-Y');
         color: var(--primary);
     }
 
+    .col-md-3 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+
+    .n-1 {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        background-color: black;
+    }
+    .match{
+        color : #00b100;
+    }
+    .not_match{
+        color : #ff0000;
+    }
+
     /* Responsive Design */
     @media (max-width: 1200px) {
         .supervision {
@@ -755,14 +777,11 @@ $today = date('d-M-Y');
             padding: 6px 4px;
         }
         
-        .card-body .row {
-            flex-direction: column;
-            gap: 15px;
-        }
         
-        .card-body .col-md-3 {
+        .card-body {
             width: 100%;
         }
+
         
         .btn {
             padding: 8px 16px;
@@ -1005,6 +1024,16 @@ $today = date('d-M-Y');
             transform: translate(-50%, -50%) rotate(360deg);
         }
     }
+    .card-body .row {
+            --bs-gutter-x : 1.5rem;
+            --bs-gutter-y: 0;
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: calc(-1 * var(--bs-gutter-y));
+            margin-right: calc(-.5 * var(--bs-gutter-x));
+            margin-left: calc(-.5 * var(--bs-gutter-x));
+            align-items: center;
+        }
 </style>
 </head>
 
@@ -1121,6 +1150,17 @@ $today = date('d-M-Y');
                             </div>
                             <div class="col-md-3">
                                 <div class="d-flex align-items-center">
+                                    <div class="text-white rounded p-2 me-3 n-1">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Required Duties</h6>
+                                        <p class="mb-0 fw-bold" id="required_duties">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
                                     <div class="bg-warning text-white rounded p-2 me-3">
                                         <i class="fas fa-calendar-day"></i>
                                     </div>
@@ -1208,7 +1248,7 @@ $today = date('d-M-Y');
                 <?php endforeach; ?>
             </tr>
 
-            <!-- <tr>
+            <tr>
                 <?php foreach ($allDatesSlots as $date => $slots): ?>
                     <?php if ($filterDate && $filterDate !== $date) continue; ?>
 
@@ -1223,13 +1263,14 @@ $today = date('d-M-Y');
                         </th>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
-            </tr> -->
+            </tr>
             </thead> 
             <?php 
                 $sr = 1;
                 $duties_grabd_total = 0;
                 $blocks_grabd_total = 0;
                 $blocks_required_grand_total = [];
+                $slot_allocation = [];
                 $allocated_blocks_grabd_total = 0;
                 $filtered_faculty_count = 0;
             ?>
@@ -1270,10 +1311,12 @@ $today = date('d-M-Y');
                     <?php foreach ($allDatesSlots as $date => $slots): ?>
                         <?php if ($filterDate && $filterDate !== $date) continue; ?>
 
-                        <?php foreach ($slots as $slot => $v): ?>
+                        <?php foreach ($slots as $slot => $v): $assigned = 0;?>
                             <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
                             <?php
+                            $assigned = 0;
                             $class = '';
+                            
                             if (isset($conflicts[$fid][$date][$slot])) $class = 'conflict';
 
                             // Get block number if exists
@@ -1304,13 +1347,16 @@ $today = date('d-M-Y');
                                             <?php endif; ?>
                                     <?php endif; ?>
                                     <?php $sup_count++; ?>
-                                    <?php if ($hasBlock && $assignments[$date][$slot]['present']) $blocks_assign++; ?>
+                                    <?php if ($hasBlock && $assignments[$date][$slot]['present']){$blocks_assign++; $assigned++;}  ?>
                                     <?php else: ?>
                                 <?php endif; ?>
                                 <div class="con-tool"></div>
                             </td>
 
-                        <?php endforeach; ?>
+                        <?php 
+                            $slot_allocation[$date][$slot] = ($slot_allocation[$date][$slot] ?? 0) + $assigned;
+                            endforeach; 
+                        ?>
                     <?php endforeach; ?>
                     <!-- <div id="facultyMenu" class="context-menu"></div> -->
                     <?php 
@@ -1338,9 +1384,45 @@ $today = date('d-M-Y');
                 <?php endforeach; ?>
             <?php endforeach; ?>
 
+           <tr class="grand-total">
+                <td colspan="4">Allocated Duties :</td>
+                <?php
+                    // FLAG: if any slot mismatches, this becomes true
+                    $hasNotMatch = false;
+                ?>
+                <?php foreach ($slot_allocation as $date => $times): ?>
+                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                    <?php foreach ($times as $slot => $_): ?>
+                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                        <?php
+                            $allocated = $slot_allocation[$date][$slot] ?? 0;
+                            $assigned  = $slots_blocks[$date][$slot]['blocks'] ?? 0;
+
+                            $isNotMatch = ($assigned != $allocated);
+
+                            // If any slot mismatches → mark global flag
+                            if ($isNotMatch) {
+                                $hasNotMatch = true;
+                            }
+                        ?>
+                        <td class="<?= $isNotMatch ? 'not_match' : 'match'; ?>">
+                            <?= $allocated; ?>
+                        </td>
+
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+
+                <!-- GRAND TOTAL CELL -->
+                <td class="<?= $hasNotMatch ? 'not_match' : 'match'; ?>">
+                    <?= $allocated_blocks_grabd_total ?>
+                </td>
+                <td rowspan="2">
+                    <?= $duties_grabd_total ?>
+                </td>
+            </tr>
+
             <tr class="grand-total">
-                <td colspan="3">Total Blocks : </td>
-                <td><?= $blocks_grabd_total ?></td>
+                <td colspan="4">Required And Total Duties : </td>
                 
                 <?php foreach ($slots_blocks as $date => $times): ?>
                     <?php if ($filterDate && $filterDate !== $date) continue; ?>
@@ -1350,11 +1432,8 @@ $today = date('d-M-Y');
                     <?php endforeach; ?>
                 <?php endforeach; ?>
                 
-                <td >
-                    <?= $allocated_blocks_grabd_total ?>
-                </td>
                 <td>
-                    <?= $duties_grabd_total ?>
+                    <?= $blocks_grabd_total ?>
                 </td>
             </tr>
             
@@ -1469,6 +1548,21 @@ $today = date('d-M-Y');
         </div>
         <div id="swap-rect"></div>
     </div>
+    
+    <?php
+    // Check if all filters are empty
+    $all_filters_empty = empty($filterDept) && empty($search) && empty($filterDate) && empty($filterSlot) && empty($filterRole);
+    
+    // Check if values are different
+    if ($all_filters_empty && $blocks_grabd_total != $allocated_blocks_grabd_total) {
+        echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            alert("WARNING: Required blocks (' . $blocks_grabd_total . ') do not match allocated blocks (' . $allocated_blocks_grabd_total . '). Please review the allocation.");
+        });
+        </script>';
+    }
+    ?>
+    
     <script>
         let S_ID = '<?= $s_id ?>';
         let cell = null;
@@ -2051,6 +2145,8 @@ $today = date('d-M-Y');
         });
 
         // ++++++++++++++++++++++++++++++++++++
+
+        document.querySelector('#required_duties').innerText= "<?=$blocks_grabd_total?>"
         
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>

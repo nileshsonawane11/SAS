@@ -1,5 +1,7 @@
 <?php
 require './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 $data = json_decode(file_get_contents("php://input"), true);
 error_reporting(1);
@@ -19,7 +21,7 @@ WHERE f.id != $old_fid
 AND f.id NOT IN (
     SELECT faculty_id
     FROM block_supervisor_list
-    WHERE s_id = '$s_id'
+    WHERE s_id = '$s_id' AND Created_by = '$owner'
 )
 ORDER BY f.faculty_name
 ";

@@ -94,14 +94,24 @@ if ($action === 'register') {
     $hash = password_hash($pass, PASSWORD_DEFAULT);
 
     $stmt = $conn->prepare("
-        INSERT INTO users (institute_name,name,email,password)
-        VALUES (?,?,?,?)
+        INSERT INTO users (institute_name, name, email, password)
+        VALUES (?, ?, ?, ?)
     ");
-    $stmt->bind_param("ssss",$inst,$name,$email,$hash);
-    $stmt->execute();
-    $stmt->close();
+    $stmt->bind_param("ssss", $inst, $name, $email, $hash);
 
-    respond('ok','Registration successful');
+    if ($stmt->execute()) {
+        $owner = $conn->insert_id;
+
+        $stmt = $conn->prepare("
+            INSERT INTO admin_panel (admin)
+            VALUES (?)
+        ");
+        
+        $stmt->bind_param("i", $owner);
+        $stmt->execute();
+
+        respond('ok','Registration successful');
+    }
 }
 
 /* ================= LOGIN ================= */
@@ -118,7 +128,7 @@ if ($action === 'login') {
     if (!$email) respond('error','Invalid email');
 
     $stmt = $conn->prepare("
-        SELECT id,password FROM users WHERE email=? LIMIT 1
+        SELECT id, password, institute_name, name FROM users WHERE email=? LIMIT 1
     ");
     $stmt->bind_param("s",$email);
     $stmt->execute();
@@ -131,11 +141,17 @@ if ($action === 'login') {
         respond('error','Invalid credentials');
     }
 
+    $user_data = [
+        '_id' => $user['id'],
+        'name' => $user['name'],
+        'i_name' => $user['institute_name']
+    ];
+
     /* ---------- LOGIN SUCCESS ---------- */
     session_regenerate_id(true);
 
     $_SESSION['tries'] = 0;
-    $_SESSION['uid'] = $user['id'];
+    $_SESSION['uid'] = $user_data;
     $_SESSION['login_time'] = time();
 
     $_SESSION['fingerprint'] = device_fingerprint();
@@ -147,7 +163,7 @@ if ($action === 'login') {
     if (!empty($data['remember'])) {
 
         $payload = json_encode([
-            'uid' => $user['id'],
+            'uid' => $user_data,
             'fp'  => $_SESSION['fingerprint'],
             'ip'  => $_SESSION['ip_prefix'],
             'exp' => time() + 2592000

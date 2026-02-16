@@ -1,5 +1,8 @@
 <?php
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+
 header('Content-Type: application/json');
 
 $data = json_decode(file_get_contents("php://input"), true);
@@ -11,10 +14,10 @@ $courses  = implode(',', array_values($data['courses'])); // store as CSV
 
 $stmt = mysqli_prepare(
     $conn,
-    "UPDATE faculty SET courses = ? WHERE id = ?"
+    "UPDATE faculty SET courses = ? WHERE id = ? AND Created_by = ?"
 );
 
-mysqli_stmt_bind_param($stmt, "si", $courses, $staff_id);
+mysqli_stmt_bind_param($stmt, "sii", $courses, $staff_id, $owner);
 
 if (mysqli_stmt_execute($stmt)) {
     echo json_encode(['status' => 200]);

@@ -1,5 +1,7 @@
 <?php
-include "./Backend/config.php";
+include './Backend/auth_guard.php';
+include './Backend/config.php';
+$owner = $user_data['_id'] ?? 0;
 error_reporting(E_ALL);
 
 /* ========== READ JSON ========== */
@@ -26,9 +28,9 @@ if (!$fid || !$date || !$slot || !$s_id) {
 /* ========== LOAD CURRENT SCHEDULE ========== */
 $stmt = $conn->prepare("
     SELECT schedule FROM block_supervisor_list
-    WHERE faculty_id=? AND s_id=?
+    WHERE faculty_id=? AND s_id=? AND Created_by = ?
 ");
-$stmt->bind_param("ii", $fid, $s_id);
+$stmt->bind_param("iii", $fid, $s_id, $owner);
 $stmt->execute();
 $res = $stmt->get_result();
 
@@ -66,10 +68,11 @@ if ($action === 'delete') {
         UPDATE block_supervisor_list
         SET schedule = ?
         WHERE faculty_id = ?
-          AND s_id = ?
+          AND s_id = ? 
+          AND Created_by = ?
         LIMIT 1
     ");
-    $update->bind_param("sii", $newSchedule, $fid, $s_id);
+    $update->bind_param("siii", $newSchedule, $fid, $s_id, $owner);
 
     if ($update->execute()) {
         echo json_encode([
@@ -102,9 +105,9 @@ if ($present === 'yes') {
     $up = $conn->prepare("
         UPDATE block_supervisor_list
         SET schedule=?
-        WHERE faculty_id=? AND s_id=?
+        WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("sii", $json, $fid, $s_id);
+    $up->bind_param("siii", $json, $fid, $s_id, $owner);
     $up->execute();
 
     echo json_encode(['status'=>'ok','msg'=>'Marked present']);
@@ -124,9 +127,9 @@ if ($reason !== 'replace') {
     $up = $conn->prepare("
         UPDATE block_supervisor_list
         SET schedule=?
-        WHERE faculty_id=? AND s_id=?
+        WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("sii", $json, $fid, $s_id);
+    $up->bind_param("siii", $json, $fid, $s_id, $owner);
     $up->execute();
 
     echo json_encode(['status'=>'ok','msg'=>'Absence recorded']);
@@ -146,10 +149,10 @@ try {
         }
 
         $stmt = $conn->prepare("
-            INSERT INTO faculty (faculty_name, status, duties)
-            VALUES (?, 'ON', 0)
+            INSERT INTO faculty (faculty_name, status, duties, Created_by)
+            VALUES (?, 'ON', 0, ?)
         ");
-        $stmt->bind_param("s", $new_faculty);
+        $stmt->bind_param("si", $new_faculty, $owner);
         $stmt->execute();
         $replace_id = $stmt->insert_id;
     }
@@ -157,9 +160,9 @@ try {
     /* ---- Load / create replacement schedule ---- */
     $stmt = $conn->prepare("
         SELECT schedule FROM block_supervisor_list
-        WHERE faculty_id=? AND s_id=?
+        WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $stmt->bind_param("ii", $replace_id, $s_id);
+    $stmt->bind_param("iii", $replace_id, $s_id, $owner);
     $stmt->execute();
     $r = $stmt->get_result();
 
@@ -168,10 +171,10 @@ try {
     } else {
         $newSch = [];
         $ins = $conn->prepare("
-            INSERT INTO block_supervisor_list (faculty_id, s_id, schedule)
-            VALUES (?, ?, '{}')
+            INSERT INTO block_supervisor_list (faculty_id, s_id, schedule, Created_by)
+            VALUES (?, ?, '{}', ?)
         ");
-        $ins->bind_param("ii", $replace_id, $s_id);
+        $ins->bind_param("iii", $replace_id, $s_id, $owner);
         $ins->execute();
     }
 
@@ -188,9 +191,9 @@ try {
     $up = $conn->prepare("
         UPDATE block_supervisor_list
         SET schedule=?
-        WHERE faculty_id=? AND s_id=?
+        WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("sii", $jsonNew, $replace_id, $s_id);
+    $up->bind_param("siii", $jsonNew, $replace_id, $s_id, $owner);
     $up->execute();
 
     /* ---- Remove slot from old faculty ---- */
@@ -201,9 +204,9 @@ try {
     $up = $conn->prepare("
         UPDATE block_supervisor_list
         SET schedule=?
-        WHERE faculty_id=? AND s_id=?
+        WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("sii", $jsonOld, $fid, $s_id);
+    $up->bind_param("siii", $jsonOld, $fid, $s_id, $owner);
     $up->execute();
 
     $conn->commit();

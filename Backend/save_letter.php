@@ -1,12 +1,13 @@
 <?php
+session_start();
 include './config.php';
-
+$owner = $_SESSION['uid']['_id'] ?? 0;
 /* ===============================
    0. LOAD EXISTING DATA
    =============================== */
 $data = [];
 
-$res = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE id = 1");
+$res = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE admin = '$owner'");
 if ($row = mysqli_fetch_assoc($res)) {
     $data = json_decode($row['letter_json'], true) ?? [];
 }
@@ -90,10 +91,10 @@ $json = json_encode($data, JSON_UNESCAPED_UNICODE);
 
 $stmt = mysqli_prepare(
     $conn,
-    "UPDATE admin_panel SET letter_json = ? WHERE id = 1"
+    "UPDATE admin_panel SET letter_json = ? WHERE admin = ?"
 );
 
-mysqli_stmt_bind_param($stmt, "s", $json);
+mysqli_stmt_bind_param($stmt, "si", $json, $owner);
 mysqli_stmt_execute($stmt);
 
 echo json_encode([

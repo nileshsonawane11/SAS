@@ -1,6 +1,7 @@
 <?php
 include 'config.php';
-
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 /* ---------------- SETTINGS ---------------- */
 header('Content-Type: application/json');
 mysqli_report(MYSQLI_REPORT_OFF);
@@ -41,7 +42,7 @@ if ($action === 'add') {
     // 🔍 Check duplicate block number
     $check = mysqli_query(
         $conn,
-        "SELECT id FROM blocks WHERE block_no = '$block_no'"
+        "SELECT id FROM blocks WHERE block_no = '$block_no' AND Created_by = '$owner'"
     );
 
     if (mysqli_num_rows($check) > 0) {
@@ -53,8 +54,8 @@ if ($action === 'add') {
         exit;
     }
 
-    $sql = "INSERT INTO blocks (block_no, place, capacity, double_sit)
-            VALUES ('$block_no', '$place', '$capacity', '$double_sit')";
+    $sql = "INSERT INTO blocks (block_no, place, capacity, double_sit, Created_by)
+            VALUES ('$block_no', '$place', '$capacity', '$double_sit', '$owner')";
 
     if (mysqli_query($conn, $sql)) {
         $response = [
@@ -89,7 +90,7 @@ if ($action === 'update') {
     $check = mysqli_query(
         $conn,
         "SELECT id FROM blocks 
-         WHERE block_no = '$block_no' AND id != '$block_id'"
+         WHERE block_no = '$block_no' AND id != '$block_id' AND Created_by = '$owner'"
     );
 
     if (mysqli_num_rows($check) > 0) {
@@ -106,7 +107,7 @@ if ($action === 'update') {
                 place      = '$place',
                 capacity   = '$capacity',
                 double_sit = '$double_sit'
-            WHERE id = '$block_id'";
+            WHERE id = '$block_id' AND Created_by = '$owner'";
 
     if (mysqli_query($conn, $sql)) {
         $response = [

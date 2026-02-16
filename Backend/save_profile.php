@@ -1,6 +1,8 @@
 <?php
 header('Content-Type: application/json');
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 // Read JSON input
 $data = json_decode(file_get_contents("php://input"), true);
@@ -70,7 +72,7 @@ UPDATE faculty SET
     `AC-NO`       = ?,
     IFSC_code     = ?,
     status        = ?
-WHERE id = ?
+WHERE id = ? AND Created_by = ?
 ";
 
 $stmt = mysqli_prepare($conn, $sql);
@@ -85,7 +87,7 @@ if (!$stmt) {
 
 mysqli_stmt_bind_param(
     $stmt,
-    "sssssssssssi",
+    "sssssssssssii",
     $dept_name,
     $dept_code,
     $faculty_name,
@@ -97,7 +99,8 @@ mysqli_stmt_bind_param(
     $ac_no,
     $ifsc_code,
     $status,
-    $staff_id
+    $staff_id,
+    $owner
 );
 
 if (mysqli_stmt_execute($stmt)) {

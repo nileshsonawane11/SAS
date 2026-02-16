@@ -1,5 +1,8 @@
 <?php
 require 'config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+
 $data = json_decode(file_get_contents("php://input"), true);
 
 $old = (int)$data['old_fid'];
@@ -18,7 +21,7 @@ try {
     UPDATE block_supervisor_list
     SET faculty_id = $new
     WHERE faculty_id = $old
-    and s_id = '$s_id'
+    and s_id = '$s_id' AND Created_by = '$owner'
     ";
     mysqli_query($conn, $sql);
 

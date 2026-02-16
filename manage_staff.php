@@ -1,3 +1,7 @@
+<?php
+require './Backend/auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
+?>
 <div class="animate-fadeIn">
     <div class="add-container">
         <button class="add-staff">
@@ -31,7 +35,7 @@
             <tbody>
                 <?php
                 include './Backend/config.php'; 
-                $result = mysqli_query($conn, "SELECT id, faculty_name, duties, dept_code, role, status FROM faculty ORDER BY dept_code ASC, faculty_name ASC");
+                $result = mysqli_query($conn, "SELECT id, faculty_name, duties, dept_code, role, status FROM faculty WHERE Created_by = '$owner' ORDER BY dept_code ASC, faculty_name ASC");
                 $count = 1;
                 
                 if(mysqli_num_rows($result) > 0) {

@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/config.php';
-$user_id = '';
+$user_data = '';
 
 define('REMEMBER_SECRET','CHANGE_THIS_TO_LONG_RANDOM_SECRET_123!@#');
 
@@ -11,7 +11,7 @@ function force_logout() {
     session_destroy();
 
     if (!empty($_COOKIE['REMEMBERME'])) {
-        setcookie('REMEMBERME','',time()-3600,'/');
+        setcookie('REMEMBERME','',time()-2592000,'/');
     }
 
     header('Location: index.php');
@@ -21,14 +21,20 @@ function force_logout() {
 // Check if user already has a valid session
 if (isset($_SESSION['uid'])) {
 
-    // Session timeout: 30 min
-    if (isset($_SESSION['login_time']) && time() - $_SESSION['login_time'] <= 1800) {
-        $_SESSION['login_time'] = time(); // refresh timer
-        $user_id = $_SESSION['uid'];
-        return; // session valid, allow page
+    $timeout = 1800; // 30 minutes
+
+    if (!isset($_SESSION['login_time']) || (time() - $_SESSION['login_time'] > $timeout)) {
+        session_regenerate_id(true);
+        $_SESSION['login_time'] = time();
+    } else {
+        $_SESSION['login_time'] = time();
     }
 
-    force_logout(); // expired
+    // Regenerate session ID safely
+
+    $user_data = $_SESSION['uid']; 
+
+    return;
 }
 
 // If no session, check remember-me cookie

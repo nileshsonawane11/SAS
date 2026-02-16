@@ -1,11 +1,12 @@
 <?php
-    // require './Backend/auth_guard.php';
+    require './Backend/auth_guard.php';
     include './Backend/config.php';
     $staff_id = $_GET['s'] ?? '';
+    $owner = $user_data['_id'] ?? 0;
     $row = '';
 
     if(!empty($staff_id)){
-        $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM faculty WHERE id = '$staff_id'"));
+        $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM faculty WHERE id = '$staff_id' AND Created_by = '$owner'"));
     }
 
     $dept_code = $row['dept_code'] ?? '';

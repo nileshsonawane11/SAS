@@ -1,11 +1,12 @@
 <?php
-    // require './Backend/auth_guard.php';
+    require './Backend/auth_guard.php';
     include './Backend/config.php';
     $slot_id = $_GET['s'] ?? '';
+    $owner = $user_data['_id'] ?? 0;
     $row = '';
 
     if(!empty($slot_id)){
-        $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM exam_slots WHERE id = '$slot_id'"));
+        $row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM exam_slots WHERE id = '$slot_id' AND Created_by = '$owner'"));
     }
 
     $exam_name = $row['exam_name'] ?? '';

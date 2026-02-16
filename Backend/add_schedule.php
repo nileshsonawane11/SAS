@@ -1,8 +1,10 @@
 <?php
+session_start();
 header('Content-Type: application/json');
 error_reporting(1);
 include './config.php';
-
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 // Read JSON input
 // $data = json_decode(file_get_contents("php://input"), true);
 
@@ -10,6 +12,7 @@ include './config.php';
 $task_name = trim($_POST['task_name'] ?? '');
 $task_type = trim($_POST['task_type'] ?? '');
 $time_table = $_FILES['time_table'];
+$owner = $_SESSION['uid']['_id'] ?? 0;
 $id = md5($task_name . $task_type . date('h:i:s'));
 
 // Validation
@@ -55,9 +58,9 @@ if ($ext !== 'csv') {
 
 /* ---------------- DUPLICATE CHECK ---------------- */
 $check = $conn->prepare(
-    "SELECT id FROM schedule WHERE task_name = ? AND task_type = ? LIMIT 1"
+    "SELECT id FROM schedule WHERE task_name = ? AND task_type = ? AND Created_by = ? LIMIT 1"
 );
-$check->bind_param("ss", $task_name, $task_type);
+$check->bind_param("ssi", $task_name, $task_type, $owner);
 $check->execute();
 $check->store_result();
 
@@ -74,9 +77,9 @@ $check->close();
 
 // Insert query
 $stmt = $conn->prepare(
-    "INSERT INTO schedule (id, task_name, task_type) VALUES (?, ?, ?)"
+    "INSERT INTO schedule (id, task_name, task_type, Created_by) VALUES (?, ?, ?, ?)"
 );
-$stmt->bind_param("sss", $id, $task_name, $task_type);
+$stmt->bind_param("sssi", $id, $task_name, $task_type, $owner);
 
 if ($stmt->execute()) {
     move_uploaded_file($fileTmp,"../upload/$id.$ext");

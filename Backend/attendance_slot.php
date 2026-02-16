@@ -1,14 +1,16 @@
 <?php
 require_once('../tcpdf/tcpdf.php');
 include "./config.php";
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 $date = $_GET['date'];
 $slot = $_GET['slot'];
 $s_id = $_GET['s'];
 if (!$s_id) die('Invalid Schedule');
-$result = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE id = 1");
+$result = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE admin = '$owner");
 $row = mysqli_fetch_assoc($result);
-$letter_data = json_decode($row['letter_json'], true);
+$letter_data = json_decode($row['letter_json'] ?? [], true);
 
 $institute_name = $letter_data['college_name'] ?? '';
 $section_name = $letter_data['section_name'] ?? '';
@@ -191,7 +193,7 @@ $res = mysqli_query($conn, "
     SELECT f.faculty_name, f.dept_code, bsl.schedule
     FROM block_supervisor_list bsl
     JOIN faculty f ON f.id = bsl.faculty_id
-    WHERE bsl.s_id='$s_id'
+    WHERE bsl.s_id='$s_id' AND bsl.Created_by = '$owner'
     ORDER BY f.role DESC
 ");
 

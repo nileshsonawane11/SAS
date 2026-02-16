@@ -1,6 +1,7 @@
 <?php
-// require './Backend/auth_guard.php';
+require './Backend/auth_guard.php';
 include "./Backend/config.php";
+$owner = $user_data['_id'] ?? 0 ;
 
 $id = $_GET['s'] ?? '';
 if(empty($id)){
@@ -8,7 +9,7 @@ if(empty($id)){
     exit;
 }
 
-$staff_result = mysqli_query($conn,"SELECT * FROM faculty WHERE id = $id");
+$staff_result = mysqli_query($conn,"SELECT * FROM faculty WHERE id = $id AND Created_by = '$owner'");
 $courses = [];
 if(mysqli_num_rows($staff_result) == 0){
     echo "No Faculty Found";

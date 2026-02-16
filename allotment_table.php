@@ -1,10 +1,12 @@
 <?php 
-    // require './Backend/auth_guard.php';
+    require './Backend/auth_guard.php';
     include "./Backend/config.php";
+    $owner = $user_data['_id'] ?? 0;
     $type = $_GET['type'] ?? '';
     $s = $_GET['s'] ?? '';
 
     function facultyBusy($conn, $facultyId, $date, $time, $s) {
+        global $owner;
         $q = mysqli_query($conn, "
             SELECT 1
             FROM block_supervisor bsv
@@ -13,6 +15,7 @@
             AND bs.schedule_date = '$date'
             AND bs.schedule_time = '$time'
             AND bsv.s_id = '$s'
+            AND bsv.Created_by = '$owner'
             LIMIT 1
         ");
 
@@ -341,7 +344,7 @@
                                     FROM block_supervisor bsv
                                     JOIN block_schedule bs ON bs.id = bsv.block_schedule_id
                                     JOIN faculty f ON f.id = bsv.faculty_id
-                                    WHERE bsv.s_id = '$s'
+                                    WHERE bsv.s_id = '$s' AND bs.Created_by = '$owner'
                                     ORDER BY bs.id
                                 ");
 
@@ -373,14 +376,14 @@
                                     DELETE bsv
                                     FROM block_supervisor bsv
                                     JOIN block_schedule bs ON bs.id = bsv.block_schedule_id
-                                    WHERE bs.s_id = '$s'
+                                    WHERE bs.s_id = '$s' AND bs.Created_by = '$owner'
                                 ");
 
                                 /* STEP 2: FETCH BLOCKS */
                                 $blocksRes = mysqli_query($conn, "
                                     SELECT id, block_no, course_code, schedule_date, schedule_time
                                     FROM block_schedule
-                                    WHERE s_id = '$s'
+                                    WHERE s_id = '$s' AND Created_by = '$owner'
                                     ORDER BY id
                                 ");
 
@@ -396,7 +399,7 @@
                                 $facultyRes = mysqli_query($conn, "
                                     SELECT id, faculty_name, dept_code, courses, duties
                                     FROM faculty
-                                    WHERE status = 'ON' AND duties > 0
+                                    WHERE status = 'ON' AND duties > 0  AND Created_by = '$owner'
                                     ORDER BY duties DESC
                                 ");
 
@@ -467,8 +470,8 @@
 
                                             mysqli_query($conn, "
                                                 INSERT INTO block_supervisor
-                                                (block_schedule_id, faculty_id, s_id, is_extra)
-                                                VALUES ({$block['id']}, {$faculty['id']}, '$s', 0)
+                                                (block_schedule_id, faculty_id, s_id, is_extra, Created_by)
+                                                VALUES ({$block['id']}, {$faculty['id']}, '$s', 0,'$owner')
                                             ");
 
                                             $facultyList[$idx]['assigned_count']++;
@@ -518,8 +521,8 @@
 
                                             mysqli_query($conn, "
                                                 INSERT INTO block_supervisor
-                                                (block_schedule_id, faculty_id, s_id, is_extra)
-                                                VALUES ({$block['id']}, {$faculty['id']}, '$s', 1)
+                                                (block_schedule_id, faculty_id, s_id, is_extra, Created_by)
+                                                VALUES ({$block['id']}, {$faculty['id']}, '$s', 1, '$owner')
                                             ");
 
                                             $facultyList[$idx]['assigned_count']++;

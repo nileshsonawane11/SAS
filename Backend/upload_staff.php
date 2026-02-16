@@ -2,6 +2,8 @@
 header('Content-Type: application/json');
 require '../vendor/autoload.php';
 include './config.php';
+require './auth_guard.php';
+$owner = $user_data['_id'] ?? 0 ;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -123,8 +125,8 @@ for ($i = 1; $i < count($rows); $i++) {
     }
 
     // Duplicate check
-    $check = $conn->prepare("SELECT id FROM faculty WHERE email = ? AND faculty_name = ?");
-    $check->bind_param("ss", $email, $faculty_name);
+    $check = $conn->prepare("SELECT id FROM faculty WHERE email = ? AND faculty_name = ? AND Created_by = ?");
+    $check->bind_param("ssi", $email, $faculty_name, $owner);
     $check->execute();
     $check->store_result();
 
@@ -136,12 +138,12 @@ for ($i = 1; $i < count($rows); $i++) {
     // Insert
     $stmt = $conn->prepare("
         INSERT INTO faculty 
-        (dept_code, dept_name, faculty_name, email, mobile, courses, status, duties, role)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (dept_code, dept_name, faculty_name, email, mobile, courses, status, duties, role, Created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "sssssssis",
+        "sssssssisi",
         $dept_code,
         $dept_name,
         $faculty_name,
@@ -150,7 +152,8 @@ for ($i = 1; $i < count($rows); $i++) {
         $courses,
         $status,
         $duties,
-        $role
+        $role,
+        $owner
     );
 
     if ($stmt->execute()) {

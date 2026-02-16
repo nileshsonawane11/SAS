@@ -1,11 +1,12 @@
 <?php
+session_start();
 header('Content-Type: application/json');
 include './config.php';
 error_reporting(1);
 
 // Decode JSON input
 $data = json_decode(file_get_contents("php://input"), true);
-
+$owner = $_SESSION['uid']['_id'] ?? 0;
 if (!$data) {
     echo json_encode(['status'=>'error','message'=>'Invalid JSON data']);
     exit;
@@ -13,7 +14,7 @@ if (!$data) {
 
 // --- Validation ---
 // Define allowed numeric fields
-$numericFields = ['block_capacity', 'reliever', 'extra_faculty', 'teaching_staff', 'non_teaching_staff'];
+$numericFields = ['block_capacity', 'duty_rate', 'reliever', 'extra_faculty', 'teaching_staff', 'non_teaching_staff'];
 
 // Define allowed text fields
 $textFields = ['duties_restriction', 'role_restriction', 'sub_restriction', 'dept_restriction', 'common_duties'];
@@ -24,7 +25,7 @@ $validated = [];
 // Validate numeric fields
 foreach ($numericFields as $field) {
     if (!isset($data[$field]) || !is_numeric($data[$field])) {
-        echo json_encode(['status'=>'error','message'=>"Invalid or missing value for $field"]);
+        echo json_encode(['status'=>'error','message'=>"Invalid or missing value for $field", "data" => $data]);
         exit;
     }
     // Optionally, limit numeric range
@@ -48,6 +49,7 @@ $sql = "
 UPDATE admin_panel SET
     duties_restriction = '{$validated['duties_restriction']}',
     block_capacity = '{$validated['block_capacity']}',
+    duty_rate = '{$validated['duty_rate']}',
     reliever = '{$validated['reliever']}',
     extra_faculty = '{$validated['extra_faculty']}',
     role_restriction = '{$validated['role_restriction']}',
@@ -56,7 +58,7 @@ UPDATE admin_panel SET
     sub_restriction = '{$validated['sub_restriction']}',
     dept_restriction = '{$validated['dept_restriction']}',
     strict_duties = '{$validated['common_duties']}'
-WHERE id = 1
+WHERE admin = '$owner'
 ";
 
 // Execute query
