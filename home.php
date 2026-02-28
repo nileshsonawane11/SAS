@@ -2216,6 +2216,49 @@ include './Backend/config.php';
             table.style.display = 'table';
         }
     }
+
+    let edit_doc = (e) => {
+        e.preventDefault();
+
+        let formData = new FormData();
+        formData.append("doc_type", document.getElementById("file_type").value);
+
+        let file = document.getElementById("documentUpload").files[0];
+        if (file) {
+            formData.append("doc", file);
+        }
+
+        fetch("Backend/supporting_doc.php?action=add", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.text())
+        .then(data => {
+            console.log(data)
+            loadPage('manage_committee.php');
+        });
+    };
+
+
+    let delete_doc = (e) => {
+        e.preventDefault();
+
+        if (!confirm("Are you sure you want to remove this document?")) return;
+
+        let formData = new FormData();
+        formData.append("doc_type", document.getElementById("file_type").value);
+        formData.append("doc_name", document.getElementById("remove_document_flag").value);
+
+        fetch("Backend/supporting_doc.php?action=delete", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.text())
+        .then(data => {
+            loadPage('manage_committee.php');
+        });
+    };
+
 </script>
 <script>
     function addCommittee(e) {

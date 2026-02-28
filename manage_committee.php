@@ -2,6 +2,7 @@
 <?php
 require './Backend/auth_guard.php';
 $owner = $user_data['_id'] ?? 0 ;
+$admin_row = mysqli_fetch_assoc(mysqli_query($conn,"SELECT committee_doc From admin_panel WHERE admin = '$owner'"));
 ?>
 <!DOCTYPE html>
 <html>
@@ -184,6 +185,106 @@ tr:hover td {
     animation: pop 0.25s ease-out;
 }
 
+/* Container */
+#documentForm {
+    max-width: 600px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e2e8f0;
+    font-family: Arial, sans-serif;
+}
+
+/* Heading */
+#documentForm h3 {
+    margin-bottom: 15px;
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Label */
+#documentForm label {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* File Input */
+#documentForm input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+
+#documentForm input[type="file"]:hover {
+    border-color: #7c3aed;
+}
+
+/* Current Document */
+.current-document {
+    background: #f8fafc;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-top: 10px;
+}
+
+.current-document a {
+    color: #7c3aed;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+/* Remove Checkbox */
+.remove-doc {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 15px;
+    color: #dc2626;
+}
+
+/* Submit Button */
+#documentForm button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px;
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    border: none;
+    font-size: 16px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all .3s ease;
+}
+
+#documentForm button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(124,58,237,0.25);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #documentForm {
+        padding: 15px;
+    }
+
+    #documentForm h3 {
+        font-size: 19px;
+    }
+}
+
 @keyframes pop {
     from { transform: scale(0.9); opacity: 0; }
     to   { transform: scale(1); opacity: 1; }
@@ -243,12 +344,40 @@ tr:hover td {
     <input type="text" name="designation" placeholder="Designation" required><br>
     <input type="text" name="department" placeholder="Department" required><br>
     <input type="number" name="rate" placeholder="Rate" required><br>
-    <input type="number" name="duty" placeholder="Duties Days" required><br>
+    <input type="number" name="duty" placeholder="Duties Slots" required><br>
 
     <button type="submit">Add</button>
     <button onclick="window.open('generate_bill.php', '_blank')">Generate Bill</button>
 </form>
+<form id="documentForm" enctype="multipart/form-data">
+    <input type="hidden" id="file_type" value="committee_doc">
+    <h3>Supporting Document</h3>
 
+    <!-- Upload New Document -->
+    <?php if($admin_row['committee_doc'] == NULL){ ?>
+        <label for="documentUpload">Upload Document:</label>
+        <input type="file" id="documentUpload" name="document"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+    <?php } ?>
+
+    <!-- Current Document (visible only on edit mode) -->
+    <?php if($admin_row['committee_doc'] != NULL){ ?>
+        <div class="current-document" id="currentDocumentBox">
+            <strong>Current File:</strong>
+            <a href="upload/<?php echo $admin_row['committee_doc'] ?>" id="docLink" target="_blank">View</a>
+        </div>
+
+        <!-- Remove Existing Document -->
+        <input type="hidden" id="remove_document_flag" name="remove_document" value="<?php echo $admin_row['committee_doc'] ?>">
+        <button type="button" id="removeDocBtn" onclick="delete_doc(event)">Remove Document</button>
+    <?php } ?>
+
+    <!-- Submit -->
+    <?php if($admin_row['committee_doc'] == NULL){ ?>
+        <button type="submit" onclick="edit_doc(event)">Save Document</button>
+    <?php } ?>
+
+</form>
 <!-- Committee Table -->
 <table>
     <thead>

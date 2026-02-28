@@ -5,6 +5,15 @@ $owner = $user_data['_id'] ?? 0;
 
 $s_id = $_GET['s'] ?? '';
 
+function isFourHourSlot($slot) {
+    list($start, $end) = explode(' - ', $slot);
+    $startTime = strtotime($start);
+    $endTime = strtotime($end);
+
+    $diff = ($endTime - $startTime) / 3600;
+    return ($diff >= 4);
+}
+
 /* =====================================================
    LOAD Admin Rules
    ===================================================== */
@@ -249,6 +258,7 @@ $extraBlocks = $totalBlocks % $facultyCount;
 
 // Initialize tracking arrays
 $facultyLoad = array_fill_keys(array_column($faculty, 'id'), 0);
+$facultyLongSlotTaken = array_fill_keys(array_column($faculty, 'id'), false);
 $facultyAssignments = [];
 $slotAssignments = [];
 $facultyAvailability = []; // Track faculty availability per slot
@@ -260,7 +270,7 @@ foreach ($faculty as $f) {
 // Helper function to check if faculty can take a block
 function canTakeBlock($faculty, $block, $slotAssignments, $facultyAvailability, 
                      $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction, 
-                     $teaching_staff, $non_teaching_staff, &$teachReq, &$nonReq) {
+                     $teaching_staff, $non_teaching_staff, &$teachReq, &$nonReq, &$facultyLongSlotTaken) {
     
     $fid = $faculty['id'];
     
@@ -299,6 +309,11 @@ function canTakeBlock($faculty, $block, $slotAssignments, $facultyAvailability,
                 return false;
             }
         }
+    }
+
+    // Prevent assigning another 4-hour slot if already taken one
+    if (isFourHourSlot($block['slot']) && !empty($facultyAvailability[$fid]['long_slot_taken'])) {
+        return false;
     }
     
     return true;
@@ -375,7 +390,7 @@ foreach ($allBlocks as $block) {
         
         if (canTakeBlock($f, $block, $slotAssignments, $facultyAvailability, 
                         $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction,
-                        $teaching_staff, $non_teaching_staff, $teachReq, $nonReq)) {
+                        $teaching_staff, $non_teaching_staff, $teachReq, $nonReq, $facultyLongSlotTaken)) {
             
             $fid = $f['id'];
             
@@ -407,7 +422,12 @@ foreach ($allBlocks as $block) {
                     }
                 }
             }
-            // Extra duties remain empty
+
+            // Mark long slot taken
+            if (isFourHourSlot($slot)) {
+                $facultyLongSlotTaken[$fid] = true;
+                $facultyAvailability[$fid]['long_slot_taken'] = true;
+            }
             
             // Create assignment record
             $facultyAssignments[$fid][$date][$slot] = [
@@ -475,6 +495,12 @@ foreach ($allBlocks as $block) {
                             }
                         }
                     }
+                }
+
+                // Mark long slot taken
+                if (isFourHourSlot($slot)) {
+                    $facultyLongSlotTaken[$fid] = true;
+                    $facultyAvailability[$fid]['long_slot_taken'] = true;
                 }
                 
                 $facultyAssignments[$fid][$date][$slot] = [

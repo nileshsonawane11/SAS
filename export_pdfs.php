@@ -192,6 +192,8 @@ SELECT
     f.faculty_name,
     f.dept_code,
     f.dept_name,
+    f.`AC-NO`,
+    f.IFSC_code,
     f.role,
     f.email
 FROM block_supervisor_list bsl
@@ -210,6 +212,7 @@ $facultyAssignments = [];
 $facultyName = [];
 $facultyMap = [];
 $facultydept = [];
+$facultyfinance = [];
 $facultyRole = [];
 $allDatesSlots = [];
 $facultyEmail = [];
@@ -223,6 +226,8 @@ while ($row = mysqli_fetch_assoc($res)) {
     $facultyRole[$fid] = $row['role'];
     $facultydept[$fid] = $row['dept_name'];
     $facultyEmail[$fid] = $row['email'];
+    $facultyfinance[$fid]['AC-NO'] = $row['AC-NO'];
+    $facultyfinance[$fid]['IFSC_code'] = $row['IFSC_code'];
 
     foreach ($schedule as $date => $slots) {
         foreach ($slots as $slot => $v) {
@@ -1323,12 +1328,14 @@ if ($action === 'billing') {
     $pageWidth = 297 - 12;
 
     $srW    = 10;
-    $nameW  = 65;
-    $deptW  = 30;
-    $roleW  = 22;
-    $dutyW  = 20;
-    $amtW   = 20;
-    $totalW = 30;
+    $nameW  = 50;
+    $deptW  = 20;
+    $roleW  = 15;
+    $dutyW  = 12;
+    $amtW   = 15;
+    $totalW = 15;
+    $acW = 35;
+    $IFSCW = 25;
 
     /* ================= SLOT COUNT ================= */
     $slotCount = 0;
@@ -1336,7 +1343,7 @@ if ($action === 'billing') {
         $slotCount += count($slots);
     }
 
-    $slotW = ($srW + $nameW + $deptW + $roleW + $dutyW + $amtW);
+    $slotW = ($srW + $nameW + $deptW + $roleW + $dutyW + $amtW + $acW + $IFSCW);
 
     /* ================= HEADER ================= */
     $pdf->SetFont('times', 'B', 10);
@@ -1347,6 +1354,8 @@ if ($action === 'billing') {
     $pdf->Cell($roleW, 10, 'Role', 1, 0, 'C');
     $pdf->Cell($dutyW, 10, 'Duties', 1, 0, 'C');
     $pdf->Cell($amtW, 10, 'Rate', 1, 0, 'C');
+    $pdf->Cell($acW, 10, 'AC No.', 1, 0, 'C');
+    $pdf->Cell($IFSCW, 10, 'IFSC Code', 1, 0, 'C');
     $pdf->Cell($totalW, 10, 'Total', 1, 1, 'C');
 
     /* ================= BODY ================= */
@@ -1390,6 +1399,8 @@ if ($action === 'billing') {
 
         $pdf->Cell($dutyW, $rowH, $real_blocks, 1, 0, 'C');
         $pdf->Cell($amtW, $rowH, $rate_per_duty, 1, 0, 'C');
+        $pdf->Cell($acW, $rowH, $facultyfinance[$f_id]['AC-NO'], 1, 0, 'C');
+        $pdf->Cell($IFSCW, $rowH, $facultyfinance[$f_id]['IFSC_code'], 1, 0, 'C');
         $pdf->Cell($totalW, $rowH, $total_amount, 1, 1, 'C');
 
         $duties_grand_total += $sup_count;
@@ -1405,7 +1416,7 @@ if ($action === 'billing') {
     // Fetch all committee members
     $res = mysqli_query($conn, "SELECT * FROM committee WHERE Created_by = '$owner' AND status = 1 ORDER BY id ASC");
     // Add a page
-    $pdf->AddPage();
+   $pdf->AddPage();
 
     print_letter_head();
     $pdf->Ln(3);
@@ -1415,58 +1426,52 @@ if ($action === 'billing') {
     $pdf->Ln(3);
 
     // Table header
-    $pdf->SetFont('helvetica', 'B', 12);
-    $tbl_header = '
-    <table border="1" cellpadding="5">
-        <tr style="color:#000;text-align:center">
-            <th width="30">Sr</th>
-            <th width="220">Name</th>
-            <th width="80">Designation</th>
-            <th width="70">Dept</th>
-            <th width="50">Rate</th>
-            <th width="40">Days</th>
-            <th width="60">Amount</th>
-        </tr>
-    ';
-    $tbl_footer = '</table>';
-    $tbl = '';
+    $pdf->SetFont('times','B',10);
 
-    // Table content
+    // Row heights
+    $h = 8;
+
+    // Headers
+    $pdf->Cell($srW, $h, 'Sr', 1, 0, 'C');
+    $pdf->Cell($nameW-14, $h, 'Name', 1, 0, 'C');
+    $pdf->Cell($deptW, $h, 'Dept', 1, 0, 'C');
+    $pdf->Cell($roleW+14, $h, 'Role', 1, 0, 'C');
+    $pdf->Cell($amtW, $h, 'Rate', 1, 0, 'C');
+    $pdf->Cell($dutyW, $h, 'Slots', 1, 0, 'C');
+    $pdf->Cell($acW, $h, 'AC No.', 1, 0, 'C');
+    $pdf->Cell($IFSCW, $h, 'IFSC', 1, 0, 'C');
+    $pdf->Cell($totalW, $h, 'Amount', 1, 1, 'C');
+
+    $pdf->SetFont('times','',10);
+
+    $sr = 0;
     $totalAmount = 0;
+
     while($row = mysqli_fetch_assoc($res)){
+
         $amount = $row['rate'] * $row['duty'];
         $totalAmount += $amount;
-        $sr = 0;
-        $tbl .= '
-        <tr>
-            <td>'.++$sr.'</td>
-            <td>'.$row['member_name'].'</td>
-            <td>'.$row['designation'].'</td>
-            <td>'.$row['department'].'</td>
-            <td>'.$row['rate'].'</td>
-            <td>'.$row['duty'].'</td>
-            <td>'.$amount.'</td>
-        </tr>
-        ';
+
+        $pdf->Cell($srW, $h, ++$sr, 1, 0, 'C');
+        $pdf->Cell($nameW-14, $h, $row['member_name'], 1, 0);
+        $pdf->Cell($deptW, $h, $row['department'], 1, 0, 'C');
+        $pdf->Cell($roleW+14, $h, $row['designation'], 1, 0);
+        $pdf->Cell($amtW, $h, $row['rate'], 1, 0, 'C');
+        $pdf->Cell($dutyW, $h, $row['duty'], 1, 0, 'C');
+        $pdf->Cell($acW, $h, '', 1, 0, 'C');          // AC No.
+        $pdf->Cell($IFSCW, $h, '', 1, 0, 'C');          // IFSC
+        $pdf->Cell($totalW, $h, $amount, 1, 1, 'C');
     }
 
-    // Add total row
-    $tbl .= '
-    <tr style="font-weight:bold;">
-        <td colspan="6" align="right">Total Amount</td>
-        <td colspan="2">'.$totalAmount.'</td>
-    </tr>
-    ';
+    // Total Row
+    $pdf->SetFont('times','B',10);
 
-    // Output the table
-    $pdf->SetFont('helvetica', '', 11);
-    $pdf->writeHTML($tbl_header.$tbl.$tbl_footer, true, false, false, false, '');
+    $pdf->Cell($slotW, $h, 'Total Amount', 1, 0, 'L');
+    $pdf->Cell($totalW, $h, $totalAmount, 1, 1, 'C');
 
-    //peons
-    // Fetch all committee members
+    // Fetch peons
     $res = mysqli_query($conn, "SELECT * FROM peons WHERE Created_by = '$owner' AND status = 1 ORDER BY id ASC");
 
-    // Add a page
     $pdf->AddPage();
 
     print_letter_head();
@@ -1476,51 +1481,46 @@ if ($action === 'billing') {
     $pdf->Cell(0,8,'PEON BILLING REPORT',0,1,'C');
     $pdf->Ln(3);
 
-    // Table header
-    $pdf->SetFont('helvetica', 'B', 12);
-    $tbl_header = '
-    <table border="1" cellpadding="5">
-        <tr style="color:#000;text-align:center">
-            <th width="30">Sr</th>
-            <th width="240">Name</th>
-            <th width="120">Dept</th>
-            <th width="50">Rate</th>
-            <th width="40">Days</th>
-            <th width="60">Amount</th>
-        </tr>
-    ';
-    $tbl_footer = '</table>';
-    $tbl = '';
+    // Header
+    $pdf->SetFont('times','B',10);
+    $h = 8;
 
-    // Table content
+    $pdf->Cell($srW, $h, 'Sr', 1, 0, 'C');
+    $pdf->Cell($nameW, $h, 'Name', 1, 0, 'C');
+    $pdf->Cell($deptW, $h, 'Dept', 1, 0, 'C');
+    $pdf->Cell($roleW, $h, 'Role', 1, 0, 'C');
+    $pdf->Cell($amtW, $h, 'Rate', 1, 0, 'C');
+    $pdf->Cell($dutyW, $h, 'Slots', 1, 0, 'C');
+    $pdf->Cell($acW, $h, 'AC No.', 1, 0, 'C');
+    $pdf->Cell($IFSCW, $h, 'IFSC', 1, 0, 'C');
+    $pdf->Cell($totalW, $h, 'Amount', 1, 1, 'C');
+
+    $pdf->SetFont('times','',10);
+
+    $sr = 0;
     $totalAmount = 0;
-    while($row = mysqli_fetch_assoc($res)){
+
+    while($row = mysqli_fetch_assoc($res)) {
+
         $amount = $row['rate'] * $row['duties'];
         $totalAmount += $amount;
-        $sr = 0;
-        $tbl .= '
-        <tr>
-            <td>'.++$sr.'</td>
-            <td>'.$row['name'].'</td>
-            <td>'.$row['dept'].'</td>
-            <td>'.$row['rate'].'</td>
-            <td>'.$row['duties'].'</td>
-            <td>'.$amount.'</td>
-        </tr>
-        ';
+
+        $pdf->Cell($srW, $h, ++$sr, 1, 0, 'C');
+        $pdf->Cell($nameW, $h, $row['name'], 1, 0);
+        $pdf->Cell($deptW, $h, $row['dept'], 1, 0, 'C');
+        $pdf->Cell($roleW, $h, 'Peon', 1, 0, 'C');
+        $pdf->Cell($amtW, $h, $row['rate'], 1, 0, 'C');
+        $pdf->Cell($dutyW, $h, $row['duties'], 1, 0, 'C');
+        $pdf->Cell($acW, $h, '', 1, 0, 'C');
+        $pdf->Cell($IFSCW, $h, '', 1, 0, 'C');
+        $pdf->Cell($totalW, $h, $amount, 1, 1, 'C');
     }
 
-    // Add total row
-    $tbl .= '
-    <tr style="font-weight:bold;">
-        <td colspan="5" align="right">Total Amount</td>
-        <td colspan="2">'.$totalAmount.'</td>
-    </tr>
-    ';
+    // Total
+    $pdf->SetFont('times','B',10);
 
-    // Output the table
-    $pdf->SetFont('helvetica', '', 11);
-    $pdf->writeHTML($tbl_header.$tbl.$tbl_footer, true, false, false, false, '');
+    $pdf->Cell($slotW, $h, 'Total Amount', 1, 0, 'L');
+    $pdf->Cell($totalW, $h, $totalAmount, 1, 1, 'C');
 
     /* ================= OUTPUT ================= */
     $pdf->Output("Supervision_Billing_Report.pdf", "I");
