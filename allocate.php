@@ -29,6 +29,92 @@ $extra_faculty = (float)$admin_rules['extra_faculty'];
 $teaching_staff = (float)$admin_rules['teaching_staff'];
 $non_teaching_staff = (float)$admin_rules['non_teaching_staff'];
 $schedule_row = [];
+$faculty = [];
+
+/* =====================================================
+   LOAD PREVIOUS SCHEDULE & APPLY PRIORITY LOAD
+   ===================================================== */
+$prev_schedule_id = 0;
+
+// Fetch previous schedule (latest scheduled = 1 except current)
+$prev_sql = "
+    SELECT id 
+    FROM schedule 
+    WHERE Created_by='$owner' 
+      AND scheduled=1 
+      AND id != '$s_id'
+    ORDER BY created_at DESC 
+    LIMIT 1
+";
+
+$prev_res = mysqli_query($conn, $prev_sql);
+
+if (mysqli_num_rows($prev_res) > 0) {
+    $prev_schedule_id = mysqli_fetch_assoc($prev_res)['id'];
+}
+
+$previousLoad = [];
+
+if ($prev_schedule_id > 0) {
+    // Load previous faculty assignments
+    $prev_q = mysqli_query($conn, "
+        SELECT faculty_id, schedule 
+        FROM block_supervisor_list 
+        WHERE s_id = '$prev_schedule_id'
+        AND Created_by = '$owner'
+    ");
+    
+    while ($row = mysqli_fetch_assoc($prev_q)) {
+        $fac = $row['faculty_id'];
+        $scheduleData = json_decode($row['schedule'], true);
+        $count = 0;
+
+        // Count assigned blocks
+        foreach ($scheduleData as $date => $slotsx) {
+            foreach ($slotsx as $slot => $info) {
+                if (!empty($info['present']) && $info['present'] != true) {
+                    $count += 1;
+                }
+            }
+        }
+
+        $previousLoad[$fac] = $count;
+    }
+
+    // Ensure all faculty exist in previousLoad (0 default)
+    foreach ($faculty as $f) {
+        if (!isset($previousLoad[$f['id']])) {
+            $previousLoad[$f['id']] = 0;
+        }
+    }
+
+    // Sort faculty by previous load (ASC → least loaded first)
+    asort($previousLoad);
+
+    /* =====================================================
+    EXTRA LOAD TO LEAST LOADED FACULTY (NEW LOGIC)
+    ===================================================== */
+
+    // Find least loaded faculty (lowest previousLoad)
+    $leastLoadedFaculty = array_keys($previousLoad)[0] ?? null;
+
+    if ($leastLoadedFaculty !== null) {
+        // Give artificial +2 load boost
+        $previousLoad[$leastLoadedFaculty] -= 2;
+
+        if ($previousLoad[$leastLoadedFaculty] < 0) {
+            $previousLoad[$leastLoadedFaculty] = 0;
+        }
+    }
+
+    // Apply load priority → least loaded get +1 load
+    $priorityBoost = array_keys($previousLoad);
+
+    // Reorder faculty array based on priorityBoost
+    usort($faculty, function($a, $b) use ($priorityBoost) {
+        return array_search($a['id'], $priorityBoost) - array_search($b['id'], $priorityBoost);
+    });
+}
 
 /* =====================================================
    LOAD FACULTY
@@ -62,7 +148,6 @@ if(mysqli_num_rows($schedule_result) > 0){
     }
 }
 
-$faculty = [];
 $q = mysqli_query($conn, "
     SELECT id, faculty_name, dept_code, duties, role, courses
     FROM faculty
@@ -380,6 +465,22 @@ foreach ($allBlocks as $block) {
             return $b['duties'] - $a['duties']; // Higher duties first if load equal
         }
         return $facultyLoad[$a['id']] - $facultyLoad[$b['id']];
+    });
+
+    usort($faculty, function($a, $b) use ($previousLoad) {
+
+        $aId = $a['id'];
+        $bId = $b['id'];
+
+        $aAbsent = isset($previousLoad[$aId]) ? $previousLoad[$aId] : 0;
+        $bAbsent = isset($previousLoad[$bId]) ? $previousLoad[$bId] : 0;
+
+        // More ABSENT previously → higher priority now
+        if ($aAbsent !== $bAbsent) {
+            return $bAbsent - $aAbsent;   // descending
+        }
+
+        return 0; // keep original order if same
     });
     
     foreach ($faculty as &$f) {

@@ -5,14 +5,14 @@ $owner = $user_data['_id'] ?? 0 ;
 
 $id = $_GET['s'] ?? '';
 if(empty($id)){
-    echo "No Faculty Found";
+    echo "No Member Found";
     exit;
 }
 
-$staff_result = mysqli_query($conn,"SELECT * FROM faculty WHERE id = $id AND Created_by = '$owner'");
+$staff_result = mysqli_query($conn,"SELECT * FROM committee WHERE id = $id AND Created_by = '$owner'");
 $courses = [];
 if(mysqli_num_rows($staff_result) == 0){
-    echo "No Faculty Found";
+    echo "No Member Found";
     exit;
 }else{
     $staff_data = mysqli_fetch_assoc($staff_result);
@@ -26,7 +26,7 @@ if(mysqli_num_rows($staff_result) == 0){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Profile </title>
+    <title>Committee Profile </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -533,7 +533,7 @@ if(mysqli_num_rows($staff_result) == 0){
         <div class="header">
             <div class="header-content">
                 <div class="logo">
-                    <span style="color: black;">Staff Profile </span>
+                    <span style="color: black;">Committee Profile </span>
                 </div>
             </div>
         </div>
@@ -542,7 +542,7 @@ if(mysqli_num_rows($staff_result) == 0){
             <div class="profile-icon">
                 <i class="fas fa-user"></i>
             </div>
-            <h1><?= $staff_data['faculty_name'] ?? '' ?></h1>
+            <h1><?= $staff_data['member_name'] ?? '' ?></h1>
             <p><?= $staff_data['dept_name'] ?? '' ?></p>
         </div>
 
@@ -554,7 +554,7 @@ if(mysqli_num_rows($staff_result) == 0){
                     <div class="field-label">
                         <i class="fas fa-user"></i> Staff Name <sup class="danger">*</sup>
                     </div>
-                    <div id="f_name" class="field-value editable" data-field="staffName"><?= $staff_data['faculty_name'] ?? '' ?></div>
+                    <div id="f_name" class="field-value editable" data-field="staffName"><?= $staff_data['member_name'] ?? '' ?></div>
                 </div>
                 <div class="field-group">
                     <div class="field-label">
@@ -589,7 +589,13 @@ if(mysqli_num_rows($staff_result) == 0){
                     <div class="field-label">
                         <i class="fas fa-hashtag"></i> Department Code
                     </div>
-                    <div id="f_dept_code" class="field-value editable" data-field="deptCode"><?= $staff_data['dept_code'] ?? '' ?></div>
+                    <div id="f_dept_code" class="field-value editable" data-field="deptCode"><?= $staff_data['department'] ?? '' ?></div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">
+                        <i class="fas fa-hashtag"></i> Designation
+                    </div>
+                    <div id="f_designation" class="field-value editable" data-field="designation"><?= $staff_data['designation'] ?? '' ?></div>
                 </div>
                 <div class="field-group">
                     <div class="field-label">
@@ -597,6 +603,7 @@ if(mysqli_num_rows($staff_result) == 0){
                     </div>
                     <div class="field-value editable" data-field="role" data-type="select">
                         <select class="edit-input" id="f_role" style="display: none;">
+                            <option value="" hidden <?= $staff_data['role'] === '' ? 'selected' : ''?>>Undefined</option>
                             <option value="Teaching" <?= $staff_data['role'] === 'TS' ? 'selected' : ''?>>Teaching</option>
                             <option value="Non-Teaching" <?= $staff_data['role'] === 'NTS' ? 'selected' : ''?>>Non-Teaching</option>
                         </select>
@@ -604,7 +611,8 @@ if(mysqli_num_rows($staff_result) == 0){
                             <?php 
                                 $role_arr = [
                                     'Teaching' => 'TS',
-                                    'Non-Teaching' => 'NTS'
+                                    'Non-Teaching' => 'NTS',
+                                    'Undefined' => ''
                                 ];
                                 $role_arr = array_flip($role_arr);
                                 echo $role_arr[$staff_data['role']];
@@ -614,21 +622,20 @@ if(mysqli_num_rows($staff_result) == 0){
                 </div>
                 <div class="field-group">
                     <div class="field-label">
-                        <i class="fas fa-tasks"></i> Duties (Number)
+                        <i class="fas fa-tasks"></i>Past Duties (Number)
                     </div>
-                    <div id="f_duties" class="field-value editable" data-field="duties"><?= $staff_data['duties'] ?? 0 ?></div>
+                    <div id="f_duties" class="field-value editable" data-field="duties"><?= $staff_data['duty'] ?? 0 ?></div>
                 </div>
             </div>
 
             <!-- Academic & Financial Information Card -->
             <div class="card" id="academic-card">
                 <h3><i class="fas fa-graduation-cap"></i> Academic & Financial</h3>
-                <div class="field-group">
+                <!-- <div class="field-group">
                     <div class="field-label">
                         <i class="fas fa-book"></i> Course Codes
                     </div>
                     <div class="courses-container" id="coursesContainer">
-                        <!-- Course codes will be dynamically added here -->
                     </div>
                     <div class="add-course-container">
                         <input type="text" class="add-course-input" id="newCourseInput" placeholder="Enter course code (e.g., EL235141)">
@@ -636,18 +643,24 @@ if(mysqli_num_rows($staff_result) == 0){
                             <i class="fas fa-plus"></i> Add
                         </button>
                     </div>
-                </div>
+                </div> -->
                 <div class="field-group">
                     <div class="field-label">
                         <i class="fas fa-circle"></i> Status
                     </div>
                     <div class="status-container">
                         <label class="status-toggle">
-                            <input type="checkbox" id="statusToggle" <?= $staff_data['status'] == 'ON' ? 'checked' : ''?>>
+                            <input type="checkbox" id="statusToggle" <?= $staff_data['status'] == '1' ? 'checked' : ''?>>
                             <span class="status-slider"></span>
                         </label>
-                        <span class="status-label status-<?= strtolower($staff_data['status']) ?>-label" id="statusLabel"><?= $staff_data['status'] ?></span>
+                        <span class="status-label status-<?= strtolower($staff_data['status']) ?>-label" id="statusLabel"><?= $staff_data['status'] == '1' ? 'ON' : 'OFF' ?></span>
                     </div>
+                </div>
+                <div class="field-group">
+                    <div class="field-label">
+                        <i class="fas fa-credit-card"></i> Rate/Duty
+                    </div>
+                    <div id="f_rate" class="field-value editable" data-field="rate"><?= $staff_data['rate'] ?? '' ?></div>
                 </div>
                 <div class="field-group">
                     <div class="field-label">
@@ -701,7 +714,7 @@ if(mysqli_num_rows($staff_result) == 0){
             const defaultCourses = <?= json_encode($courses) ?? []; ?>;
             currentCourses = [...defaultCourses];
             originalCourses = [...defaultCourses];
-            renderCourses();
+            // renderCourses();
             
             // Status toggle functionality - only works in edit mode
             statusToggle.addEventListener('change', function() {
@@ -737,16 +750,16 @@ if(mysqli_num_rows($staff_result) == 0){
             });
             
             // Add course button click
-            addCourseBtn.addEventListener('click', function() {
-                addNewCourse();
-            });
+            // addCourseBtn.addEventListener('click', function() {
+            //     addNewCourse();
+            // });
             
             // Enter key to add course
-            newCourseInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    addNewCourse();
-                }
-            });
+            // newCourseInput.addEventListener('keypress', function(e) {
+            //     if (e.key === 'Enter') {
+            //         addNewCourse();
+            //     }
+            // });
             
             // Enter edit mode
             function enterEditMode() {
@@ -786,7 +799,7 @@ if(mysqli_num_rows($staff_result) == 0){
                 });
                 
                 // Re-render courses to show remove buttons
-                renderCourses();
+                // renderCourses();
                 
                 // Show edit actions, hide edit button
                 editProfileBtn.style.display = 'none';
@@ -838,10 +851,10 @@ if(mysqli_num_rows($staff_result) == 0){
                 });
                 
                 // Clear course input
-                newCourseInput.value = '';
+                // newCourseInput.value = '';
                 
                 // Re-render courses to hide remove buttons
-                renderCourses();
+                // renderCourses();
                 
                 // Show edit button, hide edit actions
                 editProfileBtn.style.display = 'flex';
@@ -872,7 +885,7 @@ if(mysqli_num_rows($staff_result) == 0){
                     // 🔹 Update staff profile after rendering
                     updateStaffCourses(currentCourses);
 
-                    renderCourses();
+                    // renderCourses();
                     newCourseInput.value = '';
                     showNotification(`Course ${courseCode} added!`);
                 }
@@ -886,7 +899,7 @@ if(mysqli_num_rows($staff_result) == 0){
                     // 🔹 Update staff profile after rendering
                     updateStaffCourses(currentCourses);
 
-                    renderCourses();
+                    // renderCourses();
                     showNotification(`Course ${courseCode} removed!`);
                 }
             }
@@ -967,7 +980,6 @@ if(mysqli_num_rows($staff_result) == 0){
                 const data = {
                     staff_id: STAFF_ID,
                     status: document.querySelector('#statusLabel').textContent.trim(),
-                    
                 };
 
                 document.querySelectorAll('[data-field]').forEach(el => {
@@ -985,13 +997,16 @@ if(mysqli_num_rows($staff_result) == 0){
                     }
                 });
 
-                data['for'] = 'staff';
+                data['for'] = 'committee';
 
                 return data;
             }
 
             //update profile on server-side
             function save_profile(){
+
+                console.log(collectProfileData());
+
                 fetch('./Backend/save_profile.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

@@ -2298,19 +2298,20 @@ include './Backend/config.php';
 
     // OPEN EDIT POPUP
     function openEdit(id) {
-        fetch("committee_controller.php?action=get&id=" + id)
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("editId").value = data.id;
-            document.getElementById("editName").value = data.member_name;
-            document.getElementById("editDesignation").value = data.designation;
-            document.getElementById("editDepartment").value = data.department;
-            document.querySelector("#editModal #committee_status").value = data.status;
-            document.getElementById("editRate").value = data.rate;
-            document.getElementById("editDuty").value = data.duty;
+        window.location.href = `./committee_profile.php?s=${id}`;
+        // fetch("committee_controller.php?action=get&id=" + id)
+        // .then(res => res.json())
+        // .then(data => {
+        //     document.getElementById("editId").value = data.id;
+        //     document.getElementById("editName").value = data.member_name;
+        //     document.getElementById("editDesignation").value = data.designation;
+        //     document.getElementById("editDepartment").value = data.department;
+        //     document.querySelector("#editModal #committee_status").value = data.status;
+        //     document.getElementById("editRate").value = data.rate;
+        //     document.getElementById("editDuty").value = data.duty;
 
-            document.getElementById("editModal").style.display = "flex";
-        });
+        //     document.getElementById("editModal").style.display = "flex";
+        // });
     }
 
     function closeEdit() {
@@ -2372,17 +2373,18 @@ include './Backend/config.php';
 
     // OPEN EDIT POPUP
     function open_peon_Edit(id) {
-        fetch("peon_controller.php?action=get&id=" + id)
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("editId").value = data.id;
-            document.getElementById("editName").value = data.name;
-            document.getElementById("editDepartment").value = data.dept;
-            document.getElementById("editRate").value = data.rate;
-            document.getElementById("editDuty").value = data.duties;
-            document.querySelector("#edit_peon_Modal #peon_status").value = data.status;
-            document.getElementById("edit_peon_Modal").style.display = "flex";
-        });
+        window.location.href = `./peon_profile.php?s=${id}`;
+        // fetch("peon_controller.php?action=get&id=" + id)
+        // .then(res => res.json())
+        // .then(data => {
+        //     document.getElementById("editId").value = data.id;
+        //     document.getElementById("editName").value = data.name;
+        //     document.getElementById("editDepartment").value = data.dept;
+        //     document.getElementById("editRate").value = data.rate;
+        //     document.getElementById("editDuty").value = data.duties;
+        //     document.querySelector("#edit_peon_Modal #peon_status").value = data.status;
+        //     document.getElementById("edit_peon_Modal").style.display = "flex";
+        // });
     }
 
     function close_peon_Edit() {

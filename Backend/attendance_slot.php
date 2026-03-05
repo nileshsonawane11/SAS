@@ -8,7 +8,7 @@ $date = $_GET['date'];
 $slot = $_GET['slot'];
 $s_id = $_GET['s'];
 if (!$s_id) die('Invalid Schedule');
-$result = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE admin = '$owner");
+$result = mysqli_query($conn, "SELECT letter_json FROM admin_panel WHERE admin = '$owner'");
 $row = mysqli_fetch_assoc($result);
 $letter_data = json_decode($row['letter_json'] ?? [], true);
 
@@ -218,6 +218,8 @@ while ($row = mysqli_fetch_assoc($res)) {
             $status = '*';
         }
     }
+    // echo "<pre>";
+    // print_r($sch[$date][$slot]['present']);echo "</pre>";return;
 
     $rows[] = [
         'faculty' => $row['faculty_name'],
@@ -225,7 +227,7 @@ while ($row = mysqli_fetch_assoc($res)) {
         'block'   => $block,
         'status'  => $status,
         'block_type' => $sch[$date][$slot]['block_type'] ?? 'buffer',
-        'present' => $sch[$date][$slot]['present']
+        'present' => $sch[$date][$slot]['present'] ?? 0
     ];
 }
 

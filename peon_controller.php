@@ -12,8 +12,8 @@ if ($_GET['action'] == "add") {
     $duty   = $_POST['duty'];
 
     mysqli_query($conn,
-        "INSERT INTO peons (name, dept, rate, duties, Created_by)
-         VALUES ('$name','$dept','$rate','$duty', '$owner')");
+        "INSERT INTO peons (name, dept, rate, duties, Created_by, status)
+         VALUES ('$name','$dept','$rate','$duty', '$owner', 1)");
 
     echo "Added Successfully";
 }

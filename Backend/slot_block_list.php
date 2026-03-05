@@ -184,7 +184,7 @@ while ($row = mysqli_fetch_assoc($res)) {
 
     $sch = json_decode($row['schedule'], true);
     if (!isset($sch[$date][$slot])) continue;
-    if ($sch[$date][$slot]['present'] == false) continue;
+    if (($sch[$date][$slot]['present'] ?? 0) == false) continue;
 
     $block = '';
     if (is_array($sch[$date][$slot]) && !empty($sch[$date][$slot]['block'])) {

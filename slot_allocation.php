@@ -163,7 +163,7 @@ $today = date('d-M-Y');
         color: var(--text-dark);
         margin: 0;
         padding: 0;
-        overflow-x: hidden;
+        overflow-x: scroll;
     }
 
     .container-fluid {
@@ -1019,6 +1019,9 @@ $today = date('d-M-Y');
     .modal-footer{
         flex-wrap: nowrap;
     }
+    /* #t_container{
+       overflow: scroll; 
+    } */
     @keyframes spin {
         to {
             transform: translate(-50%, -50%) rotate(360deg);
@@ -1192,267 +1195,269 @@ $today = date('d-M-Y');
         </div>
 
         <!-- ================= TABLE ================= -->
-        <table class="supervision">
-            <thead>               
-            <tr>
-                <th rowspan="4">Sr</th>
-                <th rowspan="4">Supervisor</th>
-                <th rowspan="4">Dept</th>
-                <th rowspan="4">Role</th> <!-- NEW: Role column -->
-
-                <?php foreach ($allDatesSlots as $date => $slots): ?>
-                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
-                    <?php
-                    // count only visible slots
-                    $visibleSlots = 0;
-                    foreach ($slots as $slot => $_) {
-                        if ($filterSlot && $filterSlot !== $slot) continue;
-                        $visibleSlots++;
-                    }
-
-                    // skip date if no visible slots
-                    if ($visibleSlots === 0) continue;
-                    ?>
-                    <th colspan="<?= $visibleSlots ?>" class="<?= $date == $today ? 'today' : '' ?>">
-                        <?= htmlspecialchars($date) ?>
-                    </th>
-                <?php endforeach; ?>
-                <th rowspan="4" class="signature">Duties Allocated</th>
-                <th rowspan="4" class="signature">Total Duties</th>
-            </tr>
-
-            <tr>
-                <?php foreach ($allDatesSlots as $date => $slots): ?>
-                    <?php foreach ($slots as $slot => $_): ?>
-                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-                        <?php if ($filterDate && $filterDate !== $date) continue; ?>
-                        <th><?= htmlspecialchars($slot) ?></th>
-                    <?php endforeach; ?>
-                <?php endforeach; ?>
-            </tr>
-
-            <tr>
-                <?php foreach ($allDatesSlots as $date => $slots): ?>
-                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
-
-                    <?php foreach ($slots as $slot => $_): ?>
-                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-
-                        <th>
-                            <button class="btn btn-success th-btn"
-                                onclick="printAttendance('<?= $date ?>','<?= $slot ?>')">
-                                Attendance
-                            </button>
-                        </th>
-                    <?php endforeach; ?>
-                <?php endforeach; ?>
-            </tr>
-
-            <tr>
-                <?php foreach ($allDatesSlots as $date => $slots): ?>
-                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
-
-                    <?php foreach ($slots as $slot => $_): ?>
-                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-
-                        <th>
-                            <button class="btn btn-success th-btn"
-                                onclick="openBlockSheet('<?= $date ?>','<?= $slot ?>')">
-                                Block List
-                            </button>
-                        </th>
-                    <?php endforeach; ?>
-                <?php endforeach; ?>
-            </tr>
-            </thead> 
-            <?php 
-                $sr = 1;
-                $duties_grabd_total = 0;
-                $blocks_grabd_total = 0;
-                $blocks_required_grand_total = [];
-                $slot_allocation = [];
-                $allocated_blocks_grabd_total = 0;
-                $filtered_faculty_count = 0;
-            ?>
-             <tr>
-                    <td colspan="12" class="add-cell" onclick="openFacultyMenu(event,this)">
-                        <span class="add-icon">➕</span>
-                        <span class="add-text">Add Faculty</span>
-                    </td>
-                </tr>
-            <?php foreach ($facultyAssignments as $fid => $assignments): ?>
-
-                <?php
-                $sup_count = 0; 
-                $blocks_assign = 0;
-                
-                // Apply filters
-                if ($filterDept && $facultyDept[$fid] != $filterDept) continue;
-                if ($filterRole && $facultyRole[$fid] != $filterRole) continue; // NEW: Role filter
-                if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) continue;
-                
-                $filtered_faculty_count++;
-                ?>
-                <tr class="tbl_row<?= $dutyCount[$fid] > 6 ? 'overload' : '' ?>">
-                    <td><?= $sr++ ?></td>
-                    <td class="left faculty-cell"
-                        data-fid="<?= $fid ?>"
-                        oncontextmenu="openFacultyMenu(event,this)">
-                        <?= htmlspecialchars($facultyName[$fid]) ?>
-                       
-                    </td>
-                    <td><?= htmlspecialchars($facultyDept[$fid]) ?></td>
-                    <td class="role-cell">
-                         <span class="role-badge <?= $facultyRole[$fid] === 'TS' ? 'role-ts' : 'role-nts' ?>">
-                            <?= $facultyRole[$fid] ?>
-                        </span>
-                    </td>
+        <div id="t_container">
+            <table class="supervision">
+                <thead>               
+                <tr>
+                    <th rowspan="4">Sr</th>
+                    <th rowspan="4">Supervisor</th>
+                    <th rowspan="4">Dept</th>
+                    <th rowspan="4">Role</th> <!-- NEW: Role column -->
 
                     <?php foreach ($allDatesSlots as $date => $slots): ?>
                         <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                        <?php
+                        // count only visible slots
+                        $visibleSlots = 0;
+                        foreach ($slots as $slot => $_) {
+                            if ($filterSlot && $filterSlot !== $slot) continue;
+                            $visibleSlots++;
+                        }
 
-                        <?php foreach ($slots as $slot => $v): $assigned = 0;?>
-                            <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-                            <?php
-                            $assigned = 0;
-                            $class = '';
-                            
-                            if (isset($conflicts[$fid][$date][$slot])) $class = 'conflict';
-
-                            // Get block number if exists
-                            $blockNumber = $assignments[$date][$slot]['block'] ?? '';
-                            $blockType = $assignments[$date][$slot]['block_type'] ?? '';
-                            $hasBlock = ($blockType == 'real');
-                            ?>
-
-                            <td class="<?= $class ?> cell"
-                                data-fid="<?= $fid ?>"
-                                data-date="<?= $date ?>"
-                                data-slot="<?= $slot ?>"
-                                data-sid="<?= $s_id ?>"
-                                data-present="<?= (($blockType != '') ?? false)
-                                                    ? (!empty($assignments[$date][$slot]['present'])
-                                                        ? "true"
-                                                        : "false")
-                                                    : ""
-                                                ?>"
-                                oncontextmenu="openDialog(event,this)">
-                                <?php if ($assignments[$date][$slot]['assigned'] ?? false): ?>
-                                    <?php if ($hasBlock): ?>
-                                        <strong><?php echo !empty($blockNumber) ? $blockNumber : '✓'; ?></strong>
-                                    <?php else: ?>
-                                            <?php if ($blockType == 'buffer'): ?>
-                                                * 
-                                            <?php else: ?> 
-                                            <?php endif; ?>
-                                    <?php endif; ?>
-                                    <?php $sup_count++; ?>
-                                    <?php if ($hasBlock && $assignments[$date][$slot]['present']){$blocks_assign++; $assigned++;}  ?>
-                                    <?php else: ?>
-                                <?php endif; ?>
-                                <div class="con-tool"></div>
-                            </td>
-
-                        <?php 
-                            $slot_allocation[$date][$slot] = ($slot_allocation[$date][$slot] ?? 0) + $assigned;
-                            endforeach; 
+                        // skip date if no visible slots
+                        if ($visibleSlots === 0) continue;
                         ?>
+                        <th colspan="<?= $visibleSlots ?>" class="<?= $date == $today ? 'today' : '' ?>">
+                            <?= htmlspecialchars($date) ?>
+                        </th>
                     <?php endforeach; ?>
-                    <!-- <div id="facultyMenu" class="context-menu"></div> -->
-                    <?php 
-                        $duties_grabd_total += $sup_count; 
-                        $allocated_blocks_grabd_total += $blocks_assign;
-                    ?>
-                    <td><?= $blocks_assign ?></td>
-                    <td><?= $sup_count ?></td>
+                    <th rowspan="4" class="signature">Duties Allocated</th>
+                    <th rowspan="4" class="signature">Total Duties</th>
                 </tr>
 
-            <?php endforeach; ?>
+                <tr>
+                    <?php foreach ($allDatesSlots as $date => $slots): ?>
+                        <?php foreach ($slots as $slot => $_): ?>
+                            <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                            <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                            <th><?= htmlspecialchars($slot) ?></th>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </tr>
 
-            <?php 
-            // Calculate totals for displayed slots only
-            $displayed_slots_total = 0;
-            foreach ($slots_blocks as $date => $times): ?>
-                <?php if ($filterDate && $filterDate !== $date) continue; ?>
-                <?php foreach ($times as $slot => $_): ?>
-                    <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-                    <?php 
-                        $displayed_slots_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0);
-                        $blocks_grabd_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0); 
-                        $blocks_required_grand_total[$date][$slot] = (int)($slots_blocks[$date][$slot]['total_required'] ?? 0); 
-                    ?>
-                <?php endforeach; ?>
-            <?php endforeach; ?>
+                <tr>
+                    <?php foreach ($allDatesSlots as $date => $slots): ?>
+                        <?php if ($filterDate && $filterDate !== $date) continue; ?>
 
-           <tr class="grand-total">
-                <td colspan="4">Allocated Duties :</td>
-                <?php
-                    // FLAG: if any slot mismatches, this becomes true
-                    $hasNotMatch = false;
+                        <?php foreach ($slots as $slot => $_): ?>
+                            <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+
+                            <th>
+                                <button class="btn btn-success th-btn"
+                                    onclick="printAttendance('<?= $date ?>','<?= $slot ?>')">
+                                    Attendance
+                                </button>
+                            </th>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </tr>
+
+                <tr>
+                    <?php foreach ($allDatesSlots as $date => $slots): ?>
+                        <?php if ($filterDate && $filterDate !== $date) continue; ?>
+
+                        <?php foreach ($slots as $slot => $_): ?>
+                            <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+
+                            <th>
+                                <button class="btn btn-success th-btn"
+                                    onclick="openBlockSheet('<?= $date ?>','<?= $slot ?>')">
+                                    Block List
+                                </button>
+                            </th>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </tr>
+                </thead> 
+                <?php 
+                    $sr = 1;
+                    $duties_grabd_total = 0;
+                    $blocks_grabd_total = 0;
+                    $blocks_required_grand_total = [];
+                    $slot_allocation = [];
+                    $allocated_blocks_grabd_total = 0;
+                    $filtered_faculty_count = 0;
                 ?>
-                <?php foreach ($slot_allocation as $date => $times): ?>
-                    <?php if ($filterDate && $filterDate !== $date) continue; ?>
-                    <?php foreach ($times as $slot => $_): ?>
-                        <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-                        <?php
-                            $allocated = $slot_allocation[$date][$slot] ?? 0;
-                            $assigned  = $slots_blocks[$date][$slot]['blocks'] ?? 0;
+                <tr>
+                        <td colspan="12" class="add-cell" onclick="openFacultyMenu(event,this)">
+                            <span class="add-icon">➕</span>
+                            <span class="add-text">Add Faculty</span>
+                        </td>
+                    </tr>
+                <?php foreach ($facultyAssignments as $fid => $assignments): ?>
 
-                            $isNotMatch = ($assigned != $allocated);
-
-                            // If any slot mismatches → mark global flag
-                            if ($isNotMatch) {
-                                $hasNotMatch = true;
-                            }
-                        ?>
-                        <td class="<?= $isNotMatch ? 'not_match' : 'match'; ?>">
-                            <?= $allocated; ?>
+                    <?php
+                    $sup_count = 0; 
+                    $blocks_assign = 0;
+                    
+                    // Apply filters
+                    if ($filterDept && $facultyDept[$fid] != $filterDept) continue;
+                    if ($filterRole && $facultyRole[$fid] != $filterRole) continue; // NEW: Role filter
+                    if ($search && strpos(strtolower($facultyName[$fid]), $search) === false) continue;
+                    
+                    $filtered_faculty_count++;
+                    ?>
+                    <tr class="tbl_row<?= $dutyCount[$fid] > 6 ? 'overload' : '' ?>">
+                        <td><?= $sr++ ?></td>
+                        <td class="left faculty-cell"
+                            data-fid="<?= $fid ?>"
+                            oncontextmenu="openFacultyMenu(event,this)">
+                            <?= htmlspecialchars($facultyName[$fid]) ?>
+                        
+                        </td>
+                        <td><?= htmlspecialchars($facultyDept[$fid]) ?></td>
+                        <td class="role-cell">
+                            <span class="role-badge <?= $facultyRole[$fid] === 'TS' ? 'role-ts' : 'role-nts' ?>">
+                                <?= $facultyRole[$fid] ?>
+                            </span>
                         </td>
 
-                    <?php endforeach; ?>
+                        <?php foreach ($allDatesSlots as $date => $slots): ?>
+                            <?php if ($filterDate && $filterDate !== $date) continue; ?>
+
+                            <?php foreach ($slots as $slot => $v): $assigned = 0;?>
+                                <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                                <?php
+                                $assigned = 0;
+                                $class = '';
+                                
+                                if (isset($conflicts[$fid][$date][$slot])) $class = 'conflict';
+
+                                // Get block number if exists
+                                $blockNumber = $assignments[$date][$slot]['block'] ?? '';
+                                $blockType = $assignments[$date][$slot]['block_type'] ?? '';
+                                $hasBlock = ($blockType == 'real');
+                                ?>
+
+                                <td class="<?= $class ?> cell"
+                                    data-fid="<?= $fid ?>"
+                                    data-date="<?= $date ?>"
+                                    data-slot="<?= $slot ?>"
+                                    data-sid="<?= $s_id ?>"
+                                    data-present="<?= (($blockType != '') ?? false)
+                                                        ? (!empty($assignments[$date][$slot]['present'])
+                                                            ? "true"
+                                                            : "false")
+                                                        : ""
+                                                    ?>"
+                                    oncontextmenu="openDialog(event,this)">
+                                    <?php if ($assignments[$date][$slot]['assigned'] ?? false): ?>
+                                        <?php if ($hasBlock): ?>
+                                            <strong><?php echo !empty($blockNumber) ? $blockNumber : '✓'; ?></strong>
+                                        <?php else: ?>
+                                                <?php if ($blockType == 'buffer'): ?>
+                                                    * 
+                                                <?php else: ?> 
+                                                <?php endif; ?>
+                                        <?php endif; ?>
+                                        <?php $sup_count++; ?>
+                                        <?php if ($hasBlock && $assignments[$date][$slot]['present']){$blocks_assign++; $assigned++;}  ?>
+                                        <?php else: ?>
+                                    <?php endif; ?>
+                                    <div class="con-tool"></div>
+                                </td>
+
+                            <?php 
+                                $slot_allocation[$date][$slot] = ($slot_allocation[$date][$slot] ?? 0) + $assigned;
+                                endforeach; 
+                            ?>
+                        <?php endforeach; ?>
+                        <!-- <div id="facultyMenu" class="context-menu"></div> -->
+                        <?php 
+                            $duties_grabd_total += $sup_count; 
+                            $allocated_blocks_grabd_total += $blocks_assign;
+                        ?>
+                        <td><?= $blocks_assign ?></td>
+                        <td><?= $sup_count ?></td>
+                    </tr>
+
                 <?php endforeach; ?>
 
-                <!-- GRAND TOTAL CELL -->
-                <td class="<?= $hasNotMatch ? 'not_match' : 'match'; ?>">
-                    <?= $allocated_blocks_grabd_total ?>
-                </td>
-                <td rowspan="2">
-                    <?= $duties_grabd_total ?>
-                </td>
-            </tr>
-
-            <tr class="grand-total">
-                <td colspan="4">Required And Total Duties : </td>
-                
-                <?php foreach ($slots_blocks as $date => $times): ?>
+                <?php 
+                // Calculate totals for displayed slots only
+                $displayed_slots_total = 0;
+                foreach ($slots_blocks as $date => $times): ?>
                     <?php if ($filterDate && $filterDate !== $date) continue; ?>
                     <?php foreach ($times as $slot => $_): ?>
                         <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
-                        <td><?= ($slots_blocks[$date][$slot]['blocks'] ?? 0)."<br> / ".($blocks_required_grand_total[$date][$slot] ?? 0); ?></td>
+                        <?php 
+                            $displayed_slots_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0);
+                            $blocks_grabd_total += (int)($slots_blocks[$date][$slot]['blocks'] ?? 0); 
+                            $blocks_required_grand_total[$date][$slot] = (int)($slots_blocks[$date][$slot]['total_required'] ?? 0); 
+                        ?>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
+
+            <tr class="grand-total">
+                    <td colspan="4">Allocated Duties :</td>
+                    <?php
+                        // FLAG: if any slot mismatches, this becomes true
+                        $hasNotMatch = false;
+                    ?>
+                    <?php foreach ($slot_allocation as $date => $times): ?>
+                        <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                        <?php foreach ($times as $slot => $_): ?>
+                            <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                            <?php
+                                $allocated = $slot_allocation[$date][$slot] ?? 0;
+                                $assigned  = $slots_blocks[$date][$slot]['blocks'] ?? 0;
+
+                                $isNotMatch = ($assigned != $allocated);
+
+                                // If any slot mismatches → mark global flag
+                                if ($isNotMatch) {
+                                    $hasNotMatch = true;
+                                }
+                            ?>
+                            <td class="<?= $isNotMatch ? 'not_match' : 'match'; ?>">
+                                <?= $allocated; ?>
+                            </td>
+
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+
+                    <!-- GRAND TOTAL CELL -->
+                    <td class="<?= $hasNotMatch ? 'not_match' : 'match'; ?>">
+                        <?= $allocated_blocks_grabd_total ?>
+                    </td>
+                    <td rowspan="2">
+                        <?= $duties_grabd_total ?>
+                    </td>
+                </tr>
+
+                <tr class="grand-total">
+                    <td colspan="4">Required And Total Duties : </td>
+                    
+                    <?php foreach ($slots_blocks as $date => $times): ?>
+                        <?php if ($filterDate && $filterDate !== $date) continue; ?>
+                        <?php foreach ($times as $slot => $_): ?>
+                            <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>
+                            <td><?= ($slots_blocks[$date][$slot]['blocks'] ?? 0)."<br> / ".($blocks_required_grand_total[$date][$slot] ?? 0); ?></td>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                    
+                    <td>
+                        <?= $blocks_grabd_total ?>
+                    </td>
+                </tr>
                 
-                <td>
-                    <?= $blocks_grabd_total ?>
-                </td>
-            </tr>
-            
-            <!-- Summary Row -->
-            <!-- <tr class="table-info">
-                <td colspan="4" class="text-end"><strong>Display Summary:</strong></td>
-                <td colspan="<?= count($allDatesSlots) ?>">
-                    Showing <?= $filtered_faculty_count ?> faculty 
-                    <?= $filterDept ? "from $filterDept department" : "" ?>
-                    <?= $filterRole ? "($filterRole)" : "" ?>
-                    <?= $filterDate ? "on $filterDate" : "" ?>
-                    <?= $filterSlot ? "at $filterSlot" : "" ?>
-                    <?= $search ? "matching '$search'" : "" ?>
-                </td>
-                <td colspan="2" class="text-center">
-                    <small>TS: Teaching Staff | NTS: Non-Teaching Staff</small>
-                </td>
-            </tr> -->
-        </table>
+                <!-- Summary Row -->
+                <!-- <tr class="table-info">
+                    <td colspan="4" class="text-end"><strong>Display Summary:</strong></td>
+                    <td colspan="<?= count($allDatesSlots) ?>">
+                        Showing <?= $filtered_faculty_count ?> faculty 
+                        <?= $filterDept ? "from $filterDept department" : "" ?>
+                        <?= $filterRole ? "($filterRole)" : "" ?>
+                        <?= $filterDate ? "on $filterDate" : "" ?>
+                        <?= $filterSlot ? "at $filterSlot" : "" ?>
+                        <?= $search ? "matching '$search'" : "" ?>
+                    </td>
+                    <td colspan="2" class="text-center">
+                        <small>TS: Teaching Staff | NTS: Non-Teaching Staff</small>
+                    </td>
+                </tr> -->
+            </table>
+        </div>
 
         <!-- ================= ACTIONS ================= -->
         <form method="POST" class="mt-3 text-end">
