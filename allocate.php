@@ -31,90 +31,109 @@ $non_teaching_staff = (float)$admin_rules['non_teaching_staff'];
 $schedule_row = [];
 $faculty = [];
 
-/* =====================================================
-   LOAD PREVIOUS SCHEDULE & APPLY PRIORITY LOAD
-   ===================================================== */
 $prev_schedule_id = 0;
 
-// Fetch previous schedule (latest scheduled = 1 except current)
+// Find latest previous schedule
 $prev_sql = "
-    SELECT id 
-    FROM schedule 
-    WHERE Created_by='$owner' 
-      AND scheduled=1 
-      AND id != '$s_id'
-    ORDER BY created_at DESC 
-    LIMIT 1
+SELECT id
+FROM schedule
+WHERE Created_by='$owner'
+AND scheduled = 1
+AND id != '$s_id'
+ORDER BY created_at DESC
+LIMIT 1
 ";
 
-$prev_res = mysqli_query($conn, $prev_sql);
+$prev_res = mysqli_query($conn,$prev_sql);
 
-if (mysqli_num_rows($prev_res) > 0) {
+if(mysqli_num_rows($prev_res) > 0){
     $prev_schedule_id = mysqli_fetch_assoc($prev_res)['id'];
 }
 
-$previousLoad = [];
+$prev_facultyLoad = [];
 
-if ($prev_schedule_id > 0) {
-    // Load previous faculty assignments
-    $prev_q = mysqli_query($conn, "
-        SELECT faculty_id, schedule 
-        FROM block_supervisor_list 
+if($prev_schedule_id > 0){
+
+    $prev_q = mysqli_query($conn,"
+        SELECT faculty_id , schedule
+        FROM block_supervisor_list
         WHERE s_id = '$prev_schedule_id'
         AND Created_by = '$owner'
     ");
-    
-    while ($row = mysqli_fetch_assoc($prev_q)) {
-        $fac = $row['faculty_id'];
-        $scheduleData = json_decode($row['schedule'], true);
-        $count = 0;
 
-        // Count assigned blocks
-        foreach ($scheduleData as $date => $slotsx) {
-            foreach ($slotsx as $slot => $info) {
-                if (!empty($info['present']) && $info['present'] != true) {
-                    $count += 1;
+    while($row = mysqli_fetch_assoc($prev_q)){
+
+        $facultyId = $row['faculty_id'];
+
+        $scheduleData = json_decode($row['schedule'],true);
+
+        $totalAllocated = 0;
+        $totalPresent   = 0;
+
+        if(!empty($scheduleData)){
+
+            foreach($scheduleData as $date => $slots){
+
+                foreach($slots as $slot => $info){
+
+                    // allocated block
+                    if(isset($info['assigned']) && $info['assigned'] == true){
+                        $totalAllocated++;
+                    }
+
+                    // present block
+                    if(isset($info['present']) && $info['present'] == true){
+                        $totalPresent++;
+                    }
+
                 }
+
             }
+
         }
 
-        $previousLoad[$fac] = $count;
-    }
+        // FINAL LOAD
+        $load = $totalAllocated - $totalPresent;
 
-    // Ensure all faculty exist in previousLoad (0 default)
-    foreach ($faculty as $f) {
-        if (!isset($previousLoad[$f['id']])) {
-            $previousLoad[$f['id']] = 0;
+        if($load < 0){
+            $load = 0;
         }
+
+        $prev_facultyLoad[$facultyId] = $load;
+
     }
 
-    // Sort faculty by previous load (ASC → least loaded first)
-    asort($previousLoad);
-
-    /* =====================================================
-    EXTRA LOAD TO LEAST LOADED FACULTY (NEW LOGIC)
-    ===================================================== */
-
-    // Find least loaded faculty (lowest previousLoad)
-    $leastLoadedFaculty = array_keys($previousLoad)[0] ?? null;
-
-    if ($leastLoadedFaculty !== null) {
-        // Give artificial +2 load boost
-        $previousLoad[$leastLoadedFaculty] -= 2;
-
-        if ($previousLoad[$leastLoadedFaculty] < 0) {
-            $previousLoad[$leastLoadedFaculty] = 0;
-        }
-    }
-
-    // Apply load priority → least loaded get +1 load
-    $priorityBoost = array_keys($previousLoad);
-
-    // Reorder faculty array based on priorityBoost
-    usort($faculty, function($a, $b) use ($priorityBoost) {
-        return array_search($a['id'], $priorityBoost) - array_search($b['id'], $priorityBoost);
-    });
 }
+
+/* =====================================================
+   ENSURE ALL FACULTY EXIST IN LOAD ARRAY
+   ===================================================== */
+
+foreach($faculty as $f){
+
+    if(!isset($prev_facultyLoad[$f['id']])){
+        $prev_facultyLoad[$f['id']] = 0;
+    }
+
+}
+
+/* =====================================================
+   SORT FACULTY BY LOAD (ABSENT FIRST)
+   ===================================================== */
+
+usort($faculty,function($a,$b) use ($prev_facultyLoad){
+
+    $loadA = $prev_facultyLoad[$a['id']] ?? 0;
+    $loadB = $prev_facultyLoad[$b['id']] ?? 0;
+
+    // higher load first
+    if($loadA == $loadB){
+        return 0;
+    }
+
+    return ($loadA > $loadB) ? -1 : 1;
+
+});
 
 /* =====================================================
    LOAD FACULTY
@@ -147,6 +166,10 @@ if(mysqli_num_rows($schedule_result) > 0){
         }
     }
 }
+
+// echo "<pre>";
+// print_r($prev_facultyLoad);
+// echo "</pre>";return;
 
 $q = mysqli_query($conn, "
     SELECT id, faculty_name, dept_code, duties, role, courses
@@ -460,32 +483,33 @@ foreach ($allBlocks as $block) {
     $nonReq = $slotRoleRequirements[$date][$slot]['non'];
     
     // Sort faculty by load (least loaded first)
-    usort($faculty, function($a, $b) use ($facultyLoad) {
-        if ($facultyLoad[$a['id']] == $facultyLoad[$b['id']]) {
-            return $b['duties'] - $a['duties']; // Higher duties first if load equal
-        }
-        return $facultyLoad[$a['id']] - $facultyLoad[$b['id']];
-    });
+    usort($faculty, function($a, $b) use ($facultyLoad, $prev_facultyLoad) {
 
-    usort($faculty, function($a, $b) use ($previousLoad) {
+        $loadA = $facultyLoad[$a['id']];
+        $loadB = $facultyLoad[$b['id']];
 
-        $aId = $a['id'];
-        $bId = $b['id'];
-
-        $aAbsent = isset($previousLoad[$aId]) ? $previousLoad[$aId] : 0;
-        $bAbsent = isset($previousLoad[$bId]) ? $previousLoad[$bId] : 0;
-
-        // More ABSENT previously → higher priority now
-        if ($aAbsent !== $bAbsent) {
-            return $bAbsent - $aAbsent;   // descending
+        if ($loadA != $loadB) {
+            return $loadA - $loadB; // least load first
         }
 
-        return 0; // keep original order if same
+        $prevA = $prev_facultyLoad[$a['id']] ?? 0;
+        $prevB = $prev_facultyLoad[$b['id']] ?? 0;
+
+        if ($prevA != $prevB) {
+            return $prevB - $prevA; // more absent previously gets priority
+        }
+
+        return $b['duties'] - $a['duties']; // fallback
     });
     
     foreach ($faculty as &$f) {
         // Check if faculty already has enough assignments
-        if ($facultyLoad[$f['id']] >= $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0)) {
+        $fid = $f['id'];
+
+        $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
+
+        // If faculty had previous absence → allow extra blocks
+        if (($prev_facultyLoad[$fid] ?? 0) == 0 && $facultyLoad[$fid] >= $limit) {
             continue;
         }
         
@@ -569,7 +593,12 @@ foreach ($allBlocks as $block) {
         });
         
         foreach ($faculty as &$f) {
-            if ($facultyLoad[$f['id']] >= $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0)) {
+            $fid = $f['id'];
+
+            $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
+
+            // If faculty had previous absence → allow extra blocks
+            if (($prev_facultyLoad[$fid] ?? 0) == 0 && $facultyLoad[$fid] >= $limit) {
                 continue;
             }
             
@@ -626,57 +655,97 @@ foreach ($allBlocks as $block) {
     }
 }
 
+// MINIMUM DUTIES BASED ON PREVIOUS ABSENCE
+$minFacultyLoad = [];
+
+foreach ($faculty as $f) {
+
+    $fid = $f['id'];
+
+    $prevAbsent = $previousLoad[$fid] ?? 0;
+
+    // Minimum load = current load + absent count
+    $minFacultyLoad[$fid] = $facultyLoad[$fid] + $prevAbsent;
+}
+
 // Balance distribution
 $minLoad = min($facultyLoad);
 $maxLoad = max($facultyLoad);
 
 while ($maxLoad - $minLoad > 1) {
+
     $mostLoaded = null;
     $leastLoaded = null;
-    
+
     foreach ($faculty as $f) {
+
         $fid = $f['id'];
+        
+        // Do NOT rebalance faculty who were absent previously
+        if (($prev_facultyLoad[$fid] ?? 0) > 0) {
+            continue;
+        }
+
+        // Do NOT move duties if it will break minimum rule
+        if ($facultyLoad[$fid] <= ($minFacultyLoad[$fid] ?? 0)) {
+            continue;
+        }
+
         if ($mostLoaded === null || $facultyLoad[$fid] > $facultyLoad[$mostLoaded]) {
             $mostLoaded = $fid;
         }
+
         if ($leastLoaded === null || $facultyLoad[$fid] < $facultyLoad[$leastLoaded]) {
             $leastLoaded = $fid;
         }
     }
-    
+
+    if ($mostLoaded === null || $leastLoaded === null) {
+        break;
+    }
+
     $moved = false;
-    
+
     if (isset($facultyAssignments[$mostLoaded])) {
+
         foreach ($facultyAssignments[$mostLoaded] as $date => $slots) {
+
             foreach ($slots as $slot => $assignment) {
-                // Check if least loaded can take this slot
+
                 if (!isset($slotAssignments[$leastLoaded][$date][$slot])) {
+
+                    // Check if moving will break minimum rule
+                    if ($facultyLoad[$mostLoaded] - 1 < ($minFacultyLoad[$mostLoaded] ?? 0)) {
+                        continue;
+                    }
+
                     // Move assignment
                     $facultyAssignments[$leastLoaded][$date][$slot] = $assignment;
                     $slotAssignments[$leastLoaded][$date][$slot] = true;
-                    
+
                     // Remove from most loaded
                     unset($facultyAssignments[$mostLoaded][$date][$slot]);
                     unset($slotAssignments[$mostLoaded][$date][$slot]);
-                    
+
                     if (empty($facultyAssignments[$mostLoaded][$date])) {
                         unset($facultyAssignments[$mostLoaded][$date]);
                     }
-                    
+
                     // Update loads
                     $facultyLoad[$mostLoaded]--;
                     $facultyLoad[$leastLoaded]++;
-                    
+
                     $moved = true;
                     break 2;
                 }
             }
+
             if ($moved) break;
         }
     }
-    
+
     if (!$moved) break;
-    
+
     $minLoad = min($facultyLoad);
     $maxLoad = max($facultyLoad);
 }

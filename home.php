@@ -1461,6 +1461,14 @@ include './Backend/config.php';
                 </svg>
                 <span>History</span>
             </div>
+            <div class="items" data-page="logout.php">
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <path d="M13 3H17C18.1046 3 19 3.89543 19 5V17C19 18.1046 18.1046 19 17 19H13" stroke="currentColor" stroke-width="1.5"></path>
+                    <path d="M9 15L13 11L9 7" stroke="currentColor" stroke-width="1.5"></path>
+                    <path d="M13 11H3" stroke="currentColor" stroke-width="1.5"></path>
+                </svg>
+                <span>Logout</span>
+            </div>
         </div>
     </div>
 
@@ -1582,7 +1590,18 @@ include './Backend/config.php';
     }
 
     function loadPage(page) {
-        fetch(page)
+        if(page == 'logout.php'){
+            fetch(page, {
+                method: "POST"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 200) {
+                    location.reload();
+                }
+            });
+        }else{
+            fetch(page)
             .then(res => res.text())
             .then(html => {
                 card.innerHTML = html;
@@ -1593,7 +1612,9 @@ include './Backend/config.php';
                 if (window.innerWidth <= 1024) {
                     closeSidebar();
                 }
-            });
+            }); 
+        }
+       
     }
 
     menu_items.forEach((item) => {

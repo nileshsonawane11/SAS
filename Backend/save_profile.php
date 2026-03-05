@@ -21,7 +21,7 @@ if($data['for'] == 'staff'){
     1. SANITIZE + MAP INPUT
     =============================== */
     $staff_id   = intval($data['staff_id']);
-
+    $apply_to_all = trim($data['apply_to_all'] ?? false);
     $faculty_name = trim($data['staffName'] ?? '');
     $email        = trim($data['email'] ?? '');
     $mobile       = trim($data['mobile'] ?? '');
@@ -59,6 +59,10 @@ if($data['for'] == 'staff'){
             'message' => 'Invalid email'
         ]);
         exit;
+    }
+
+    if($apply_to_all){
+        mysqli_query($conn,"UPDATE faculty SET duties = '$duties' WHERE Created_by = '$owner'");
     }
 
     $sql = "

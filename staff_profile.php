@@ -618,6 +618,17 @@ if(mysqli_num_rows($staff_result) == 0){
                     </div>
                     <div id="f_duties" class="field-value editable" data-field="duties"><?= $staff_data['duties'] ?? 0 ?></div>
                 </div>
+                <div class="field-group">
+                    <div class="field-label">
+                        Apply Same Duties To All Faculties
+                    </div>
+                    <div class="status-container">
+                        <label class="status-toggle">
+                            <input type="checkbox" id="dutyToggle">
+                            <span class="status-slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <!-- Academic & Financial Information Card -->
@@ -967,7 +978,7 @@ if(mysqli_num_rows($staff_result) == 0){
                 const data = {
                     staff_id: STAFF_ID,
                     status: document.querySelector('#statusLabel').textContent.trim(),
-                    
+                    apply_to_all : document.querySelector('#dutyToggle').checked,
                 };
 
                 document.querySelectorAll('[data-field]').forEach(el => {
@@ -992,6 +1003,8 @@ if(mysqli_num_rows($staff_result) == 0){
 
             //update profile on server-side
             function save_profile(){
+                console.log(collectProfileData())
+
                 fetch('./Backend/save_profile.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

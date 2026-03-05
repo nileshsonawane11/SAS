@@ -395,7 +395,7 @@ tr:hover td {
 
     <tbody id="committeeBody">
         <?php
-            $res = mysqli_query($conn, "SELECT * FROM committee WHERE Created_by = '$owner' ORDER BY id DESC");
+            $res = mysqli_query($conn, "SELECT * FROM committee WHERE Created_by = '$owner' ORDER BY id ASC");
             $sn = 1;
             if(mysqli_num_rows($res) > 0){
                  while($row = mysqli_fetch_assoc($res)) {

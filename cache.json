@@ -1,6 +1,6 @@
 {
     "facultyAssignments": {
-        "1006": {
+        "1073": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
@@ -9,6 +9,996 @@
                     "block_type": "real",
                     "subjects": [
                         "EL232152"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID231402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID231402"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD231302','AE231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD231302",
+                        "AE231302"
+                    ]
+                }
+            }
+        },
+        "1056": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232152'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232152"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE231402','ID231402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE231402",
+                        "ID231402"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD231302"
+                    ]
+                }
+            }
+        },
+        "1000": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232152'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232152"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD231402','PO232127'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD231402",
+                        "PO232127"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1061": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232152'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232152"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD231402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD231402"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231404','CE232109'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231404",
+                        "CE232109"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE231302"
+                    ]
+                }
+            }
+        },
+        "997": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232152','EL231124'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232152",
+                        "EL231124"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID231402','DD231402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID231402",
+                        "DD231402"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232109'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232109"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1042": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231124'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231124"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231126','CE231510'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231126",
+                        "CE231510"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232109'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232109"
+                    ]
+                }
+            }
+        },
+        "1024": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231124'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231124"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231126'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231126"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232109'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232109"
+                    ]
+                }
+            }
+        },
+        "1005": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231124'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231124"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231126'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231126"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232109','CM232406'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232109",
+                        "CM232406"
+                    ]
+                }
+            }
+        },
+        "1071": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231124'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231124"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'MK232120'",
+                    "block_type": "real",
+                    "subjects": [
+                        "MK232120"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE232138','EE231122'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE232138",
+                        "EE231122"
+                    ]
+                }
+            }
+        },
+        "1009": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231124','CE231118'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231124",
+                        "CE231118"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231126'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231126"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM232406'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM232406"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1010": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231118'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231118"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231126'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231126"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM232406','IF232404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM232406",
+                        "IF232404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1004": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231118'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231118"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232154','EL231126'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232154",
+                        "EL231126"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF232404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF232404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "991": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231118'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231118"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232154'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232154"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF232404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF232404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1068": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231118','ME232115'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231118",
+                        "ME232115"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE232158','MK232120'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE232158",
+                        "MK232120"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM231404','IF231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM231404",
+                        "IF231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE232138'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE232138"
+                    ]
+                }
+            }
+        },
+        "1043": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232115'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME232115"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232154'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232154"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF232404','EE232402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF232404",
+                        "EE232402"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1011": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232115'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME232115"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232154'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232154"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE232402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE232402"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1048": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232115'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME232115"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD232165','AE232158'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD232165",
+                        "AE232158"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF232405','EE232138'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF232405",
+                        "EE232138"
+                    ]
+                }
+            }
+        },
+        "1051": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232115','ME231106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME232115",
+                        "ME231106"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD232165'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD232165"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'MK231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "MK231302"
+                    ]
+                }
+            }
+        },
+        "1066": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231106"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID232174','DD232165'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID232174",
+                        "DD232165"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF231404','EE231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF231404",
+                        "EE231404"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE231302','MK231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE231302",
+                        "MK231302"
+                    ]
+                }
+            }
+        },
+        "1028": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231106"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232154'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232154"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE232402','CM231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE232402",
+                        "CM231404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1025": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231106"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID232174'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID232174"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE231404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1008": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231106','CE232106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231106",
+                        "CE232106"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'PO232127','ID232174'",
+                    "block_type": "real",
+                    "subjects": [
+                        "PO232127",
+                        "ID232174"
+                    ]
+                }
+            },
+            "26-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231125'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231125"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1006": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232106"
                     ]
                 }
             },
@@ -36,59 +1026,15 @@
                 }
             }
         },
-        "1042": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232152'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232152"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232118'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232118"
-                    ]
-                }
-            },
-            "26-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL231125'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL231125"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
         "1052": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232152'",
+                    "sub": "'CE232106'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232152"
+                        "CE232106"
                     ]
                 }
             },
@@ -105,10 +1051,11 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ME231404'",
+                    "sub": "'EE231404','ID231401'",
                     "block_type": "real",
                     "subjects": [
-                        "ME231404"
+                        "EE231404",
+                        "ID231401"
                     ]
                 }
             },
@@ -127,10 +1074,10 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232152'",
+                    "sub": "'CE232106'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232152"
+                        "CE232106"
                     ]
                 }
             },
@@ -155,15 +1102,6 @@
                         "EL231125"
                     ]
                 }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
             }
         },
         "1037": {
@@ -171,11 +1109,11 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232152','EL231124'",
+                    "sub": "'CE232106','CM232146'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232152",
-                        "EL231124"
+                        "CE232106",
+                        "CM232146"
                     ]
                 }
             },
@@ -207,10 +1145,46 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231124'",
+                    "sub": "'CM232146'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231124"
+                        "CM232146"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232118'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME232118"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231302"
+                    ]
+                }
+            }
+        },
+        "987": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM232146','IF232146'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM232146",
+                        "IF232146"
                     ]
                 }
             },
@@ -238,15 +1212,15 @@
                 }
             }
         },
-        "1000": {
+        "1017": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231124'",
+                    "sub": "'IF232146'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231124"
+                        "IF232146"
                     ]
                 }
             },
@@ -273,40 +1247,41 @@
                 }
             }
         },
-        "987": {
+        "1067": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231124'",
+                    "sub": "'IF232146'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231124"
+                        "IF232146"
                     ]
                 }
             },
             "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'MK233407','MK231512'",
+                    "block_type": "real",
+                    "subjects": [
+                        "MK233407",
+                        "MK231512"
+                    ]
+                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CE231404'",
+                    "sub": "'ID231401'",
                     "block_type": "real",
                     "subjects": [
-                        "CE231404"
+                        "ID231401"
                     ]
                 }
             },
             "27-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231302"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
                     "sub": "",
@@ -315,15 +1290,60 @@
                 }
             }
         },
-        "1024": {
+        "1074": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231124'",
+                    "sub": "'IF232146','EE232136'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231124"
+                        "IF232146",
+                        "EE232136"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE232160','MK233407'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE232160",
+                        "MK233407"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID231401','PO231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID231401",
+                        "PO231404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "985": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE232136'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE232136"
                     ]
                 }
             },
@@ -348,7 +1368,122 @@
                         "CE231302",
                         "ME231302"
                     ]
+                }
+            }
+        },
+        "1050": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE232136','CM231406'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE232136",
+                        "CM231406"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE232160'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE232160"
+                    ]
                 },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'PO231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "PO231404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1035": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM231406'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM231406"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231302"
+                    ]
+                }
+            }
+        },
+        "1055": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM231406','IF231406'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM231406",
+                        "IF231406"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD232169','AE232160'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD232169",
+                        "AE232160"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'PO232402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "PO232402"
+                    ]
+                }
+            },
+            "26-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
@@ -358,16 +1493,15 @@
                 }
             }
         },
-        "1017": {
+        "992": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231124','CE231118'",
+                    "sub": "'IF231406'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231124",
-                        "CE231118"
+                        "IF231406"
                     ]
                 }
             },
@@ -392,155 +1526,18 @@
                     "subjects": [
                         "ME231302"
                     ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
                 }
             }
         },
-        "1067": {
+        "1023": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CE231118'",
+                    "sub": "'IF231406'",
                     "block_type": "real",
                     "subjects": [
-                        "CE231118"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'MK233407','MK231512'",
-                    "block_type": "real",
-                    "subjects": [
-                        "MK233407",
-                        "MK231512"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231404"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "1074": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231118'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231118"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232160','MK233407'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232160",
-                        "MK233407"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231404"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "1073": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231118'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231118"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232160'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232160"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231404','CE232109'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231404",
-                        "CE232109"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "985": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231118','ME232115'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231118",
-                        "ME232115"
+                        "IF231406"
                     ]
                 }
             },
@@ -564,152 +1561,19 @@
                     "subjects": [
                         "ME231302"
                     ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
                 }
             }
         },
-        "1050": {
+        "1034": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ME232115'",
+                    "sub": "'IF231406','EE231121'",
                     "block_type": "real",
                     "subjects": [
-                        "ME232115"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'DD232169','AE232160'",
-                    "block_type": "real",
-                    "subjects": [
-                        "DD232169",
-                        "AE232160"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232109'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232109"
-                    ]
-                }
-            },
-            "26-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "1005": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232115'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232115"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL231404"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231302"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "1071": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232115'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232115"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID232175','DD232169'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID232175",
-                        "DD232169"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232109'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232109"
-                    ]
-                }
-            }
-        },
-        "1009": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232115','ME231106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232115",
-                        "ME231106"
+                        "IF231406",
+                        "EE231121"
                     ]
                 }
             },
@@ -734,25 +1598,18 @@
                         "ME231302",
                         "CE232202"
                     ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
                 }
             }
         },
-        "1035": {
+        "1039": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ME231106'",
+                    "sub": "'EE231121'",
                     "block_type": "real",
                     "subjects": [
-                        "ME231106"
+                        "EE231121"
                     ]
                 }
             },
@@ -765,13 +1622,6 @@
                     "subjects": [
                         "EL231404"
                     ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
                 }
             },
             "27-Mar-2026": {
@@ -786,15 +1636,94 @@
                 }
             }
         },
-        "1010": {
+        "1019": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ME231106'",
+                    "sub": "'EE231121','ID231132'",
                     "block_type": "real",
                     "subjects": [
-                        "ME231106"
+                        "EE231121",
+                        "ID231132"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL231404"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232202'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232202"
+                    ]
+                }
+            }
+        },
+        "1045": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID231132'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID231132"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID232175','DD232169'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID232175",
+                        "DD232169"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'PO232402','AE231404'",
+                    "block_type": "real",
+                    "subjects": [
+                        "PO232402",
+                        "AE231404"
+                    ]
+                }
+            }
+        },
+        "1002": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ID231132','PO231106'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ID231132",
+                        "PO231106"
                     ]
                 }
             },
@@ -808,13 +1737,6 @@
                         "EL232402",
                         "EL231404"
                     ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
                 }
             },
             "27-Mar-2026": {
@@ -829,15 +1751,15 @@
                 }
             }
         },
-        "1055": {
+        "1063": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ME231106'",
+                    "sub": "'PO231106'",
                     "block_type": "real",
                     "subjects": [
-                        "ME231106"
+                        "PO231106"
                     ]
                 },
                 "10:30 AM - 12:00 PM": {
@@ -861,24 +1783,23 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CE232109'",
+                    "sub": "'AE231404'",
                     "block_type": "real",
                     "subjects": [
-                        "CE232109"
+                        "AE231404"
                     ]
                 }
             }
         },
-        "1004": {
+        "1021": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ME231106','CE232106'",
+                    "sub": "'DD231407'",
                     "block_type": "real",
                     "subjects": [
-                        "ME231106",
-                        "CE232106"
+                        "DD231407"
                     ]
                 }
             },
@@ -891,55 +1812,6 @@
                     "subjects": [
                         "EL232402"
                     ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232202'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232202"
-                    ]
-                }
-            }
-        },
-        "992": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232106"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232402"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
                 }
             },
             "27-Mar-2026": {
@@ -955,102 +1827,24 @@
                 }
             }
         },
-        "1023": {
+        "1054": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CE232106'",
+                    "sub": "'DD231407','PO232128'",
                     "block_type": "real",
                     "subjects": [
-                        "CE232106"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232402"
+                        "DD231407",
+                        "PO232128"
                     ]
                 },
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
                     "sub": "",
                     "block_type": "buffer",
                     "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CM231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CM231302"
-                    ]
-                }
-            }
-        },
-        "991": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232106"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232402"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CM231302','IF231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CM231302",
-                        "IF231302"
-                    ]
-                }
-            }
-        },
-        "1034": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232106','CM232146'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232106",
-                        "CM232146"
-                    ]
                 }
             },
             "25-Mar-2026": {
@@ -1067,24 +1861,24 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CE232109','CM232406'",
+                    "sub": "'AE231404','AE232402'",
                     "block_type": "real",
                     "subjects": [
-                        "CE232109",
-                        "CM232406"
+                        "AE231404",
+                        "AE232402"
                     ]
                 }
             }
         },
-        "1061": {
+        "1070": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM232146'",
+                    "sub": "'PO232128'",
                     "block_type": "real",
                     "subjects": [
-                        "CM232146"
+                        "PO232128"
                     ]
                 },
                 "10:30 AM - 12:00 PM": {
@@ -1108,24 +1902,132 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM232406'",
+                    "sub": "'AE232402'",
                     "block_type": "real",
                     "subjects": [
-                        "CM232406"
+                        "AE232402"
                     ]
                 }
             }
         },
-        "1039": {
+        "1040": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM232146','IF232146'",
+                    "sub": "'PO232128','AE231128'",
                     "block_type": "real",
                     "subjects": [
-                        "CM232146",
-                        "IF232146"
+                        "PO232128",
+                        "AE231128"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232402"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM231302"
+                    ]
+                }
+            }
+        },
+        "1036": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE231128'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE231128"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232402"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM231302','IF231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM231302",
+                        "IF231302"
+                    ]
+                }
+            }
+        },
+        "986": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'AE231128','DD232166'",
+                    "block_type": "real",
+                    "subjects": [
+                        "AE231128",
+                        "DD232166"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232402"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF231302"
+                    ]
+                }
+            }
+        },
+        "1029": {
+            "24-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'DD232166','AE232159'",
+                    "block_type": "real",
+                    "subjects": [
+                        "DD232166",
+                        "AE232159"
                     ]
                 }
             },
@@ -1139,29 +2041,37 @@
                         "PO232129",
                         "AE231512"
                     ]
-                },
-                "10:30 AM - 12:00 PM": {
+                }
+            },
+            "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM232406','IF232404'",
+                    "sub": "'IF231302'",
                     "block_type": "real",
                     "subjects": [
-                        "CM232406",
-                        "IF232404"
+                        "IF231302"
                     ]
                 }
             }
         },
-        "1019": {
+        "1046": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232146'",
+                    "sub": "'AE232159'",
                     "block_type": "real",
                     "subjects": [
-                        "IF232146"
+                        "AE232159"
                     ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
                 }
             },
             "25-Mar-2026": {
@@ -1177,23 +2087,25 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232404'",
+                    "sub": "'AE232402','MK232118'",
                     "block_type": "real",
                     "subjects": [
-                        "IF232404"
+                        "AE232402",
+                        "MK232118"
                     ]
                 }
             }
         },
-        "1045": {
+        "1058": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232146'",
+                    "sub": "'AE232159','MK232121'",
                     "block_type": "real",
                     "subjects": [
-                        "IF232146"
+                        "AE232159",
+                        "MK232121"
                     ]
                 },
                 "10:30 AM - 12:00 PM": {
@@ -1218,24 +2130,25 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232404'",
+                    "sub": "'MK232118','MK231404'",
                     "block_type": "real",
                     "subjects": [
-                        "IF232404"
+                        "MK232118",
+                        "MK231404"
                     ]
                 }
             }
         },
-        "1068": {
+        "1076": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232146','EE232136'",
+                    "sub": "'MK232121','MK231106'",
                     "block_type": "real",
                     "subjects": [
-                        "IF232146",
-                        "EE232136"
+                        "MK232121",
+                        "MK231106"
                     ]
                 },
                 "10:30 AM - 12:00 PM": {
@@ -1260,58 +2173,23 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232404','EE232402'",
+                    "sub": "'MK231404'",
                     "block_type": "real",
                     "subjects": [
-                        "IF232404",
-                        "EE232402"
+                        "MK231404"
                     ]
                 }
             }
         },
-        "1002": {
+        "1057": {
             "24-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE232136'",
+                    "sub": "'MK231106'",
                     "block_type": "real",
                     "subjects": [
-                        "EE232136"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF231405'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF231405"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE232402"
-                    ]
-                }
-            }
-        },
-        "1063": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE232136','CM231406'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE232136",
-                        "CM231406"
+                        "MK231106"
                     ]
                 },
                 "10:30 AM - 12:00 PM": {
@@ -1331,28 +2209,71 @@
                     "subjects": [
                         "IF231405"
                     ]
-                },
+                }
+            },
+            "26-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE232402','CM231404'",
+                    "sub": "'EL231125'",
                     "block_type": "real",
                     "subjects": [
-                        "EE232402",
-                        "CM231404"
+                        "EL231125"
                     ]
                 }
             }
         },
-        "1021": {
+        "1014": {
             "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232155'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232155"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM231406'",
+                    "sub": "'IF231405'",
                     "block_type": "real",
                     "subjects": [
-                        "CM231406"
+                        "IF231405"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232153'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232153"
+                    ]
+                }
+            }
+        },
+        "1003": {
+            "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232155'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232155"
                     ]
                 }
             },
@@ -1370,32 +2291,33 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM231404'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232153'",
                     "block_type": "real",
                     "subjects": [
-                        "CM231404"
+                        "EL232153"
                     ]
                 }
             }
         },
-        "1054": {
+        "1030": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CM231406','IF231406'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CM231406",
-                        "IF231406"
-                    ]
-                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
+                    "sub": "'EL232155'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232155"
+                    ]
                 }
             },
             "25-Mar-2026": {
@@ -1411,32 +2333,33 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM231404','IF231404'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232153'",
                     "block_type": "real",
                     "subjects": [
-                        "CM231404",
-                        "IF231404"
+                        "EL232153"
                     ]
                 }
             }
         },
-        "1070": {
+        "988": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF231406'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF231406"
-                    ]
-                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
+                    "sub": "'EL232155'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EL232155"
+                    ]
                 }
             },
             "25-Mar-2026": {
@@ -1453,23 +2376,33 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF231404'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232153'",
                     "block_type": "real",
                     "subjects": [
-                        "IF231404"
+                        "EL232153"
                     ]
                 }
             }
         },
-        "1040": {
+        "984": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF231406'",
+                    "sub": "'EL232155','ME232114'",
                     "block_type": "real",
                     "subjects": [
-                        "IF231406"
+                        "EL232155",
+                        "ME232114"
                     ]
                 }
             },
@@ -1486,24 +2419,33 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF231404'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EL232153','ME232207'",
                     "block_type": "real",
                     "subjects": [
-                        "IF231404"
+                        "EL232153",
+                        "ME232207"
                     ]
                 }
             }
         },
-        "1036": {
+        "993": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF231406','EE231121'",
+                    "sub": "'ME232114'",
                     "block_type": "real",
                     "subjects": [
-                        "IF231406",
-                        "EE231121"
+                        "ME232114"
                     ]
                 }
             },
@@ -1521,24 +2463,32 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF231404','EE231404'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232207'",
                     "block_type": "real",
                     "subjects": [
-                        "IF231404",
-                        "EE231404"
+                        "ME232207"
                     ]
                 }
             }
         },
-        "986": {
+        "1033": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE231121'",
+                    "sub": "'ME232114'",
                     "block_type": "real",
                     "subjects": [
-                        "EE231121"
+                        "ME232114"
                     ]
                 }
             },
@@ -1555,24 +2505,32 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE231404'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232207'",
                     "block_type": "real",
                     "subjects": [
-                        "EE231404"
+                        "ME232207"
                     ]
                 }
             }
         },
-        "1043": {
+        "1016": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE231121','ID231132'",
+                    "sub": "'ME232114'",
                     "block_type": "real",
                     "subjects": [
-                        "EE231121",
-                        "ID231132"
+                        "ME232114"
                     ]
                 }
             },
@@ -1589,25 +2547,40 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE231404','ID231401'",
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232207'",
                     "block_type": "real",
                     "subjects": [
-                        "EE231404",
-                        "ID231401"
+                        "ME232207"
                     ]
                 }
             }
         },
-        "1029": {
+        "990": {
             "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME232114'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME232114"
+                    ]
+                },
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ID231132'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID231132"
-                    ]
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
                 }
             },
             "25-Mar-2026": {
@@ -1620,74 +2593,37 @@
                         "CM232147",
                         "IF232147"
                     ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID231401'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID231401"
-                    ]
-                }
-            }
-        },
-        "1046": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID231132','PO231106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID231132",
-                        "PO231106"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'MK232120'",
-                    "block_type": "real",
-                    "subjects": [
-                        "MK232120"
-                    ]
-                }
-            },
-            "26-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL231125'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL231125"
-                    ]
                 }
             },
             "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'DD231302','AE231302'",
+                    "sub": "'ME232207'",
                     "block_type": "real",
                     "subjects": [
-                        "DD231302",
-                        "AE231302"
+                        "ME232207"
                     ]
                 }
             }
         },
-        "1011": {
+        "1015": {
             "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232105'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232105"
+                    ]
+                },
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'PO231106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO231106"
-                    ]
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
                 }
             },
             "25-Mar-2026": {
@@ -1699,38 +2635,83 @@
                     "subjects": [
                         "CM232147"
                     ]
-                },
+                }
+            },
+            "27-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ID231401','PO231404'",
+                    "sub": "'CE232108'",
                     "block_type": "real",
                     "subjects": [
-                        "ID231401",
-                        "PO231404"
+                        "CE232108"
                     ]
                 }
             }
         },
-        "1048": {
+        "995": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'DD231407'",
-                    "block_type": "real",
-                    "subjects": [
-                        "DD231407"
-                    ]
-                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'AE232158','MK232120'",
+                    "sub": "'CE232105'",
                     "block_type": "real",
                     "subjects": [
-                        "AE232158",
-                        "MK232120"
+                        "CE232105"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232107','CM232147'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232107",
+                        "CM232147"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232108'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232108"
+                    ]
+                }
+            }
+        },
+        "1062": {
+            "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232105'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232105"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232107'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232107"
                     ]
                 }
             },
@@ -1746,37 +2727,80 @@
                 }
             },
             "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
+                "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'DD231302'",
+                    "sub": "'MK232117'",
                     "block_type": "real",
                     "subjects": [
-                        "DD231302"
+                        "MK232117"
                     ]
                 }
             }
         },
-        "1051": {
+        "1032": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'DD231407','PO232128'",
-                    "block_type": "real",
-                    "subjects": [
-                        "DD231407",
-                        "PO232128"
-                    ]
-                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'DD232165','AE232158'",
+                    "sub": "'CE232105','CM232145'",
                     "block_type": "real",
                     "subjects": [
-                        "DD232165",
-                        "AE232158"
+                        "CE232105",
+                        "CM232145"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232107'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232107"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232108'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232108"
+                    ]
+                }
+            }
+        },
+        "1059": {
+            "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM232145'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM232145"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE232107'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE232107"
                     ]
                 }
             },
@@ -1794,43 +2818,25 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'PO232210'",
+                    "sub": "'AE232408','MK232117'",
                     "block_type": "real",
                     "subjects": [
-                        "PO232210"
+                        "AE232408",
+                        "MK232117"
                     ]
                 }
             }
         },
-        "1014": {
+        "1060": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO232128'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO232128"
-                    ]
-                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'DD232165'",
+                    "sub": "'CM232145','IF232145'",
                     "block_type": "real",
                     "subjects": [
-                        "DD232165"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF232405'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF232405"
+                        "CM232145",
+                        "IF232145"
                     ]
                 }
             },
@@ -1838,32 +2844,11 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "1058": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO232128','AE231128'",
+                    "sub": "'ME231512','CE232107'",
                     "block_type": "real",
                     "subjects": [
-                        "PO232128",
-                        "AE231128"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID232174','DD232165'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID232174",
-                        "DD232165"
+                        "ME231512",
+                        "CE232107"
                     ]
                 }
             },
@@ -1880,33 +2865,41 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EE231122','PO232210'",
+                    "sub": "'AE232408'",
                     "block_type": "real",
                     "subjects": [
-                        "EE231122",
-                        "PO232210"
+                        "AE232408"
                     ]
                 }
             }
         },
-        "1003": {
+        "994": {
             "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE231128'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE231128"
-                    ]
-                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'ID232174'",
+                    "sub": "'IF232145'",
                     "block_type": "real",
                     "subjects": [
-                        "ID232174"
+                        "IF232145"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231512'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231512"
                     ]
                 }
             },
@@ -1914,610 +2907,110 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'IF232405'",
+                    "sub": "'CE232108','CM232405'",
                     "block_type": "real",
                     "subjects": [
+                        "CE232108",
+                        "CM232405"
+                    ]
+                }
+            }
+        },
+        "989": {
+            "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF232145'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF232145"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231512'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231512"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM232405'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM232405"
+                    ]
+                }
+            }
+        },
+        "1022": {
+            "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF232145','EE232135'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF232145",
+                        "EE232135"
+                    ]
+                },
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'ME231512'",
+                    "block_type": "real",
+                    "subjects": [
+                        "ME231512"
+                    ]
+                }
+            },
+            "27-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CM232405','IF232405'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CM232405",
                         "IF232405"
                     ]
                 }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
             }
         },
-        "1076": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE231128','DD232166'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE231128",
-                        "DD232166"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO232127','ID232174'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO232127",
-                        "ID232174"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE231302','PO231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE231302",
-                        "PO231302"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE231122'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE231122"
-                    ]
-                }
-            }
-        },
-        "1030": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'DD232166','AE232159'",
-                    "block_type": "real",
-                    "subjects": [
-                        "DD232166",
-                        "AE232159"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'DD231402','PO232127'",
-                    "block_type": "real",
-                    "subjects": [
-                        "DD231402",
-                        "PO232127"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "988": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232159'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232159"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'DD231402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "DD231402"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            }
-        },
-        "1066": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232159','MK232121'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232159",
-                        "MK232121"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID231402','DD231402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID231402",
-                        "DD231402"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO231302"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE232138','EE231122'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE232138",
-                        "EE231122"
-                    ]
-                }
-            }
-        },
-        "1057": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'MK232121','MK231106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "MK232121",
-                        "MK231106"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID231402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID231402"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO231302','ID232176'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO231302",
-                        "ID232176"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE232138'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE232138"
-                    ]
-                }
-            }
-        },
-        "1062": {
-            "24-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'MK231106'",
-                    "block_type": "real",
-                    "subjects": [
-                        "MK231106"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE231402','ID231402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE231402",
-                        "ID231402"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ID232176','DD231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ID232176",
-                        "DD231302"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF232405','EE232138'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF232405",
-                        "EE232138"
-                    ]
-                }
-            }
-        },
-        "984": {
+        "1012": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232155'",
+                    "sub": "'EE232135'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232155"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232107','CM232147'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232107",
-                        "CM232147"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO231404"
-                    ]
-                }
-            }
-        },
-        "993": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232155'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232155"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232107'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232107"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO232402"
-                    ]
-                }
-            }
-        },
-        "1033": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232155'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232155"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232107'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232107"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF231302"
-                    ]
-                }
-            }
-        },
-        "1028": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232155'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232155"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232107'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232107"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF231302"
-                    ]
-                }
-            }
-        },
-        "1016": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232155','ME232114'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232155",
-                        "ME232114"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231512','CE232107'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231512",
-                        "CE232107"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232153'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232153"
-                    ]
-                }
-            }
-        },
-        "990": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232114'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232114"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231512'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231512"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232153'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232153"
-                    ]
-                }
-            }
-        },
-        "1015": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232114'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232114"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231512'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231512"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232153'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232153"
-                    ]
-                }
-            }
-        },
-        "995": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232114'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232114"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME231512'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME231512"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232153'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232153"
-                    ]
-                }
-            }
-        },
-        "1032": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232114'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232114"
+                        "EE232135"
                     ]
                 },
                 "02:30 PM - 04:00 PM": {
@@ -2544,450 +3037,15 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232153','ME232207'",
+                    "sub": "'IF232405'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232153",
-                        "ME232207"
-                    ]
-                }
-            }
-        },
-        "1059": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232105'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232105"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232116'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232116"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'PO232402','AE231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "PO232402",
-                        "AE231404"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'MK232117'",
-                    "block_type": "real",
-                    "subjects": [
-                        "MK232117"
-                    ]
-                }
-            }
-        },
-        "1025": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232105'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232105"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232116'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232116"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232207'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232207"
-                    ]
-                }
-            }
-        },
-        "1060": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232105'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232105"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232116'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232116"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE231404"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232408','MK232117'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232408",
-                        "MK232117"
-                    ]
-                }
-            }
-        },
-        "994": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232105','CM232145'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232105",
-                        "CM232145"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231510','ME232116'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231510",
-                        "ME232116"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232207'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232207"
-                    ]
-                }
-            }
-        },
-        "989": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CM232145'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CM232145"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231510'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231510"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232207'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232207"
-                    ]
-                }
-            }
-        },
-        "997": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CM232145','IF232145'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CM232145",
-                        "IF232145"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231510'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231510"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'ME232207'",
-                    "block_type": "real",
-                    "subjects": [
-                        "ME232207"
-                    ]
-                }
-            }
-        },
-        "1022": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF232145'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF232145"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE231510'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE231510"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232108'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232108"
-                    ]
-                }
-            }
-        },
-        "1012": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF232145'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF232145"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL231126','CE231510'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL231126",
-                        "CE231510"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232108'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232108"
+                        "IF232405"
                     ]
                 }
             }
         },
         "1075": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF232145','EE232135'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF232145",
-                        "EE232135"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL231126'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL231126"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE231404','AE232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE231404",
-                        "AE232402"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232408'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232408"
-                    ]
-                }
-            }
-        },
-        "1027": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EE232135'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EE232135"
-                    ]
-                },
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "",
-                    "block_type": "buffer",
-                    "subjects": []
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL231126'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL231126"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'CE232108'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CE232108"
-                    ]
-                }
-            }
-        },
-        "1053": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
@@ -3004,23 +3062,24 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231126'",
+                    "sub": "'ME232116'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231126"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232402"
+                        "ME232116"
                     ]
                 }
             },
             "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE231302','PO231302'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE231302",
+                        "PO231302"
+                    ]
+                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
@@ -3033,7 +3092,7 @@
                 }
             }
         },
-        "1041": {
+        "1027": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
@@ -3056,10 +3115,10 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL231126'",
+                    "sub": "'ME232116'",
                     "block_type": "real",
                     "subjects": [
-                        "EL231126"
+                        "ME232116"
                     ]
                 }
             },
@@ -3067,16 +3126,15 @@
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CE232108','CM232405'",
+                    "sub": "'IF232405'",
                     "block_type": "real",
                     "subjects": [
-                        "CE232108",
-                        "CM232405"
+                        "IF232405"
                     ]
                 }
             }
         },
-        "1064": {
+        "1053": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
@@ -3093,21 +3151,10 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232154','EL231126'",
+                    "sub": "'ME232116'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232154",
-                        "EL231126"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE232402','MK232118'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE232402",
-                        "MK232118"
+                        "ME232116"
                     ]
                 }
             },
@@ -3115,61 +3162,24 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'MK231302'",
+                    "sub": "'PO231302'",
                     "block_type": "real",
                     "subjects": [
-                        "MK231302"
-                    ]
-                }
-            }
-        },
-        "1065": {
-            "24-Mar-2026": {
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'IF231402'",
-                    "block_type": "real",
-                    "subjects": [
-                        "IF231402"
-                    ]
-                }
-            },
-            "25-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'EL232154'",
-                    "block_type": "real",
-                    "subjects": [
-                        "EL232154"
+                        "PO231302"
                     ]
                 },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'MK232118','MK231404'",
+                    "sub": "'PO232210'",
                     "block_type": "real",
                     "subjects": [
-                        "MK232118",
-                        "MK231404"
-                    ]
-                }
-            },
-            "27-Mar-2026": {
-                "02:30 PM - 04:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'AE231302','MK231302'",
-                    "block_type": "real",
-                    "subjects": [
-                        "AE231302",
-                        "MK231302"
+                        "PO232210"
                     ]
                 }
             }
         },
-        "1001": {
+        "1041": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
@@ -3192,26 +3202,69 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232154'",
+                    "sub": "'CE231510','ME232116'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232154"
+                        "CE231510",
+                        "ME232116"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
+                }
+            }
+        },
+        "1064": {
+            "24-Mar-2026": {
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'IF231402'",
+                    "block_type": "real",
+                    "subjects": [
+                        "IF231402"
+                    ]
+                }
+            },
+            "25-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'CE231510'",
+                    "block_type": "real",
+                    "subjects": [
+                        "CE231510"
                     ]
                 }
             },
             "27-Mar-2026": {
+                "02:30 PM - 04:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'PO231302','ID232176'",
+                    "block_type": "real",
+                    "subjects": [
+                        "PO231302",
+                        "ID232176"
+                    ]
+                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM232405'",
+                    "sub": "'EE231122','PO232210'",
                     "block_type": "real",
                     "subjects": [
-                        "CM232405"
+                        "EE231122",
+                        "PO232210"
                     ]
                 }
             }
         },
-        "1056": {
+        "1065": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
@@ -3228,19 +3281,10 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232154'",
+                    "sub": "'CE231510'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232154"
-                    ]
-                },
-                "10:30 AM - 12:00 PM": {
-                    "assigned": true,
-                    "present": true,
-                    "sub": "'MK231404'",
-                    "block_type": "real",
-                    "subjects": [
-                        "MK231404"
+                        "CE231510"
                     ]
                 }
             },
@@ -3248,15 +3292,25 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'AE231302'",
+                    "sub": "'ID232176','DD231302'",
                     "block_type": "real",
                     "subjects": [
-                        "AE231302"
+                        "ID232176",
+                        "DD231302"
+                    ]
+                },
+                "10:30 AM - 12:00 PM": {
+                    "assigned": true,
+                    "present": true,
+                    "sub": "'EE231122'",
+                    "block_type": "real",
+                    "subjects": [
+                        "EE231122"
                     ]
                 }
             }
         },
-        "1008": {
+        "1001": {
             "24-Mar-2026": {
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
@@ -3279,23 +3333,18 @@
                 "02:30 PM - 04:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'EL232154'",
+                    "sub": "'CE231510'",
                     "block_type": "real",
                     "subjects": [
-                        "EL232154"
+                        "CE231510"
                     ]
-                }
-            },
-            "27-Mar-2026": {
+                },
                 "10:30 AM - 12:00 PM": {
                     "assigned": true,
                     "present": true,
-                    "sub": "'CM232405','IF232405'",
-                    "block_type": "real",
-                    "subjects": [
-                        "CM232405",
-                        "IF232405"
-                    ]
+                    "sub": "",
+                    "block_type": "buffer",
+                    "subjects": []
                 }
             }
         }
