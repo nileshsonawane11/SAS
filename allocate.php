@@ -822,44 +822,59 @@ unset($slot);
    ===================================================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save'])) {
-        // Clear existing assignments
-        mysqli_query($conn, "DELETE FROM block_supervisor_list WHERE s_id = '$s_id' AND Created_by = '$owner'");
-        
-        // Save new assignments
+
+        // 1. Delete existing assignments
+        $stmt_delete = $conn->prepare("
+            DELETE FROM block_supervisor_list 
+            WHERE s_id = ? AND Created_by = ?
+        ");
+        $stmt_delete->bind_param("ii", $s_id, $owner);
+        $stmt_delete->execute();
+        $stmt_delete->close();
+
+
+        // 2. Insert new assignments
+        $stmt_insert = $conn->prepare("
+            INSERT INTO block_supervisor_list (faculty_id, s_id, schedule, Created_by)
+            VALUES (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE schedule = VALUES(schedule)
+        ");
+
         foreach ($facultyAssignments as $key => $value) {
-            $schedule = mysqli_real_escape_string($conn, json_encode($value));
-            
-            $sql = "
-                INSERT INTO block_supervisor_list (faculty_id, s_id, schedule, Created_by)
-                VALUES ('$key', '$s_id', '$schedule', '$owner')
-                ON DUPLICATE KEY UPDATE schedule = VALUES(schedule)
-            ";
-            
-            mysqli_query($conn, $sql);
+            $faculty_id = $key;
+            $schedule = json_encode($value);
+
+            $stmt_insert->bind_param("iisi", $faculty_id, $s_id, $schedule, $owner);
+            $stmt_insert->execute();
         }
-        
-        // Save slot configuration
+
+        $stmt_insert->close();
+
+
+        // 3. Update schedule table
         $block_json = json_encode($slots, JSON_UNESCAPED_UNICODE);
 
-        $query = "
-        UPDATE Schedule 
-        SET scheduled = 1, Blocks = '$block_json' 
-        WHERE id = '$s_id' AND Created_by = $owner
-        ";
+        $stmt_update = $conn->prepare("
+            UPDATE Schedule 
+            SET scheduled = 1, Blocks = ? 
+            WHERE id = ? AND Created_by = ?
+        ");
 
-        
-
-        $result = mysqli_query($conn, $query);
+        $stmt_update->bind_param("sii", $block_json, $s_id, $owner);
+        $result = $stmt_update->execute();
 
         if (!$result) {
-            die("Error: " . mysqli_error($conn));
+            die("Error: " . $stmt_update->error);
         }
-        
-        // Show success message
+
+        $stmt_update->close();
+
+
+        // 4. Success message
         echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
                 Schedule saved successfully!
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>';
+            </div>';
     }
     
     if (isset($_POST['export'])) {
