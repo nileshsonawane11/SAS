@@ -20,6 +20,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `db`
 --
+
 CREATE DATABASE IF NOT EXISTS `supervision_system` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `supervision_system`;
 
