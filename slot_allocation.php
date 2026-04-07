@@ -99,7 +99,13 @@ while ($row = mysqli_fetch_assoc($res)) {
 // echo "</pre>";
 
 /* SORT DATES & SLOTS */
-ksort($allDatesSlots);
+uksort($allDatesSlots, function($a, $b) {
+    $dateA = DateTime::createFromFormat('d/m/Y', $a);
+    $dateB = DateTime::createFromFormat('d/m/Y', $b);
+
+    return $dateA <=> $dateB;
+});
+
 foreach ($allDatesSlots as &$slots) {
     krsort($slots);
 }

@@ -828,7 +828,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             DELETE FROM block_supervisor_list 
             WHERE s_id = ? AND Created_by = ?
         ");
-        $stmt_delete->bind_param("ii", $s_id, $owner);
+        $stmt_delete->bind_param("si", $s_id, $owner);
         $stmt_delete->execute();
         $stmt_delete->close();
 
@@ -844,7 +844,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $faculty_id = $key;
             $schedule = json_encode($value);
 
-            $stmt_insert->bind_param("iisi", $faculty_id, $s_id, $schedule, $owner);
+            $stmt_insert->bind_param("issi", $faculty_id, $s_id, $schedule, $owner);
             $stmt_insert->execute();
         }
 
@@ -860,7 +860,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             WHERE id = ? AND Created_by = ?
         ");
 
-        $stmt_update->bind_param("sii", $block_json, $s_id, $owner);
+        $stmt_update->bind_param("ssi", $block_json, $s_id, $owner);
         $result = $stmt_update->execute();
 
         if (!$result) {

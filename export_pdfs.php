@@ -371,8 +371,8 @@ if ($action === 'overall') {
         $totalPageWidth = 297 - 12;
 
         $srW   = 10;
-        $nameW = 60;
-        $deptW = 18;
+        $nameW = 40;
+        $deptW = 15;
         $signW = 26;
 
         $totalSlots = 0;
@@ -394,9 +394,9 @@ if ($action === 'overall') {
     $pageWidth = 297 - 12;
 
     $srW   = 10;
-    $nameW = 60;
-    $deptW = 18;
-    $roleW = 22;
+    $nameW = 40;
+    $deptW = 15;
+    $roleW = 15;
     $blockW = 18;
     $dutyW  = 18;
 
@@ -580,8 +580,8 @@ if ($action === 'role') {
         $totalPageWidth = 297 - 12;
 
         $srW   = 10;
-        $nameW = 60;
-        $deptW = 18;
+        $nameW = 40;
+        $deptW = 15;
         $signW = 26;
 
         $totalSlots = 0;
@@ -716,8 +716,8 @@ if ($action === 'department') {
         $totalPageWidth = 297 - 12;
 
         $srW   = 10;
-        $nameW = 60;
-        $deptW = 18;
+        $nameW = 40;
+        $deptW = 15;
         $signW = 26;
 
         $totalSlots = 0;
