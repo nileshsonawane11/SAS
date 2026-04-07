@@ -678,6 +678,7 @@ include './Backend/config.php';
 
             .history-list {
                 display: flex;
+                flex-direction: column;
             }
 
             /* .block-data > div {

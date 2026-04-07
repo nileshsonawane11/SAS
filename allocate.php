@@ -823,7 +823,7 @@ unset($slot);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save'])) {
         // Clear existing assignments
-        mysqli_query($conn, "DELETE FROM block_supervisor_list WHERE s_id = '$s_id'AND Created_by = '$owner'");
+        mysqli_query($conn, "DELETE FROM block_supervisor_list WHERE s_id = '$s_id' AND Created_by = '$owner'");
         
         // Save new assignments
         foreach ($facultyAssignments as $key => $value) {
@@ -840,35 +840,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Save slot configuration
         $block_json = json_encode($slots, JSON_UNESCAPED_UNICODE);
+
+        $query = "
+        UPDATE Schedule 
+        SET scheduled = 1, Blocks = '$block_json' 
+        WHERE id = '$s_id' AND Created_by = $owner
+        ";
+
         
-        $stmt = mysqli_prepare(
-            $conn,
-            "UPDATE Schedule SET scheduled = ?, blocks = ? WHERE id = ? AND Created_by = ?"
-        );
-        
-        $scheduled = 1;
-        mysqli_stmt_bind_param($stmt, "isii", $scheduled, $block_json, $s_id, $owner);
-        
-        if (!mysqli_stmt_execute($stmt)) {
-            echo json_encode([
-                'status' => 'error',
-                'message' => mysqli_error($conn)
-            ]);
-            exit;
+
+        $result = mysqli_query($conn, $query);
+
+        if (!$result) {
+            die("Error: " . mysqli_error($conn));
         }
-        
-        mysqli_stmt_close($stmt);
         
         // Show success message
         echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
                 Schedule saved successfully!
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
               </div>';
-    }
-    
-    if (isset($_POST['back'])) {
-        header("Location: ./slot_allocation.php?s=$s_id");
-        exit;
     }
     
     if (isset($_POST['export'])) {
@@ -1030,9 +1021,6 @@ form{
                     <h4><?= htmlspecialchars($task_name ?? 'Supervision Allocation') ?></h4>
                     <div class="btn-group">
                         <form action="" method="POST" class="d-inline">
-                            <button type="submit" name="back" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Back
-                            </button>
                             <button type="submit" name="recalculate" class="btn btn-warning">
                                 <i class="bi bi-arrow-clockwise"></i> Recalculate
                             </button>

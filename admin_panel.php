@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require './Backend/auth_guard.php';
 include './Backend/config.php';
 $owner = $user_data['_id'] ?? 0;

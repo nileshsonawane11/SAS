@@ -63,7 +63,7 @@ if (!$action) {
 
 if ($action === 'register') {
 
-    foreach (['inst','name','email','password'] as $f) {
+    foreach (['inst','name','email','password','otp'] as $f) {
         if (empty($data[$f])) respond('error','All fields required');
     }
 
@@ -71,8 +71,30 @@ if ($action === 'register') {
     $name  = clean($data['name']);
     $email = filter_var($data['email'], FILTER_VALIDATE_EMAIL);
     $pass  = $data['password'];
+    $otp = $data['otp'];
 
     if (!$email) respond('error','Invalid email');
+
+    $recipient_email = $_SESSION['recipient_email'];
+    if($otp != $_SESSION['otpregistration'][$recipient_email]) {
+        respond('error','Invalid OTP');
+    }elseif(strlen($otp) < 4 || strlen($otp) > 4) {
+        respond('error','Invalid OTP');
+    }
+
+    $otp_validity = 600; // 10 minutes (600 seconds)
+
+    if (isset($_SESSION['otp_created'][$recipient_email])) {
+
+        $otp_created_time = $_SESSION['otp_created'][$recipient_email];
+        $current_time = time();
+
+        if (($current_time - $otp_created_time) > $otp_validity) {
+            unset($_SESSION['otp_created'][$recipient_email]);
+            respond('error','Invalid OTP');
+        }
+
+    }
 
     if (
         strlen($pass) < 8 ||

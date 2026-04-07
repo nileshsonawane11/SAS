@@ -80,8 +80,8 @@ function print_sign() {
         filesize($signaturePath) > 0
     ) {
 
-        $imgWidth  = 60;
-        $imgHeight = 25;
+        $imgWidth  = 40;
+        $imgHeight = 20;
 
         $pageWidth   = $pdf->getPageWidth();
         $rightMargin = $pdf->getMargins()['right'];
@@ -883,6 +883,13 @@ if ($action === 'individual') {
                         $presentSlots[$slot] = $slotData;
                     }
                 }
+
+                // ✅ SORT SLOTS BY TIME
+                uksort($presentSlots, function($a, $b) {
+                    $timeA = strtotime(explode(' - ', $a)[0]);
+                    $timeB = strtotime(explode(' - ', $b)[0]);
+                    return $timeA - $timeB;
+                });
 
                 /* ---- SKIP DATE IF NO PRESENT SLOT ---- */
                 if (count($presentSlots) === 0) {

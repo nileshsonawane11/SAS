@@ -1,0 +1,26 @@
+# Disable directory browsing
+Options -Indexes
+
+# Prevent access to sensitive file types
+<FilesMatch "\.(env|log|ini|sql|sh|bak|config|json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Block access to config files
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Block access to includes folder (if accessed directly)
+RewriteEngine On
+
+RewriteCond %{REQUEST_URI} ^/(includes|config|core|private) [NC]
+RewriteRule ^.*$ - [F,L]
+
+# Protect hidden files (.htaccess, .env)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

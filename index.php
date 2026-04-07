@@ -35,6 +35,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<link rel="apple-touch-icon" href="./assets/images/color_logo.png">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Supervision Allocation Auth</title>
 
 <!-- Bootstrap 5 -->
@@ -345,6 +349,100 @@ a:hover {
     border-width: 0.2em;
 }
 
+.brand-panel p {
+    font-size: 1.6rem;
+    opacity: 0.9;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+/* OTP Section */
+        .otp-section {
+            margin: 20px 0;
+        }
+
+        .send-otp-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-soft);
+            border: 2px solid var(--border-light);
+            border-radius: 16px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .send-otp-btn:not(:disabled):hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .send-otp-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .otp-container {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .otp-input {
+            width: 100%;
+            aspect-ratio: 1;
+            text-align: center;
+            font-weight: 700;
+            border-radius: 16px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .otp-input:focus {
+            box-shadow: 0 0 0 4px var(--primary-soft);
+            outline: none;
+        }
+
+        .otp-timer {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            display: none;
+        }
+
+        .otp-timer span {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+#installBtn{
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 20px;
+    color: #000;
+    border: none;
+    padding: 7px;
+    background: #ffff;
+    outline: none;
+    border-radius: 5px;
+    animation: fadeUp 1s forwards;
+    transform: translateY(50px);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .auth-card {
@@ -361,6 +459,11 @@ a:hover {
     .fullscreen-row {
         align-items: center;
         justify-content: center;
+    }
+
+    #installBtn{
+        background: var(--primary-gradient);
+        color: #fff;
     }
 }
 
@@ -428,8 +531,8 @@ ul.small.text-muted li {
 <div class="col-lg-6 d-none d-lg-flex brand-panel">
     <div>
         <div class="brand-text">
-            <i class="fa-solid fa-building-columns fa-3x mb-2"></i>
-            <h2>Supervision Allocation System</h2>
+            <img src="./assets/images/white_logo.png" alt="Logo">
+            <p>Supervision Allocation System</p>
         </div>
         <div class="brand-text">
             <p></p>
@@ -466,7 +569,7 @@ ul.small.text-muted li {
 
             <div class="d-flex justify-content-between mb-3 small text-muted">
                 <span>Admin / Staff Login</span>
-                <a href="#" class="text-decoration-none">Forgot password?</a>
+                <a href="./forget-password.php" class="text-decoration-none">Forgot password?</a>
             </div>
 
             <button id="loginBtn" class="btn btn-primary w-100 mb-3" onclick="login()">
@@ -492,6 +595,23 @@ ul.small.text-muted li {
             <div class="form-floating mb-2">
                 <input type="email" class="form-control" id="r_email" placeholder="Email" required>
                 <label>Email</label>
+            </div>
+
+            <div class="otp-section">
+                <button type="button" class="send-otp-btn" id="sendOTP" onclick="sendotp(event)" disabled>
+                    <i class='bx bx-mail-send'></i>
+                    <span>Send OTP via Email</span>
+                </button>
+
+                <div class="otp-container">
+                    <input type="number" class="otp-input form-control" name="otp1" id="otp1" maxlength="1" oninput="moveFocus(this, 'otp2', 'next')" onkeydown="handleBackspace(event, this, 'otp1')">
+                    <input type="number" class="otp-input form-control" name="otp2" id="otp2" maxlength="1" oninput="moveFocus(this, 'otp3', 'next')" onkeydown="handleBackspace(event, this, 'otp2')">
+                    <input type="number" class="otp-input form-control" name="otp3" id="otp3" maxlength="1" oninput="moveFocus(this, 'otp4', 'next')" onkeydown="handleBackspace(event, this, 'otp3')">
+                    <input type="number" class="otp-input form-control" name="otp4" id="otp4" maxlength="1" oninput="limitLength(this)" onkeydown="handleBackspace(event, this, 'otp4')">
+                </div>
+
+                <div class="otp-timer" id="otp-timer"></div>
+                <div id="error-otp" class="error"></div>
             </div>
 
             <div class="form-floating position-relative mb-1">
@@ -528,7 +648,9 @@ ul.small.text-muted li {
 
 <!-- Toast -->
 <div class="toast-container" id="toast"></div>
-
+<button id="installBtn" onclick="installApp()" style="display:none">
+Install App
+</button>
 <script>
 function toggle(){
     loginBox.classList.toggle('hidden');
@@ -587,12 +709,20 @@ function login(){
 }
 
 function register(){
+    const otp1 = document.getElementById('otp1').value;
+    const otp2 = document.getElementById('otp2').value;
+    const otp3 = document.getElementById('otp3').value;
+    const otp4 = document.getElementById('otp4').value;
+    const otp = (otp1 + otp2 + otp3 + otp4).trim();
+
     loading(regBtn,true);
+
     send({
         action:'register',
         inst:inst.value,
         name:s_name.value,
         email:r_email.value,
+        otp:otp,
         password:r_pass.value
     }).then(r=>{
         console.log(r)
@@ -608,7 +738,149 @@ function strength(){
     bar.style.width = Math.min(v*12.5,100)+'%';
     bar.className='progress-bar bg-'+(v<6?'danger':v<10?'warning':'success');
 }
-</script>
 
+// OTP functions
+function moveFocus(current, nextId, direction) {
+    limitLength(current);
+    if (direction === 'next' && current.value.length === 1) {
+        const nextInput = document.getElementById(nextId);
+        if (nextInput) nextInput.focus();
+    }
+}
+
+function limitLength(input) {
+    if (input.value.length > 1) {
+        input.value = input.value.slice(0, 1);
+    }
+}
+
+function handleBackspace(event, current, currentId) {
+    if (event.key === 'Backspace' && current.value === '') {
+        const prevInput = current.previousElementSibling;
+        if (prevInput) prevInput.focus();
+    }
+}
+
+// Email validation for OTP button
+document.getElementById('r_email')?.addEventListener('input', function() {
+    const sendBtn = document.getElementById('sendOTP');
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value);
+    if (isValid) {
+        sendBtn.removeAttribute('disabled');
+        sendBtn.style.opacity = '1';
+    } else {
+        sendBtn.setAttribute('disabled', 'true');
+        sendBtn.style.opacity = '0.5';
+    }
+});
+
+// Send OTP
+async function sendotp(e) {
+    e.preventDefault();
+    
+    const sendBtn = document.getElementById('sendOTP');
+    const inst_name = document.getElementById('inst').value;
+    const email = document.getElementById('r_email').value;
+    const s_name = document.getElementById('s_name').value;
+
+    const dataForOTP = {
+        'for': 'registration',
+        'inst_name': inst_name,
+        'email': email,
+        's_name': s_name
+    };
+
+    if (!email || !s_name || !inst_name) {
+        toastMsg('danger', 'Please fill all the required fields');
+        return;
+    }
+
+    sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing...';
+
+    try {
+        const response = await fetch('./OTP-mail.php', {
+            method: 'POST',
+            body: JSON.stringify(dataForOTP),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+        });
+        
+        const data = await response.json();
+        
+        document.querySelectorAll('[id^="error-"]').forEach(el => {
+            el.innerHTML = '';
+            el.style.display = 'none';
+        });
+
+        if (data.status === 'error') {
+            sendBtn.innerHTML = '<i class="bx bx-mail-send"></i> Send OTP via Email';
+            sendBtn.setAttribute('disabled', 'true');
+            sendBtn.style.opacity = '0.5';
+            
+            toastMsg('danger', data.message);
+        } else {
+            startOTPTimer();
+            toastMsg('success', `OTP sent successfully to ${email}`);
+            sendBtn.innerHTML = '<i class="bx bx-mail-send"></i> Send OTP via Email';
+        }
+    } catch (error) {
+        console.log(error);
+        sendBtn.innerHTML = '<i class="bx bx-mail-send"></i> Send OTP via Email';
+    }
+}
+
+function startOTPTimer() {
+    const otpContainer = document.querySelector('.otp-container');
+    const otpTimer = document.getElementById('otp-timer');
+    const sendBtn = document.getElementById('sendOTP');
+    
+    otpContainer.style.display = 'grid';
+    otpTimer.style.display = 'block';
+    sendBtn.setAttribute('disabled', 'true');
+    sendBtn.style.opacity = '0.5';
+
+    let waitTime = 59;
+    otpTimer.innerHTML = `Resend in <span>00:${waitTime}</span>`;
+
+    const countdown = setInterval(() => {
+        waitTime--;
+        otpTimer.innerHTML = `Resend in <span>00:${waitTime < 10 ? '0' + waitTime : waitTime}</span>`;
+
+        if (waitTime <= 0) {
+            clearInterval(countdown);
+            otpTimer.innerHTML = '<span onclick="sendotp(event)" style="cursor:pointer">Resend OTP</span>';
+            sendBtn.removeAttribute('disabled');
+            sendBtn.style.opacity = '1';
+        }
+    }, 1000);
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/service-worker.js")
+    .then(reg => console.log("Service Worker Registered"))
+    .catch(err => console.log("Service Worker Failed", err));
+}
+
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  document.getElementById("installBtn").style.display = "block";
+});
+
+function installApp(){
+  deferredPrompt.prompt();
+
+  deferredPrompt.userChoice.then(choice => {
+    if(choice.outcome === "accepted"){
+      console.log("App Installed");
+    }
+  });
+}
+</script>
 </body>
 </html>
