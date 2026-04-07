@@ -414,7 +414,7 @@ if ($action === 'overall') {
     $pdf->Cell($roleW,12,'Role',1,0,'C');
 
     foreach ($dateSlotMap as $date => $slots) {
-        $pdf->Cell(count($slots) * $slotW,6,date('d-M-Y',strtotime($date)),1,0,'C');
+        $pdf->Cell(count($slots) * $slotW,6,date('j/n/y',strtotime($date)),1,0,'C');
     }
 
     $pdf->Cell($blockW,12,'Blocks',1,0,'C');
@@ -599,7 +599,7 @@ if ($action === 'role') {
         $pdf->Cell($deptW,12,'Dept',1,0,'C');
 
         foreach ($dateSlotMap as $date => $slots) {
-            $pdf->Cell(count($slots)*$slotW,6,date('d-M',strtotime($date)),1,0,'C');
+            $pdf->Cell(count($slots)*$slotW,6,date('j/n/y',strtotime($date)),1,0,'C');
         }
 
         $pdf->Cell($signW,12,'Signature',1,0,'C');
@@ -735,7 +735,7 @@ if ($action === 'department') {
         $pdf->Cell($deptW,12,'Dept',1,0,'C');
 
         foreach ($dateSlotMap as $date => $slots) {
-            $pdf->Cell(count($slots)*$slotW,6,date('d-M',strtotime($date)),1,0,'C');
+            $pdf->Cell(count($slots)*$slotW,6,date('j/n/y',strtotime($date)),1,0,'C');
         }
 
         $pdf->Cell($signW,12,'Signature',1,0,'C');

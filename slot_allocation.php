@@ -100,10 +100,7 @@ while ($row = mysqli_fetch_assoc($res)) {
 
 /* SORT DATES & SLOTS */
 uksort($allDatesSlots, function($a, $b) {
-    $dateA = DateTime::createFromFormat('d/m/Y', $a);
-    $dateB = DateTime::createFromFormat('d/m/Y', $b);
-
-    return $dateA <=> $dateB;
+    return strtotime($a) - strtotime($b);
 });
 
 foreach ($allDatesSlots as &$slots) {
