@@ -127,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['export'])) {
 
 $today = date('d-M-Y');
 ?>
+<?php include 'back_button.php'; ?>
 <!DOCTYPE html>
 <html>
 

@@ -1535,6 +1535,7 @@ if ($action === 'billing') {
 }
 }
 ?>
+<?php include 'back_button.php'; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -1866,7 +1867,7 @@ if ($action === 'billing') {
                 <h2>Supervision PDF Exports</h2>
             </div>
 
-            <form method="get">
+            <form method="get" target="_blank">
                 <input type="hidden" name="s" value="<?= htmlspecialchars($s_id ?? '') ?>">
                 
                 <div class="actions-grid">
