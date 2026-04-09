@@ -918,6 +918,7 @@ file_put_contents(
 // print_r($slots);
 // echo "</pre>";
 ?>
+<?php include 'back_button.php'; ?>
 
 <!DOCTYPE html>
 <html>
@@ -1036,9 +1037,9 @@ form{
                     <h4><?= htmlspecialchars($task_name ?? 'Supervision Allocation') ?></h4>
                     <div class="btn-group">
                         <form action="" method="POST" class="d-inline">
-                            <button type="submit" name="recalculate" class="btn btn-warning">
+                            <!-- <button type="submit" name="recalculate" class="btn btn-warning">
                                 <i class="bi bi-arrow-clockwise"></i> Recalculate
-                            </button>
+                            </button> -->
                             <button type="submit" name="save" class="btn btn-success">
                                 <i class="bi bi-save"></i> Save Schedule
                             </button>
