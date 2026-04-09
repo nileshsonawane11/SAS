@@ -1835,7 +1835,7 @@ include './Backend/config.php';
                 return;
             }
             alert(res.message);
-            window.location.href = "allocate.php?s="+res.id;
+            window.location.href = "get_faculty_availibility.php?s="+res.id;
         })
         .catch(err => console.error(err));
     }
@@ -1944,7 +1944,7 @@ include './Backend/config.php';
     }
 
     let go_to_schedule = (s) => {
-        window.location.href = "./allocate.php?s="+s;
+        window.location.href = "./get_faculty_availibility.php?s="+s;
     }
 
     //Click Events

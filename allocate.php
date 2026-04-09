@@ -4,6 +4,10 @@ include './Backend/config.php';
 $owner = $user_data['_id'] ?? 0;
 
 $s_id = $_GET['s'] ?? '';
+$faculty_availability = $_SESSION['faculty_availability'] ?? [];
+
+// echo "<pre>";
+// print_r($faculty_availability);
 
 function isFourHourSlot($slot) {
     list($start, $end) = explode(' - ', $slot);
@@ -143,7 +147,7 @@ if(mysqli_num_rows($schedule_result) > 0){
     $schedule_row = mysqli_fetch_assoc($schedule_result);
     
     if($schedule_row['scheduled']){
-        header("Location: ./slot_allocation.php?s=$s_id");
+        header("Location: ./get_faculty_availibility.php?s=$s_id");
         exit;
     }
 
@@ -378,12 +382,17 @@ foreach ($faculty as $f) {
 // Helper function to check if faculty can take a block
 function canTakeBlock($faculty, $block, $slotAssignments, $facultyAvailability, 
                      $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction, 
-                     $teaching_staff, $non_teaching_staff, &$teachReq, &$nonReq, &$facultyLongSlotTaken) {
+                     $teaching_staff, $non_teaching_staff, &$teachReq, &$nonReq, &$facultyLongSlotTaken, $faculty_availability) {
     
     $fid = $faculty['id'];
     
     // Check slot conflict
     if (isset($slotAssignments[$fid][$block['date']][$block['slot']])) {
+        return false;
+    }
+
+    // Availability check (strict)
+    if (!isset($faculty_availability[$fid][$block['date']][$block['slot']]) || $faculty_availability[$fid][$block['date']][$block['slot']] === false) {
         return false;
     }
     
@@ -515,7 +524,7 @@ foreach ($allBlocks as $block) {
         
         if (canTakeBlock($f, $block, $slotAssignments, $facultyAvailability, 
                         $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction,
-                        $teaching_staff, $non_teaching_staff, $teachReq, $nonReq, $facultyLongSlotTaken)) {
+                        $teaching_staff, $non_teaching_staff, $teachReq, $nonReq, $facultyLongSlotTaken, $faculty_availability)) {
             
             $fid = $f['id'];
             
@@ -594,6 +603,11 @@ foreach ($allBlocks as $block) {
         
         foreach ($faculty as &$f) {
             $fid = $f['id'];
+
+            // Availability check (strict)
+            if (!isset($faculty_availability[$fid][$block['date']][$block['slot']]) || $faculty_availability[$fid][$block['date']][$block['slot']] === false) {
+                continue;
+            }
 
             $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
 
@@ -894,7 +908,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if($schedule_row['scheduled'] && !empty($schedule_row['scheduled'])){
-    header("Location: ./slot_allocation.php?s=$s_id");
+    header("Location: ./get_faculty_availibility.php?s=$s_id");
     exit;
 }
 
