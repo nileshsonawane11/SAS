@@ -1438,7 +1438,7 @@ $today = date('d-M-Y');
                 <tr class="grand-total">
                     <td colspan="4">Required And Total Duties : </td>
                     
-                    <?php foreach ($slots_blocks as $date => $times): ?>
+                    <?php foreach ($allDatesSlots as $date => $times): ?>
                         <?php if ($filterDate && $filterDate !== $date) continue; ?>
                         <?php foreach ($times as $slot => $_): ?>
                             <?php if ($filterSlot && $filterSlot !== $slot) continue; ?>

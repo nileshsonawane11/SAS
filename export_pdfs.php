@@ -468,7 +468,7 @@ if ($action === 'overall') {
                     $sup_count++;
                     if ($blockType === 'real') $blocks_assign++;
 
-                    $symbol = ($blockType === 'real') ? '✓' : '*';
+                    $symbol = ($blockType === 'real') ? '✓' : (($blockType === 'buffer') ? '*' : '®');
                 } else {
                     $symbol = '';
                 }
@@ -633,9 +633,19 @@ if ($action === 'role') {
 
             foreach ($dateSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    $val = (!empty(($dates[$date][$slot]['block_type'])) && $dates[$date][$slot]['block_type'] === 'real' && ($dates[$date][$slot]['present'] == true))
+                    $slotData = $dates[$date][$slot] ?? [];
+
+                    $val = (
+                        !empty($slotData['block_type']) &&
+                        $slotData['block_type'] === 'real' &&
+                        !empty($slotData['present'])
+                    )
                         ? '✓'
-                        : ((isset($dates[$date][$slot]['assigned']) && ($dates[$date][$slot]['present'] == true)) ? '*' : '');
+                        : (
+                            ($slotData['block_type'] === 'buffer') 
+                                ? '*' 
+                                : (($slotData['block_type'] === 'extra') ? '®' : '')
+                        );
                     $pdf->SetFont('dejavusans', '', 10);
                     $pdf->Cell($slotW, $rowH, $val, 1, 0, 'C');
                 }
@@ -801,7 +811,7 @@ if ($action === 'individual') {
 
     $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
     $pdf->SetMargins(15,15,15);
-    $pdf->SetAutoPageBreak(true,20);
+    $pdf->SetAutoPageBreak(true,10);
     $pdf->setPrintHeader(false);
 
     uksort($facultyAssignments, function ($a, $b) use ($facultyMap) {

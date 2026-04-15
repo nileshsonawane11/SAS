@@ -179,11 +179,10 @@ $pdf->SetFont('helvetica', 'B', 9);
 
 $pdf->Cell(7, 12, 'Sr', 1, 0, 'C');
 $pdf->Cell(55, 12, 'Faculty', 1, 0, 'C');
-$pdf->Cell(10, 12, '#', 1, 0, 'C');
 $pdf->Cell(20, 12, 'Dept', 1, 0, 'C');
 $pdf->Cell(11, 12, 'Block', 1, 0, 'C');
 $pdf->Cell(40, 12, 'Answersheet', 1, 0, 'C');
-$pdf->Cell(30, 12, 'Rep.Time', 1, 0, 'C');
+$pdf->Cell(40, 12, 'Rep.Time', 1, 0, 'C');
 $pdf->Cell(25, 12, 'Signature', 1, 1, 'C');
 
 /* ================= DATA ================= */
@@ -275,12 +274,11 @@ foreach ($rows as $r) {
     $pdf->MultiCell(55, 12, $r['faculty'], 1, 'L');
     $pdf->SetXY($x + 55, $y);
     $pdf->SetFont('dejavusans','',10);
-    $pdf->Cell(10, 12, $r['status'], 1, 0, 'C');
     $pdf->SetFont('helvetica', '', 9);
     $pdf->Cell(20, 12, $r['dept'], 1, 0, 'C');
     $pdf->Cell(11, 12, $r['block'], 1, 0, 'C');
     $pdf->Cell(40, 12, '', 1, 0, 'C');
-    $pdf->Cell(30, 12, '', 1, 0, 'C');
+    $pdf->Cell(40, 12, '', 1, 0, 'C');
     $pdf->Cell(25, 12, '', 1, 1);
 }
 /* ================= OUTPUT ================= */

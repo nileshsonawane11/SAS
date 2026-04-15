@@ -371,9 +371,17 @@ $extraBlocks = $totalBlocks % $facultyCount;
 // Initialize tracking arrays
 $facultyLoad = array_fill_keys(array_column($faculty, 'id'), 0);
 $facultyLongSlotTaken = array_fill_keys(array_column($faculty, 'id'), false);
+$facultyHasLongSlot = array_fill_keys(array_column($faculty, 'id'), false);
+$facultyRelieverCount = array_fill_keys(array_column($faculty, 'id'), 0);
+$facultyNeedsReliever = array_fill_keys(array_column($faculty, 'id'), true);
 $facultyAssignments = [];
 $slotAssignments = [];
 $facultyAvailability = []; // Track faculty availability per slot
+$facultyDailyBlockCount = []; // Track blocks per faculty per day
+
+foreach ($faculty as $f) {
+    $facultyDailyBlockCount[$f['id']] = []; // Will store dates with block counts
+}
 
 foreach ($faculty as $f) {
     $facultyAvailability[$f['id']] = [];
@@ -382,17 +390,39 @@ foreach ($faculty as $f) {
 // Helper function to check if faculty can take a block
 function canTakeBlock($faculty, $block, $slotAssignments, $facultyAvailability, 
                      $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction, 
-                     $teaching_staff, $non_teaching_staff, &$teachReq, &$nonReq, &$facultyLongSlotTaken, $faculty_availability) {
+                     $teaching_staff, $non_teaching_staff, &$teachReq, &$nonReq, &$facultyLongSlotTaken, 
+                     $faculty_availability, $facultyDailyBlockCount, $task_type, $facultyHasLongSlot, $facultyRelieverCount) {
     
     $fid = $faculty['id'];
+    $date = $block['date'];
+    $isLongSlot = isFourHourSlot($block['slot']);
+    $isRelieverBlock = ($block['block_type'] == 'extra'); // Extra blocks are reliever duties
+    
+    // RESTRICTION 1: For non-PT exams, faculty can only take ONE block per day
+    if ($task_type != 'PT') {
+        // Check if faculty already has a block on this date
+        if (isset($facultyDailyBlockCount[$fid][$date]) && $facultyDailyBlockCount[$fid][$date] >= 1) {
+            return false;
+        }
+    }
+    
+    // RESTRICTION 2: If faculty already has a 4+ hour slot, cannot take ANY other 4+ hour slot
+    if ($isLongSlot && $facultyHasLongSlot[$fid]) {
+        return false;
+    }
+    
+    // RESTRICTION 3: For non-PT exams, each faculty can only be a reliever ONCE
+    if ($task_type != 'PT' && $isRelieverBlock && $facultyRelieverCount[$fid] >= 1) {
+        return false;
+    }
     
     // Check slot conflict
-    if (isset($slotAssignments[$fid][$block['date']][$block['slot']])) {
+    if (isset($slotAssignments[$fid][$date][$block['slot']])) {
         return false;
     }
 
     // Availability check (strict)
-    if (!isset($faculty_availability[$fid][$block['date']][$block['slot']]) || $faculty_availability[$fid][$block['date']][$block['slot']] === false) {
+    if (!isset($faculty_availability[$fid][$date][$block['slot']]) || $faculty_availability[$fid][$date][$block['slot']] === false) {
         return false;
     }
     
@@ -416,21 +446,14 @@ function canTakeBlock($faculty, $block, $slotAssignments, $facultyAvailability,
             $sub = trim($sub);
             $subPrefix = strtoupper(substr($sub, 0, 2));
             
-            // FIXED LOGIC: sub_restriction should prevent assignment if true AND faculty teaches the subject
             if ($sub_restriction == 1 && !empty($facultyCourses) && in_array($sub, $facultyCourses)) {
                 return false;
             }
             
-            // FIXED LOGIC: dept_restriction should prevent assignment if true AND department matches
             if ($dept_restriction == 1 && !empty($facultyDept) && $facultyDept === $subPrefix) {
                 return false;
             }
         }
-    }
-
-    // Prevent assigning another 4-hour slot if already taken one
-    if (isFourHourSlot($block['slot']) && !empty($facultyAvailability[$fid]['long_slot_taken'])) {
-        return false;
     }
     
     return true;
@@ -474,7 +497,17 @@ foreach ($slots as $date => $times) {
 $slotBlockNumbers = [];
 
 // Main assignment loop
-foreach ($allBlocks as $block) {
+// First Pass: Prioritize assigning relievers to faculty who don't have any yet
+$relieverBlocks = array_filter($allBlocks, function($block) {
+    return $block['block_type'] == 'extra';
+});
+
+$otherBlocks = array_filter($allBlocks, function($block) {
+    return $block['block_type'] != 'extra';
+});
+
+// Process reliever blocks first - prioritize faculty without any reliever
+foreach ($relieverBlocks as $block) {
     $assignedFlag = false;
     $date = $block['date'];
     $slot = $block['slot'];
@@ -491,63 +524,63 @@ foreach ($allBlocks as $block) {
     $teachReq = $slotRoleRequirements[$date][$slot]['teach'];
     $nonReq = $slotRoleRequirements[$date][$slot]['non'];
     
-    // Sort faculty by load (least loaded first)
-    usort($faculty, function($a, $b) use ($facultyLoad, $prev_facultyLoad) {
-
-        $loadA = $facultyLoad[$a['id']];
-        $loadB = $facultyLoad[$b['id']];
-
-        if ($loadA != $loadB) {
-            return $loadA - $loadB; // least load first
+    // Sort faculty: those without reliever first, then by load
+    usort($faculty, function($a, $b) use ($facultyRelieverCount, $facultyLoad, $prev_facultyLoad) {
+        // First priority: faculty who still need a reliever (count = 0)
+        $needA = ($facultyRelieverCount[$a['id']] == 0) ? 0 : 1;
+        $needB = ($facultyRelieverCount[$b['id']] == 0) ? 0 : 1;
+        if ($needA != $needB) {
+            return $needA - $needB;
         }
-
+        
+        // Second priority: lower current load
+        if ($facultyLoad[$a['id']] != $facultyLoad[$b['id']]) {
+            return $facultyLoad[$a['id']] - $facultyLoad[$b['id']];
+        }
+        
+        // Third priority: higher previous absence
         $prevA = $prev_facultyLoad[$a['id']] ?? 0;
         $prevB = $prev_facultyLoad[$b['id']] ?? 0;
-
         if ($prevA != $prevB) {
-            return $prevB - $prevA; // more absent previously gets priority
+            return $prevB - $prevA;
         }
-
-        return $b['duties'] - $a['duties']; // fallback
+        
+        return $b['duties'] - $a['duties'];
     });
     
     foreach ($faculty as &$f) {
-        // Check if faculty already has enough assignments
         $fid = $f['id'];
-
+        
         $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
-
-        // If faculty had previous absence → allow extra blocks
+        
+        // Allow extra blocks for those with previous absence
         if (($prev_facultyLoad[$fid] ?? 0) == 0 && $facultyLoad[$fid] >= $limit) {
             continue;
         }
         
         if (canTakeBlock($f, $block, $slotAssignments, $facultyAvailability, 
-                        $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction,
-                        $teaching_staff, $non_teaching_staff, $teachReq, $nonReq, $facultyLongSlotTaken, $faculty_availability)) {
+                $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction,
+                $teaching_staff, $non_teaching_staff, $teachReq, $nonReq, 
+                $facultyLongSlotTaken, $faculty_availability, $facultyDailyBlockCount, 
+                $task_type, $facultyHasLongSlot, $facultyRelieverCount)) {
             
             $fid = $f['id'];
             
-            // Determine block number - START FROM BEGINNING FOR EACH SLOT
+            // Determine block number
             $blockNo = '';
             if ($block['is_real_block']) {
-                // Check if we have predefined blocks available
                 if ($slotBlockNumbers[$date][$slot]['block_index'] < count($blocks)) {
                     $blockNo = $blocks[$slotBlockNumbers[$date][$slot]['block_index']];
                     $slotBlockNumbers[$date][$slot]['block_index']++;
                     
-                    // Update last numeric value from this block
                     if (preg_match('/^(\d+)/', $blockNo, $matches)) {
                         $slotBlockNumbers[$date][$slot]['last_numeric'] = (int)$matches[1];
                     }
                 } else {
-                    // After predefined blocks run out, continue numeric sequence from last used
                     $slotBlockNumbers[$date][$slot]['last_numeric']++;
                     $blockNo = (string)$slotBlockNumbers[$date][$slot]['last_numeric'];
                     
-                    // Check for L/R suffix for PT exams
                     if ($task_type == 'PT') {
-                        // Check if this should be L or R based on even/odd
                         if ($slotBlockNumbers[$date][$slot]['last_numeric'] % 2 == 0) {
                             $blockNo .= 'R';
                         } else {
@@ -556,11 +589,12 @@ foreach ($allBlocks as $block) {
                     }
                 }
             }
-
+            
             // Mark long slot taken
             if (isFourHourSlot($slot)) {
                 $facultyLongSlotTaken[$fid] = true;
                 $facultyAvailability[$fid]['long_slot_taken'] = true;
+                $facultyHasLongSlot[$fid] = true;
             }
             
             // Create assignment record
@@ -574,7 +608,15 @@ foreach ($allBlocks as $block) {
             
             // Update tracking
             $facultyLoad[$fid]++;
+            $facultyRelieverCount[$fid]++;
             $slotAssignments[$fid][$date][$slot] = true;
+            
+            if ($task_type != 'PT') {
+                if (!isset($facultyDailyBlockCount[$fid][$date])) {
+                    $facultyDailyBlockCount[$fid][$date] = 0;
+                }
+                $facultyDailyBlockCount[$fid][$date]++;
+            }
             
             // Update role requirements
             if ($role_restriction == 1) {
@@ -595,34 +637,44 @@ foreach ($allBlocks as $block) {
         }
     }
     
-    // If no faculty found with constraints, relax and try again
+    // If not assigned in first pass, try relaxed assignment
     if (!$assignedFlag) {
-        usort($faculty, function($a, $b) use ($facultyLoad) {
+        usort($faculty, function($a, $b) use ($facultyLoad, $facultyRelieverCount) {
+            $needA = ($facultyRelieverCount[$a['id']] == 0) ? 0 : 1;
+            $needB = ($facultyRelieverCount[$b['id']] == 0) ? 0 : 1;
+            if ($needA != $needB) {
+                return $needA - $needB;
+            }
             return $facultyLoad[$a['id']] - $facultyLoad[$b['id']];
         });
         
         foreach ($faculty as &$f) {
             $fid = $f['id'];
-
-            // Availability check (strict)
-            if (!isset($faculty_availability[$fid][$block['date']][$block['slot']]) || $faculty_availability[$fid][$block['date']][$block['slot']] === false) {
+            $isLongSlot = isFourHourSlot($block['slot']);
+            
+            if (!isset($faculty_availability[$fid][$date][$slot]) || $faculty_availability[$fid][$date][$slot] === false) {
                 continue;
             }
-
+            
+            if ($task_type != 'PT') {
+                if (isset($facultyDailyBlockCount[$fid][$date]) && $facultyDailyBlockCount[$fid][$date] >= 1) {
+                    continue;
+                }
+            }
+            
+            if ($isLongSlot && $facultyHasLongSlot[$fid]) {
+                continue;
+            }
+            
             $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
-
-            // If faculty had previous absence → allow extra blocks
+            
             if (($prev_facultyLoad[$fid] ?? 0) == 0 && $facultyLoad[$fid] >= $limit) {
                 continue;
             }
             
-            // Relaxed check: only slot conflict
-            if (!isset($slotAssignments[$f['id']][$date][$slot])) {
-                $fid = $f['id'];
-                
+            if (!isset($slotAssignments[$fid][$date][$slot])) {
                 $blockNo = '';
                 if ($block['is_real_block']) {
-                    // Use the same block number logic as above
                     if ($slotBlockNumbers[$date][$slot]['block_index'] < count($blocks)) {
                         $blockNo = $blocks[$slotBlockNumbers[$date][$slot]['block_index']];
                         $slotBlockNumbers[$date][$slot]['block_index']++;
@@ -630,7 +682,6 @@ foreach ($allBlocks as $block) {
                         $slotBlockNumbers[$date][$slot]['last_numeric']++;
                         $blockNo = (string)$slotBlockNumbers[$date][$slot]['last_numeric'];
                         
-                        // Check for L/R suffix for PT exams
                         if ($task_type == 'PT') {
                             if ($slotBlockNumbers[$date][$slot]['last_numeric'] % 2 == 0) {
                                 $blockNo .= 'R';
@@ -640,11 +691,9 @@ foreach ($allBlocks as $block) {
                         }
                     }
                 }
-
-                // Mark long slot taken
-                if (isFourHourSlot($slot)) {
-                    $facultyLongSlotTaken[$fid] = true;
-                    $facultyAvailability[$fid]['long_slot_taken'] = true;
+                
+                if ($isLongSlot) {
+                    $facultyHasLongSlot[$fid] = true;
                 }
                 
                 $facultyAssignments[$fid][$date][$slot] = [
@@ -656,16 +705,246 @@ foreach ($allBlocks as $block) {
                 ];
                 
                 $facultyLoad[$fid]++;
+                $facultyRelieverCount[$fid]++;
                 $slotAssignments[$fid][$date][$slot] = true;
+                
+                if ($task_type != 'PT') {
+                    if (!isset($facultyDailyBlockCount[$fid][$date])) {
+                        $facultyDailyBlockCount[$fid][$date] = 0;
+                    }
+                    $facultyDailyBlockCount[$fid][$date]++;
+                }
                 
                 if ($duties_restriction == 1) {
                     $f['duties']--;
                 }
                 
-                $assignedFlag = true;
                 break;
             }
         }
+    }
+}
+
+// Second Pass: Process all remaining blocks (non-reliever and any remaining relievers)
+$remainingBlocks = array_merge($otherBlocks, array_filter($relieverBlocks, function($block) use ($facultyAssignments) {
+    // Only include reliever blocks that weren't assigned
+    foreach ($facultyAssignments as $assignments) {
+        foreach ($assignments as $date => $slots) {
+            if (isset($slots[$block['slot']]) && $date == $block['date']) {
+                return false;
+            }
+        }
+    }
+    return true;
+}));
+
+foreach ($remainingBlocks as $block) {
+    $assignedFlag = false;
+    $date = $block['date'];
+    $slot = $block['slot'];
+    
+    if (!isset($slotBlockNumbers[$date][$slot])) {
+        $slotBlockNumbers[$date][$slot] = [
+            'block_index' => 0,
+            'last_numeric' => 0
+        ];
+    }
+    
+    $teachReq = $slotRoleRequirements[$date][$slot]['teach'];
+    $nonReq = $slotRoleRequirements[$date][$slot]['non'];
+    
+    usort($faculty, function($a, $b) use ($facultyLoad, $prev_facultyLoad) {
+        if ($facultyLoad[$a['id']] != $facultyLoad[$b['id']]) {
+            return $facultyLoad[$a['id']] - $facultyLoad[$b['id']];
+        }
+        $prevA = $prev_facultyLoad[$a['id']] ?? 0;
+        $prevB = $prev_facultyLoad[$b['id']] ?? 0;
+        if ($prevA != $prevB) {
+            return $prevB - $prevA;
+        }
+        return $b['duties'] - $a['duties'];
+    });
+    
+    foreach ($faculty as &$f) {
+        $fid = $f['id'];
+        
+        $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
+        
+        if (($prev_facultyLoad[$fid] ?? 0) == 0 && $facultyLoad[$fid] >= $limit) {
+            continue;
+        }
+        
+        if (canTakeBlock($f, $block, $slotAssignments, $facultyAvailability, 
+                $duties_restriction, $sub_restriction, $dept_restriction, $role_restriction,
+                $teaching_staff, $non_teaching_staff, $teachReq, $nonReq, 
+                $facultyLongSlotTaken, $faculty_availability, $facultyDailyBlockCount, 
+                $task_type, $facultyHasLongSlot, $facultyRelieverCount)) {
+            
+            $fid = $f['id'];
+            
+            $blockNo = '';
+            if ($block['is_real_block']) {
+                if ($slotBlockNumbers[$date][$slot]['block_index'] < count($blocks)) {
+                    $blockNo = $blocks[$slotBlockNumbers[$date][$slot]['block_index']];
+                    $slotBlockNumbers[$date][$slot]['block_index']++;
+                    
+                    if (preg_match('/^(\d+)/', $blockNo, $matches)) {
+                        $slotBlockNumbers[$date][$slot]['last_numeric'] = (int)$matches[1];
+                    }
+                } else {
+                    $slotBlockNumbers[$date][$slot]['last_numeric']++;
+                    $blockNo = (string)$slotBlockNumbers[$date][$slot]['last_numeric'];
+                    
+                    if ($task_type == 'PT') {
+                        if ($slotBlockNumbers[$date][$slot]['last_numeric'] % 2 == 0) {
+                            $blockNo .= 'R';
+                        } else {
+                            $blockNo .= 'L';
+                        }
+                    }
+                }
+            }
+            
+            if (isFourHourSlot($slot)) {
+                $facultyLongSlotTaken[$fid] = true;
+                $facultyAvailability[$fid]['long_slot_taken'] = true;
+                $facultyHasLongSlot[$fid] = true;
+            }
+            
+            $facultyAssignments[$fid][$date][$slot] = [
+                'assigned' => true,
+                'present'  => true,
+                'sub'      => $block['sub'],
+                'block_type' => $block['block_type'],
+                'subjects' => $block['subjects_array']
+            ];
+            
+            $facultyLoad[$fid]++;
+            if ($block['block_type'] == 'extra') {
+                $facultyRelieverCount[$fid]++;
+            }
+            $slotAssignments[$fid][$date][$slot] = true;
+            
+            if ($task_type != 'PT') {
+                if (!isset($facultyDailyBlockCount[$fid][$date])) {
+                    $facultyDailyBlockCount[$fid][$date] = 0;
+                }
+                $facultyDailyBlockCount[$fid][$date]++;
+            }
+            
+            if ($role_restriction == 1) {
+                if ($f['role'] === 'TS') {
+                    $slotRoleRequirements[$date][$slot]['teach']--;
+                } else {
+                    $slotRoleRequirements[$date][$slot]['non']--;
+                }
+            }
+            
+            if ($duties_restriction == 1) {
+                $f['duties']--;
+            }
+            
+            $assignedFlag = true;
+            break;
+        }
+    }
+    
+    // Relaxed assignment for remaining blocks
+    if (!$assignedFlag) {
+        usort($faculty, function($a, $b) use ($facultyLoad) {
+            return $facultyLoad[$a['id']] - $facultyLoad[$b['id']];
+        });
+        
+        foreach ($faculty as &$f) {
+            $fid = $f['id'];
+            $isLongSlot = isFourHourSlot($block['slot']);
+            
+            if (!isset($faculty_availability[$fid][$date][$slot]) || $faculty_availability[$fid][$date][$slot] === false) {
+                continue;
+            }
+            
+            if ($task_type != 'PT') {
+                if (isset($facultyDailyBlockCount[$fid][$date]) && $facultyDailyBlockCount[$fid][$date] >= 1) {
+                    continue;
+                }
+            }
+            
+            if ($isLongSlot && $facultyHasLongSlot[$fid]) {
+                continue;
+            }
+            
+            $limit = $targetPerFaculty + ($extraBlocks > 0 ? 1 : 0);
+            
+            if (($prev_facultyLoad[$fid] ?? 0) == 0 && $facultyLoad[$fid] >= $limit) {
+                continue;
+            }
+            
+            if (!isset($slotAssignments[$fid][$date][$slot])) {
+                $blockNo = '';
+                if ($block['is_real_block']) {
+                    if ($slotBlockNumbers[$date][$slot]['block_index'] < count($blocks)) {
+                        $blockNo = $blocks[$slotBlockNumbers[$date][$slot]['block_index']];
+                        $slotBlockNumbers[$date][$slot]['block_index']++;
+                    } else {
+                        $slotBlockNumbers[$date][$slot]['last_numeric']++;
+                        $blockNo = (string)$slotBlockNumbers[$date][$slot]['last_numeric'];
+                        
+                        if ($task_type == 'PT') {
+                            if ($slotBlockNumbers[$date][$slot]['last_numeric'] % 2 == 0) {
+                                $blockNo .= 'R';
+                            } else {
+                                $blockNo .= 'L';
+                            }
+                        }
+                    }
+                }
+                
+                if ($isLongSlot) {
+                    $facultyHasLongSlot[$fid] = true;
+                }
+                
+                $facultyAssignments[$fid][$date][$slot] = [
+                    'assigned' => true,
+                    'present'  => true,
+                    'sub'      => $block['sub'],
+                    'block_type' => $block['block_type'],
+                    'subjects' => $block['subjects_array']
+                ];
+                
+                $facultyLoad[$fid]++;
+                if ($block['block_type'] == 'extra') {
+                    $facultyRelieverCount[$fid]++;
+                }
+                $slotAssignments[$fid][$date][$slot] = true;
+                
+                if ($task_type != 'PT') {
+                    if (!isset($facultyDailyBlockCount[$fid][$date])) {
+                        $facultyDailyBlockCount[$fid][$date] = 0;
+                    }
+                    $facultyDailyBlockCount[$fid][$date]++;
+                }
+                
+                if ($duties_restriction == 1) {
+                    $f['duties']--;
+                }
+                
+                break;
+            }
+        }
+    }
+}
+
+// Calculate reliever statistics
+$totalRelieverAssignments = array_sum($facultyRelieverCount);
+$facultyWithReliever = 0;
+$facultyWithoutReliever = 0;
+
+foreach ($faculty as $f) {
+    $fid = $f['id'];
+    if ($facultyRelieverCount[$fid] > 0) {
+        $facultyWithReliever++;
+    } else {
+        $facultyWithoutReliever++;
     }
 }
 
@@ -681,6 +960,7 @@ foreach ($faculty as $f) {
     // Minimum load = current load + absent count
     $minFacultyLoad[$fid] = $facultyLoad[$fid] + $prevAbsent;
 }
+
 
 // Balance distribution
 $minLoad = min($facultyLoad);
@@ -959,6 +1239,13 @@ table.supervision {
     top: 0;
     z-index: 10;
 }
+.supervision thead{
+    position: sticky;
+    top: 0;
+    background-color: #f2f2f2;
+    z-index: 10;
+}
+
 .left { text-align: left; }
 .sr { width: 40px; }
 .dept { width: 60px; }

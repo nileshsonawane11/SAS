@@ -166,7 +166,17 @@ print_letter_head();
 
 $pdf->Ln(2);
 $pdf->SetFont('helvetica', 'B', 11);
-$pdf->Cell(0, 6, "Date: $date    Time: $slot", 0, 1, 'C');
+
+list($start, $end) = explode(' - ', $slot);
+
+// Step 2: Convert to DateTime
+$startTime = new DateTime($start);
+$endTime   = new DateTime($end);
+
+// Step 3: Get difference
+$interval = $startTime->diff($endTime);
+$duration = $interval->format('%h hr %i min');
+$pdf->Cell(0, 6, "Date: $date    Time: $slot    Duration: $duration", 0, 1, 'C');
 
 $pdf->Ln(8);
 /* ================= FETCH DATA ================= */
@@ -187,12 +197,12 @@ while ($row = mysqli_fetch_assoc($res)) {
     if (($sch[$date][$slot]['present'] ?? 0) == false) continue;
 
     $block = '';
-    if (is_array($sch[$date][$slot]) && !empty($sch[$date][$slot]['block'])) {
-        $block = trim($sch[$date][$slot]['block']);
+    if (is_array($sch[$date][$slot]) && !empty($sch[$date][$slot]['block_type'])) {
+        $block = trim($sch[$date][$slot]['block_type']);
     }
 
     $rows[] = [
-        'block'   => $block,
+        'block'   => ($block == 'real') ? 'Alloted' : (($block == 'buffer') ? 'Extra' : ($block == 'extra' ? 'Reliever' : '')),
         'faculty' => $row['faculty_name'],
         'dept'    => $row['dept_code']
     ];
@@ -222,8 +232,9 @@ array_multisort(
 $pdf->SetFont('helvetica', 'B', 10);
 
 $pdf->Cell(30, 8, 'Sr', 1, 0, 'C');
-$pdf->Cell(100, 8, 'Faculty', 1, 0, 'C');
-$pdf->Cell(55, 8, 'Dept', 1, 1, 'C');
+$pdf->Cell(80, 8, 'Faculty', 1, 0, 'C');
+$pdf->Cell(35, 8, 'Duty Type', 1, 0, 'C');
+$pdf->Cell(45, 8, 'Dept', 1, 1, 'C');
 
 /* ================= TABLE BODY ================= */
 $pdf->SetFont('helvetica', '', 10);
@@ -231,8 +242,9 @@ $sr = 1;
 
 foreach ($rows as $r) {
     $pdf->Cell(30, 8, $sr++, 1, 0, 'C');
-    $pdf->Cell(100, 8, $r['faculty'], 1, 0);
-    $pdf->Cell(55, 8, $r['dept'], 1, 1, 'C');
+    $pdf->Cell(80, 8, $r['faculty'], 1, 0);
+    $pdf->Cell(35, 8, $r['block'], 1, 0, 'C');
+    $pdf->Cell(45, 8, $r['dept'], 1, 1, 'C');
 }
 
 /* ================= OUTPUT ================= */
