@@ -19,7 +19,7 @@ $checkStmt = $conn->prepare("
     FROM block_supervisor_list
     WHERE s_id = ? AND Created_by = ?
 ");
-$checkStmt->bind_param("ii", $s_id, $owner);
+$checkStmt->bind_param("si", $s_id, $owner);
 $checkStmt->execute();
 $result = $checkStmt->get_result();
 
@@ -49,7 +49,7 @@ $getStmt = $conn->prepare("
     FROM block_supervisor_list
     WHERE s_id = ? AND faculty_id = ? AND Created_by = ?
 ");
-$getStmt->bind_param("iii", $s_id, $fid, $owner);
+$getStmt->bind_param("sii", $s_id, $fid, $owner);
 $getStmt->execute();
 $res = $getStmt->get_result();
 
@@ -73,7 +73,7 @@ $updateStmt = $conn->prepare("
     SET schedule = ?
     WHERE s_id = ? AND faculty_id = ? AND Created_by = ?
 ");
-$updateStmt->bind_param("siii", $jsonSchedule, $s_id, $fid, $owner);
+$updateStmt->bind_param("ssii", $jsonSchedule, $s_id, $fid, $owner);
 $updateStmt->execute();
 
 /* ===============================

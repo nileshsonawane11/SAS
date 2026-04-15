@@ -1113,8 +1113,8 @@ form{
                 <div class="alert alert-light">
                     <strong>Legend:</strong>
                     <span class="badge bg-success">Real Block</span>
-                    <span class="badge bg-warning">Extra Duty</span>
-                    <span class="badge bg-info">Buffer</span>
+                    <span class="badge bg-warning">Reliever</span>
+                    <span class="badge bg-info">Extra Duty</span>
                     <span class="badge bg-primary">Common Duty</span>
                     <span class="badge bg-secondary float-end">Block Sequence: Restarts for each slot</span>
                 </div>

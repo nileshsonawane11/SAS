@@ -81,6 +81,11 @@ if (!empty($_FILES)) {
    2. HANDLE TEXT + RADIO VALUES
    =============================== */
 foreach ($_POST as $key => $value) {
+    
+    if (in_array($key, ['logo', 'signature']) && empty($value)) {
+        continue;
+    }
+
     $data[$key] = trim($value);
 }
 

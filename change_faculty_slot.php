@@ -30,7 +30,7 @@ $stmt = $conn->prepare("
     SELECT schedule FROM block_supervisor_list
     WHERE faculty_id=? AND s_id=? AND Created_by = ?
 ");
-$stmt->bind_param("iii", $fid, $s_id, $owner);
+$stmt->bind_param("isi", $fid, $s_id, $owner);
 $stmt->execute();
 $res = $stmt->get_result();
 
@@ -72,7 +72,7 @@ if ($action === 'delete') {
           AND Created_by = ?
         LIMIT 1
     ");
-    $update->bind_param("siii", $newSchedule, $fid, $s_id, $owner);
+    $update->bind_param("sisi", $newSchedule, $fid, $s_id, $owner);
 
     if ($update->execute()) {
         echo json_encode([
@@ -107,7 +107,7 @@ if ($present === 'yes') {
         SET schedule=?
         WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("siii", $json, $fid, $s_id, $owner);
+    $up->bind_param("sisi", $json, $fid, $s_id, $owner);
     $up->execute();
 
     echo json_encode(['status'=>'ok','msg'=>'Marked present']);
@@ -129,7 +129,7 @@ if ($reason !== 'replace') {
         SET schedule=?
         WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("siii", $json, $fid, $s_id, $owner);
+    $up->bind_param("sisi", $json, $fid, $s_id, $owner);
     $up->execute();
 
     echo json_encode(['status'=>'ok','msg'=>'Absence recorded']);
@@ -162,7 +162,7 @@ try {
         SELECT schedule FROM block_supervisor_list
         WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $stmt->bind_param("iii", $replace_id, $s_id, $owner);
+    $stmt->bind_param("isi", $replace_id, $s_id, $owner);
     $stmt->execute();
     $r = $stmt->get_result();
 
@@ -174,7 +174,7 @@ try {
             INSERT INTO block_supervisor_list (faculty_id, s_id, schedule, Created_by)
             VALUES (?, ?, '{}', ?)
         ");
-        $ins->bind_param("iii", $replace_id, $s_id, $owner);
+        $ins->bind_param("isi", $replace_id, $s_id, $owner);
         $ins->execute();
     }
 
@@ -193,7 +193,7 @@ try {
         SET schedule=?
         WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("siii", $jsonNew, $replace_id, $s_id, $owner);
+    $up->bind_param("sisi", $jsonNew, $replace_id, $s_id, $owner);
     $up->execute();
 
     /* ---- Remove slot from old faculty ---- */
@@ -206,7 +206,7 @@ try {
         SET schedule=?
         WHERE faculty_id=? AND s_id=? AND Created_by = ?
     ");
-    $up->bind_param("siii", $jsonOld, $fid, $s_id, $owner);
+    $up->bind_param("sisi", $jsonOld, $fid, $s_id, $owner);
     $up->execute();
 
     $conn->commit();

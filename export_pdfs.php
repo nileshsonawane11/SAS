@@ -861,13 +861,13 @@ if ($action === 'individual') {
             $pdf->Cell(80,8,'Date',1,0,'C');
             $pdf->Cell(75,8,'Slot',1,1,'C');
 
-            $pdf->SetFont('times','',10);
+            $pdf->SetFont('times','',9);
 
             $sr = 1;
             $srW   = 20;
             $dateW = 80;
             $slotW = 75;
-            $rowH  = 8;
+            $rowH  = 6;
 
             foreach ($dates as $date => $slots) {
 

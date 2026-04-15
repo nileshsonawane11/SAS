@@ -136,7 +136,7 @@ $today = date('d-M-Y');
     <title>Supervision Allocation</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <style>
     :root {
         --primary: #7c3aed;
@@ -641,6 +641,11 @@ $today = date('d-M-Y');
         justify-content: space-between;
         align-items: center;
         border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .dialog-header > :nth-child(2) {
+        cursor: pointer;
+        font-size: 20px;
     }
 
     .dialog-body {
@@ -1350,8 +1355,9 @@ $today = date('d-M-Y');
                                             <strong><?php echo !empty($blockNumber) ? $blockNumber : '✓'; ?></strong>
                                         <?php else: ?>
                                                 <?php if ($blockType == 'buffer'): ?>
-                                                    * 
-                                                <?php else: ?> 
+                                                    ⋆ 
+                                                <?php elseif($blockType == 'extra'): ?>
+                                                    ®
                                                 <?php endif; ?>
                                         <?php endif; ?>
                                         <?php $sup_count++; ?>

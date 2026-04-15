@@ -216,6 +216,8 @@ while ($row = mysqli_fetch_assoc($res)) {
             $status = '✓';
         }else if($block_type == 'buffer'){
             $status = '✓';
+        }else if($block_type == 'extra'){
+            $status = '✓';
         }
     }
     // echo "<pre>";
