@@ -300,6 +300,12 @@ $sr = 1;
             height: 40px;
             padding: 0;
         }
+        .sticky-name{
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -360,10 +366,10 @@ $sr = 1;
                     data-dept="<?= $facultyMap[$f['id']] ?>"
                     data-duties="<?= $facultyDuties[$f['id']] ?>">
 
-                    <td><?= $sr++ ?></td>
-                    <td class="left"><?= htmlspecialchars($facultyName[$f['id']] ?? 'Unknown') ?></td>
-                    <td><?= htmlspecialchars($facultyMap[$f['id']] ?? '-') ?></td>
-                    <td><?= htmlspecialchars($facultyRole[$f['id']] ?? '-') ?></td>
+                    <td class=" "><?= $sr++ ?></td>
+                    <td class="sticky-name left"><?= htmlspecialchars($facultyName[$f['id']] ?? 'Unknown') ?></td>
+                    <td class=" "><?= htmlspecialchars($facultyMap[$f['id']] ?? '-') ?></td>
+                    <td class=" "><?= htmlspecialchars($facultyRole[$f['id']] ?? '-') ?></td>
                     <?php $globalIndex = 0; ?>
 
                     <?php foreach ($slotsByDate as $date => $slots): ?>
