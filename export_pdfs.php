@@ -455,7 +455,7 @@ if ($action === 'overall') {
                     $sup_count++;
                     if ($blockType === 'real') $blocks_assign++;
 
-                    $symbol = ($blockType === 'real') ? '✓' : '*';
+                    $symbol = ($blockType === 'real') ? '✓' : (($blockType === 'extra') ? '®' : (($blockType === 'buffer') ? '★' : ''));
                 } else {
                     $symbol = '';
                 }
@@ -639,9 +639,8 @@ if ($action === 'role') {
 
             foreach ($dateSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    $val = (!empty(($dates[$date][$slot]['block_type'])) && $dates[$date][$slot]['block_type'] === 'real' && ($dates[$date][$slot]['present'] == true))
-                        ? '✓'
-                        : ((isset($dates[$date][$slot]['assigned']) && ($dates[$date][$slot]['present'] == true)) ? '*' : '');
+                    $blockType = $dates[$date][$slot]['block_type'] ?? '';
+                    $val = ($blockType === 'real') ? '✓' : (($blockType === 'extra') ? '®' : (($blockType === 'buffer') ? '★' : ''));
                     $pdf->SetFont('dejavusans', '', 10);
                     $pdf->Cell($slotW, $rowH, $val, 1, 0, 'C');
                 }
@@ -691,94 +690,68 @@ if ($action === 'department') {
     /* ---- LOOP EACH DEPARTMENT ---- */
     foreach ($deptFaculty as $dept => $facultyList) {
 
-        // FIRST: Calculate which slots have at least ONE faculty from this department assigned
+        /* ================= SLOT DETECTION ================= */
         $departmentSlotMap = [];
-        
+
         foreach ($facultyList as $name => $dates) {
             foreach ($dateSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    // Check if this faculty is assigned to this slot and present
-                    if (isset($dates[$date][$slot]) && 
-                        is_array($dates[$date][$slot]) && 
-                        isset($dates[$date][$slot]['present']) && 
-                        $dates[$date][$slot]['present'] === true) {
-                        
-                        // Mark this slot as active for this department
-                        if (!isset($departmentSlotMap[$date][$slot])) {
-                            $departmentSlotMap[$date][$slot] = true;
-                        }
+
+                    if (isset($dates[$date][$slot]) &&
+                        is_array($dates[$date][$slot]) &&
+                        !empty($dates[$date][$slot]['present'])) {
+
+                        $departmentSlotMap[$date][$slot] = true;
                     }
                 }
             }
         }
-        
-        // If no slots for this department at all, skip this department
+
         if (empty($departmentSlotMap)) {
             continue;
         }
-        
-        // Sort the department slot map by date and time
-        uksort($departmentSlotMap, function ($a, $b) {
-            return strtotime($a) <=> strtotime($b);
-        });
-        
+
+        /* ================= SORTING ================= */
+        uksort($departmentSlotMap, fn($a,$b) => strtotime($a) <=> strtotime($b));
+
         foreach ($departmentSlotMap as $date => $slots) {
             $slotArray = array_keys($slots);
-            usort($slotArray, function ($a, $b) {
-                return slotStartTimestamp($a) <=> slotStartTimestamp($b);
-            });
+            usort($slotArray, fn($a,$b) => slotStartTimestamp($a) <=> slotStartTimestamp($b));
             $departmentSlotMap[$date] = $slotArray;
         }
 
+        /* ================= PAGE ================= */
         $pdf->AddPage();
         $count++;
 
-        /* ================= LETTERHEAD ================= */
         print_letter_head($count,$suff);
 
         $pdf->SetFont('times','B',11);
         $pdf->Cell(0,6,"{$dept} Department – Examination Supervision",0,1,'C');
 
-        /* -------- LEGEND (Only show active slots) -------- */
-        // $pdf->Ln(1);
-        // $pdf->SetFont('times','',9);
-        // $pdf->Cell(20,6,'Slot Legend:',1,0);
+        $pdf->Ln(4);
 
-        // foreach ($departmentSlotMap as $slots) {
-        //     foreach ($slots as $slot) {
-        //         if (isset($slotCharMap[$slot])) {
-        //             $pdf->Cell(40,6,$slotCharMap[$slot],1,0,'C');
-        //         }
-        //     }
-        // }
-        // $pdf->Cell(30,6,'',0,1);
-
-        // $pdf->Cell(20,6,'Slot Time:',1,0);
-        // foreach ($departmentSlotMap as $slots) {
-        //     foreach ($slots as $slot) {
-        //         if (isset($slotCharMap[$slot])) {
-        //             $pdf->Cell(40,6,$slot,1,0,'C');
-        //         }
-        //     }
-        // }
-        $pdf->Cell(30,6,'',0,1);
-        $pdf->Cell(30,6,'',0,1);
-
-        /* ================= WIDTH CALC ================= */
-        $totalPageWidth = 297 - 12;
+        /* ================= WIDTH CALC (FIXED) ================= */
+        $pageWidth   = $pdf->getPageWidth();
+        $margins     = $pdf->getMargins();
+        $usableWidth = $pageWidth - ($margins['left'] + $margins['right']);
 
         $srW   = 10;
         $nameW = 40;
         $deptW = 15;
-        $signW = 26;
+        $signW = 24; // slightly reduced for safety
 
-        // Calculate total active slots for this department
         $totalActiveSlots = 0;
         foreach ($departmentSlotMap as $slots) {
             $totalActiveSlots += count($slots);
         }
 
-        $slotW = ($totalPageWidth - ($srW + $nameW + $deptW + $signW)) / $totalActiveSlots;
+        // safety buffer to avoid overflow
+        $usableWidth -= 2;
+
+        $slotW = $totalActiveSlots > 0
+            ? ($usableWidth - ($srW + $nameW + $deptW + $signW)) / $totalActiveSlots
+            : 10;
 
         /* ================= HEADER (DATES) ================= */
         $pdf->SetFont('times','B',9);
@@ -823,15 +796,14 @@ if ($action === 'department') {
 
             foreach ($departmentSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    // Check if this faculty is assigned to this slot and present
-                    $isAssigned = isset($dates[$date][$slot]) && 
-                                  is_array($dates[$date][$slot]) && 
-                                  isset($dates[$date][$slot]['present']) && 
-                                  $dates[$date][$slot]['present'] === true;
-                    
+
+                    $isAssigned = isset($dates[$date][$slot]) &&
+                                  is_array($dates[$date][$slot]) &&
+                                  !empty($dates[$date][$slot]['present']);
+
                     $val = $isAssigned ? '✓' : '';
-                    
-                    $pdf->SetFont('dejavusans', '', 9);
+
+                    $pdf->SetFont('dejavusans','',9);
                     $pdf->Cell($slotW, $rowH, $val, 1, 0, 'C');
                 }
             }
@@ -840,10 +812,12 @@ if ($action === 'department') {
             $pdf->Ln();
         }
 
+        /* ================= CLOSING PAGE ================= */
         $pdf->AddPage();
         $pdf->SetMargins(15,15,15);
         $pdf->setPrintHeader(false);
-        print_letter_head($ref);
+
+        print_letter_head($count,$suff);
         $pdf->Ln(5);
         $pdf->writeHTML($closing_text, true, false, true, false, 'l');
         print_sign();

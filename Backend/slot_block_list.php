@@ -151,6 +151,67 @@ function print_letter_head(){
     $pdf->writeHTML("$order_by", true, false, true, false, 'L');
 }
 
+function getBufferExtraFaculty($conn, $s_id, $date, $slot, $start, $end) {
+
+    $resultRows = [];
+
+    // ✅ Step 1: Check duration
+    $startTime = new DateTime($start);
+    $endTime   = new DateTime($end);
+    $interval  = $startTime->diff($endTime);
+
+    $hours = (int)$interval->format('%h');
+
+    // ❌ Only proceed if 4-hour slot
+    if ($hours != 4) {
+        return $resultRows;
+    }
+
+    // ✅ Extract start time from slot (assuming "09:00-13:00" format)
+    $slotParts = explode('-', $slot);
+    $targetStart = trim($slotParts[0]);
+
+    // ✅ Step 2: Fetch all data
+    $res = mysqli_query($conn,"
+        SELECT f.faculty_name, f.dept_code, bsl.schedule
+        FROM block_supervisor_list bsl
+        JOIN faculty f ON f.id = bsl.faculty_id
+        WHERE bsl.s_id = '$s_id'
+    ");
+
+    while ($row = mysqli_fetch_assoc($res)) {
+
+        $sch = json_decode($row['schedule'], true);
+        if (!isset($sch[$date])) continue;
+
+        foreach ($sch[$date] as $timeSlot => $details) {
+
+            // ✅ Match same start time
+            $parts = explode('-', $timeSlot);
+            $startTimeSlot = trim($parts[0]);
+
+            if ($startTimeSlot !== $targetStart) continue;
+
+            // ✅ Check present
+            if (($details['present'] ?? 0) == false) continue;
+
+            // ✅ Check block type
+            $blockType = trim($details['block_type'] ?? '');
+
+            if ($blockType === 'buffer' || $blockType === 'extra') {
+
+                $resultRows[] = [
+                    'faculty' => $row['faculty_name'],
+                    'dept'    => $row['dept_code'],
+                    'block'   => ($blockType === 'buffer') ? 'Extra' : 'Reliever'
+                ];
+            }
+        }
+    }
+
+    return $resultRows;
+}
+
 /* ================= TCPDF SETUP ================= */
 $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 $pdf->SetCreator('Supervision System');
@@ -176,6 +237,7 @@ $endTime   = new DateTime($end);
 // Step 3: Get difference
 $interval = $startTime->diff($endTime);
 $duration = $interval->format('%h hr %i min');
+$hours = $interval->format('%h');
 $pdf->Cell(0, 6, "Date: $date    Time: $slot    Duration: $duration", 0, 1, 'C');
 
 $pdf->Ln(8);
@@ -207,6 +269,7 @@ while ($row = mysqli_fetch_assoc($res)) {
         'dept'    => $row['dept_code']
     ];
 }
+
 
 /* ================= NATURAL SORT BY BLOCK ================= */
 /* ================= PREPARE SORT KEYS ================= */
@@ -241,6 +304,15 @@ $pdf->SetFont('helvetica', '', 10);
 $sr = 1;
 
 foreach ($rows as $r) {
+    $pdf->Cell(30, 8, $sr++, 1, 0, 'C');
+    $pdf->Cell(80, 8, $r['faculty'], 1, 0);
+    $pdf->Cell(35, 8, $r['block'], 1, 0, 'C');
+    $pdf->Cell(45, 8, $r['dept'], 1, 1, 'C');
+}
+
+$extraFaculty = getBufferExtraFaculty($conn, $s_id, $date, $slot, $start, $end);
+
+foreach ($extraFaculty as $r) {
     $pdf->Cell(30, 8, $sr++, 1, 0, 'C');
     $pdf->Cell(80, 8, $r['faculty'], 1, 0);
     $pdf->Cell(35, 8, $r['block'], 1, 0, 'C');

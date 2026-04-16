@@ -425,6 +425,66 @@ $sr = 1;
             el.addEventListener('input', filterTable);
         });
 
+        let isCtrlPressed = false;
+        let startCheckbox = null;
+
+        // detect CTRL
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey) isCtrlPressed = true;
+        });
+
+        document.addEventListener('keyup', e => {
+            isCtrlPressed = false;
+            startCheckbox = null;
+        });
+
+        // get all checkboxes in order
+        const allCheckboxes = Array.from(document.querySelectorAll('.slot-checkbox'));
+
+        document.querySelectorAll('.custom-checkbox').forEach(label => {
+
+            label.addEventListener('click', function(e) {
+
+                const checkbox = this.querySelector('.slot-checkbox');
+
+                if (!isCtrlPressed) {
+                    startCheckbox = checkbox; // normal click sets start
+                    return;
+                }
+
+                e.preventDefault(); // stop default toggle
+
+                // if first ctrl click → set start
+                if (!startCheckbox) {
+                    startCheckbox = checkbox;
+                    return;
+                }
+
+                // get indexes
+                const startIndex = allCheckboxes.indexOf(startCheckbox);
+                const endIndex = allCheckboxes.indexOf(checkbox);
+
+                if (startIndex === -1 || endIndex === -1) return;
+
+                // decide range
+                const [from, to] = startIndex < endIndex
+                    ? [startIndex, endIndex]
+                    : [endIndex, startIndex];
+
+                // decide toggle state (based on clicked checkbox)
+                const newState = !checkbox.checked;
+
+                // apply to range
+                for (let i = from; i <= to; i++) {
+                    allCheckboxes[i].checked = newState;
+                }
+
+                // reset start (optional)
+                startCheckbox = null;
+            });
+
+        });
+
     </script>
 
 </body>

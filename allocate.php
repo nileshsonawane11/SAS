@@ -260,9 +260,9 @@ foreach ($slotSubjects as $date => $slotData) {
         $totalBlocks = (int)ceil($totalStudents / $block_capacity);
         
         // Calculate extra requirements
-        $extra = ($reliever > 0) ? (int)ceil($totalBlocks / $reliever) : 0;
-        $buffer = (int)ceil($totalBlocks * $extra_faculty);
-        $common = ($common_duties == 1) ? 1 : 0;
+        $extra = (($reliever > 0) && !isFourHourSlot($slot)) ? (int)ceil($totalBlocks / $reliever) : 0;
+        $buffer = (!isFourHourSlot($slot)) ? (int)ceil($totalBlocks * $extra_faculty) : 0;
+        $common = (($common_duties == 1) && !isFourHourSlot($slot)) ? 1 : 0;
         
         $totalRequired = $totalBlocks + $extra + $buffer + $common;
 
@@ -404,6 +404,10 @@ function canTakeBlock($faculty, $block, $slotAssignments, $facultyAvailability,
         if (isset($facultyDailyBlockCount[$fid][$date]) && $facultyDailyBlockCount[$fid][$date] >= 1) {
             return false;
         }
+    }
+
+    if($isLongSlot && ($block['block_type'] == 'buffer' || $block['block_type'] == 'extra')) {
+        return false; // Don't assign buffer/extra blocks to faculty with long slot if it is a long slot block
     }
     
     // RESTRICTION 2: If faculty already has a 4+ hour slot, cannot take ANY other 4+ hour slot
@@ -651,6 +655,10 @@ foreach ($relieverBlocks as $block) {
         foreach ($faculty as &$f) {
             $fid = $f['id'];
             $isLongSlot = isFourHourSlot($block['slot']);
+
+            if($isLongSlot && ($block['block_type'] == 'buffer' || $block['block_type'] == 'extra')) {
+                continue; // Don't assign buffer/extra blocks to faculty with long slot if it is a long slot block
+            }
             
             if (!isset($faculty_availability[$fid][$date][$slot]) || $faculty_availability[$fid][$date][$slot] === false) {
                 continue;
@@ -897,6 +905,10 @@ foreach ($remainingBlocks as $block) {
                             }
                         }
                     }
+                }
+
+                if($isLongSlot && ($block['block_type'] == 'buffer' || $block['block_type'] == 'extra')) {
+                    continue; // Skip assigning block numbers to reliever duties in relaxed pass
                 }
                 
                 if ($isLongSlot) {
