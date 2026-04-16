@@ -8,6 +8,15 @@ $owner = $user_data['_id'] ?? 0 ;
 $s_id = $_GET['s'] ?? '';
 if (!$s_id) die('Invalid Schedule');
 
+function isFourHourSlot($slot) {
+    list($start, $end) = explode(' - ', $slot);
+    $startTime = strtotime($start);
+    $endTime = strtotime($end);
+
+    $diff = ($endTime - $startTime) / 3600;
+    return ($diff >= 4);
+}
+
 /* ===============================
    FETCH ASSIGNMENTS
 ================================ */
@@ -1028,6 +1037,9 @@ $today = date('d-M-Y');
     .modal-footer{
         flex-wrap: nowrap;
     }
+    .fourhr{
+        background-color: #f0fff0 !important;
+    }
     /* #t_container{
        overflow: scroll; 
     } */
@@ -1336,9 +1348,10 @@ $today = date('d-M-Y');
                                 $blockNumber = $assignments[$date][$slot]['block'] ?? '';
                                 $blockType = $assignments[$date][$slot]['block_type'] ?? '';
                                 $hasBlock = ($blockType == 'real');
+                                $four_hours = isFourHourSlot($slot) ? 'fourhr' : '';
                                 ?>
 
-                                <td class="<?= $class ?> cell"
+                                <td class="<?= $class." ".$four_hours ?> cell"
                                     data-fid="<?= $fid ?>"
                                     data-date="<?= $date ?>"
                                     data-slot="<?= $slot ?>"
