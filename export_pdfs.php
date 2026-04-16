@@ -49,9 +49,6 @@ $body_para_3 = preg_replace('/\s*<\/div>\s*/i', '', $body_para_3);
 $closing_text = preg_replace('/\s*<div>\s*/i', '<br>', $closing_text);
 $closing_text = preg_replace('/\s*<\/div>\s*/i', '', $closing_text);
 
-// $signaturePath = "./upload/$signature";
-// $logoPath = "./upload/$logo";
-
 function print_sign() {
     global $pdf;
     global $signature;
@@ -61,19 +58,16 @@ function print_sign() {
 
     $signaturePath = "./upload/$signature";
 
-    // ---- Estimate total height needed (image + text) ----
-    $requiredHeight = 35; // adjust if you change font sizes
+    $requiredHeight = 35;
 
     $currentY = $pdf->GetY();
     $pageHeight = $pdf->getPageHeight();
     $bottomMargin = $pdf->getMargins()['bottom'];
 
-    // If not enough space → move to next page first
     if ($currentY + $requiredHeight > ($pageHeight - $bottomMargin)) {
         $pdf->AddPage();
     }
 
-    // ---- Print signature image if valid ----
     if (
         !empty($signature) &&
         is_file($signaturePath) &&
@@ -91,11 +85,9 @@ function print_sign() {
 
         $pdf->Image($signaturePath, $x, $y, $imgWidth, $imgHeight);
 
-        // Move cursor below image
         $pdf->Ln($imgHeight-5);
     }
 
-    // ---- Text block (always stays together) ----
     $pdf->SetFont('times', 'B', 12);
     $pdf->writeHTML($official_designation, true, false, true, false, 'R');
 
@@ -123,7 +115,6 @@ function print_letter_head($count = 0,$suff = ''){
     $logoW    = 30;
     $margin   = 0;
 
-    /* ---------- LOGO ---------- */
     if (!empty($logo)){
         $logoPath = "./upload/$logo";
         $pdf->Image($logoPath, $leftM+10, $startY-3, $logoW);
@@ -133,7 +124,6 @@ function print_letter_head($count = 0,$suff = ''){
         $pdf->SetXY($leftM, $startY);
     }
 
-    /* ---------- LETTERHEAD ---------- */
     $pdf->SetFont('times','B',15);
     $pdf->writeHTML($institute_name, true, false, true, false, 'C');
     $pdf->Ln(3);
@@ -155,14 +145,12 @@ function print_letter_head($count = 0,$suff = ''){
     $pdf->Ln(2);
     $pdf->Cell(0,0,'','T',1);
 
-    /* ---------- REF NO (SAFE) ---------- */
     $displayRefNo = $ref_no;
 
     if ($count > 0) {
         $displayRefNo .= $suff."".intval($count);
     }
 
-    /* ---------- DATE ---------- */
     $pdf->SetFont('times','B',11);
     $pageWidth = $pdf->getPageWidth()
                 - $pdf->getMargins()['left']
@@ -237,11 +225,6 @@ while ($row = mysqli_fetch_assoc($res)) {
     }
 }
 
-// echo "<pre>";
-// print_r($blocks_json);
-// echo "</pre>";
-// return;
-
 /* SORT DATES & SLOTS */
 uksort($allDatesSlots, function ($a, $b) {
     return strtotime($a) <=> strtotime($b);
@@ -251,7 +234,6 @@ uksort($allDatesSlots, function ($a, $b) {
    SLOT START TIME PARSER
    ===================================================== */
 function slotStartTimestamp($slot) {
-    // Extract "10:30 AM" from "10:30 AM - 12:00 PM"
     if (preg_match('/^([\d:]+\s*(AM|PM))/i', $slot, $m)) {
         return strtotime($m[1]);
     }
@@ -263,10 +245,8 @@ function slotStartTimestamp($slot) {
    ===================================================== */
 foreach ($allDatesSlots as $date => $slots) {
 
-    // Remove duplicate slots
     $slots = array_unique($slots);
 
-    // Sort by start time
     usort($slots, function ($a, $b) {
         return slotStartTimestamp($a) <=> slotStartTimestamp($b);
     });
@@ -326,12 +306,27 @@ foreach ($dateSlotMap as $date => $slots) {
    GENERATE SLOT CHARACTER MAP (A, B, C…)
    ===================================================== */
 $slotCharMap = [];
-$char = 'A';
+$morningCount = 1;
+$afternoonCount = 1;
 
 foreach ($dateSlotMap as $slots) {
     foreach ($slots as $slot) {
         if (!isset($slotCharMap[$slot])) {
-            $slotCharMap[$slot] = $char++;
+            // Extract start time from slot string
+            if (preg_match('/^([\d:]+\s*(AM|PM))/i', $slot, $m)) {
+                $startTime = $m[1];
+                $timestamp = strtotime($startTime);
+                
+                // Check if slot starts before 12:00 PM (noon)
+                if ($timestamp < strtotime('12:00 PM')) {
+                    $slotCharMap[$slot] = 'M';
+                } else {
+                    $slotCharMap[$slot] = 'A';
+                }
+            } else {
+                // Fallback: if time can't be parsed, use default
+                $slotCharMap[$slot] = $char++;
+            }
         }
     }
 }
@@ -348,10 +343,8 @@ if ($action === 'overall') {
 
     $pdf = createPDF("Overall Supervision");
 
-    /* ================= LETTERHEAD ================= */
     print_letter_head();
         
-        /* -------- LEGEND -------- */
         $pdf->Ln(6);
         $pdf->SetFont('times','',9);
         $pdf->Cell(20,6,'Slot Legend:',1,0);
@@ -367,7 +360,6 @@ if ($action === 'overall') {
         }
         $pdf->Cell(30,6,'',0,1);$pdf->Cell(30,6,'',0,1);
 
-        /* ================= WIDTH CALC ================= */
         $totalPageWidth = 297 - 12;
 
         $srW   = 10;
@@ -380,17 +372,15 @@ if ($action === 'overall') {
             $totalSlots += count($slots);
         }
 
-    /* ================= TOP INFO ROW ================= */
     $pdf->Ln(4);
     $pdf->SetFont('times','B',10);
 
-    $totalCols = 4; // Sr + Name + Dept + Role
+    $totalCols = 4;
     foreach ($dateSlotMap as $slots) {
         $totalCols += count($slots);
     }
-    $totalCols += 2; // Blocks + Duties
+    $totalCols += 2;
 
-    /* ================= WIDTH CALC ================= */
     $pageWidth = 297 - 12;
 
     $srW   = 10;
@@ -405,7 +395,6 @@ if ($action === 'overall') {
 
     $slotW = ($pageWidth - ($srW + $nameW + $deptW + $roleW + $blockW + $dutyW)) / $slotCount;
 
-    /* ================= HEADER ROW 1 (DATES) ================= */
     $pdf->SetFont('times','B',9);
 
     $pdf->Cell($srW,12,'#',1,0,'C');
@@ -414,13 +403,12 @@ if ($action === 'overall') {
     $pdf->Cell($roleW,12,'Role',1,0,'C');
 
     foreach ($dateSlotMap as $date => $slots) {
-        $pdf->Cell(count($slots) * $slotW,6,date('j/n/y',strtotime($date)),1,0,'C');
+        $pdf->Cell(count($slots) * $slotW,6,date('j/n',strtotime($date)),1,0,'C');
     }
 
     $pdf->Cell($blockW,12,'Blocks',1,0,'C');
     $pdf->Cell($dutyW,12,'Duties',1,1,'C');
 
-    /* ================= HEADER ROW 2 (SLOTS) ================= */
     $pdf->Ln(-6);
 
     $pdf->Cell($srW,6,'',0);
@@ -438,7 +426,6 @@ if ($action === 'overall') {
     $pdf->Cell($dutyW,6,'',0);
     $pdf->Ln();
 
-    /* ================= BODY ================= */
     $pdf->SetFont('times','',9);
 
     $sr = 1;
@@ -468,7 +455,7 @@ if ($action === 'overall') {
                     $sup_count++;
                     if ($blockType === 'real') $blocks_assign++;
 
-                    $symbol = ($blockType === 'real') ? '✓' : (($blockType === 'buffer') ? '*' : '®');
+                    $symbol = ($blockType === 'real') ? '✓' : '*';
                 } else {
                     $symbol = '';
                 }
@@ -488,38 +475,65 @@ if ($action === 'overall') {
         $blocks_grand_total += $blocks_assign;
     }
 
-    /* ================= GRAND TOTAL ROW ================= */
     $pdf->SetFont('times','B',10);
 
-    $pdf->Cell(
-        $srW + $nameW + $deptW,
-        8,
-        'Total Blocks Required',
-        1,
-        0,
-        'R'
-    );
-    $pdf->Cell($roleW,8,$blocks_grand_total,1,0,'C');
+    // First row: Blocks Assigned (numerator)
+        $pdf->Cell(
+            $srW + $nameW + $deptW,
+            8,
+            'Blocks Assigned',
+            1,
+            0,
+            'R'
+        );
+        $pdf->Cell($roleW, 8, $blocks_grand_total, 1, 0, 'C');
 
-    foreach ($blocks_json as $date => $slots) {
-        foreach ($slots as $slot) {
-            $pdf->Cell(
-                $slotW,
-                8,
-                ($slot['blocks'] ?? 0)
-                . ' / ' .
-                ($slot['total_required'] ?? 0),
-                1,
-                0,
-                'C'
-            );
+        foreach ($blocks_json as $date => $slots) {
+            foreach ($slots as $slot) {
+                $pdf->Cell(
+                    $slotW,
+                    8,
+                    ($slot['blocks'] ?? 0),
+                    1,
+                    0,
+                    'C'
+                );
+            }
         }
-    }
 
-    $pdf->Cell($blockW,8,$blocks_grand_total,1,0,'C');
-    $pdf->Cell($dutyW,8,$duties_grand_total,1,1,'C');
+        $pdf->Cell($blockW, 8, $blocks_grand_total, 1, 0, 'C');
+        $pdf->Cell($dutyW, 8,'', 1, 1, 'C');
 
-    /* ================= OUTPUT ================= */
+        // Second row: Total Required (denominator)
+        $pdf->Cell(
+            $srW + $nameW + $deptW,
+            8,
+            'Total Required',
+            1,
+            0,
+            'R'
+        );
+        $pdf->Cell($roleW, 8, '', 1, 0, 'C');
+
+        $totalRequiredGrand = 0;
+        foreach ($blocks_json as $date => $slots) {
+            foreach ($slots as $slot) {
+                $totalRequired = $slot['total_required'] ?? 0;
+                $totalRequiredGrand += $totalRequired;
+                $pdf->Cell(
+                    $slotW,
+                    8,
+                    $totalRequired,
+                    1,
+                    0,
+                    'C'
+                );
+            }
+        }
+
+        $pdf->Cell($blockW, 8,'', 1, 0, 'C');
+        $pdf->Cell($dutyW, 8, $totalRequiredGrand, 1, 1, 'C');
+
     $pdf->Output("Overall_Supervision_Matrix.pdf","I");
     exit;
 }
@@ -529,7 +543,6 @@ if ($action === 'overall') {
 ========================================================== */
 if ($action === 'role') {
 
-    /* ---- GROUP FACULTY BY ROLE ---- */
     $roleFaculty = [];
 
     foreach ($facultyAssignments as $name => $dates) {
@@ -537,7 +550,6 @@ if ($action === 'role') {
         $roleFaculty[$role][$name] = $dates;
     }
 
-    /* ---- CREATE PDF ONCE ---- */
     $pdf = new TCPDF('L','mm','A4',true,'UTF-8',false);
     $pdf->SetMargins(6,14,6);
     $pdf->SetAutoPageBreak(true,10);
@@ -547,7 +559,6 @@ if ($action === 'role') {
 
         $pdf->AddPage();
 
-        /* ================= LETTERHEAD ================= */
         print_letter_head();
         $role_arr = [
             'TS' => 'Teaching',
@@ -560,7 +571,6 @@ if ($action === 'role') {
         $pdf->Cell(0,6,"{$role} Staff – Examination Supervision",0,1,'C');
         $pdf->Ln(4);
 
-        /* -------- LEGEND -------- */
         $pdf->Ln(6);
         $pdf->SetFont('times','',9);
         $pdf->Cell(20,6,'Slot Legend:',1,0);
@@ -576,7 +586,6 @@ if ($action === 'role') {
         }
         $pdf->Cell(30,6,'',0,1);$pdf->Cell(30,6,'',0,1);
 
-        /* ================= WIDTH CALC ================= */
         $totalPageWidth = 297 - 12;
 
         $srW   = 10;
@@ -591,7 +600,6 @@ if ($action === 'role') {
 
         $slotW = ($totalPageWidth - ($srW + $nameW + $deptW + $signW)) / $totalSlots;
 
-        /* ================= HEADER (DATES) ================= */
         $pdf->SetFont('times','B',9);
 
         $pdf->Cell($srW,12,'Sr',1,0,'C');
@@ -599,13 +607,12 @@ if ($action === 'role') {
         $pdf->Cell($deptW,12,'Dept',1,0,'C');
 
         foreach ($dateSlotMap as $date => $slots) {
-            $pdf->Cell(count($slots)*$slotW,6,date('j/n/y',strtotime($date)),1,0,'C');
+            $pdf->Cell(count($slots)*$slotW,6,date('j/n',strtotime($date)),1,0,'C');
         }
 
         $pdf->Cell($signW,12,'Signature',1,0,'C');
         $pdf->Ln(6);
 
-        /* ================= HEADER (SLOTS) ================= */
         $pdf->Cell($srW,6,'',0);
         $pdf->Cell($nameW,6,'',0);
         $pdf->Cell($deptW,6,'',0);
@@ -619,7 +626,6 @@ if ($action === 'role') {
         $pdf->Cell($signW,6,'',0);
         $pdf->Ln();
 
-        /* ================= BODY ================= */
         $pdf->SetFont('times','',9);
         $sr = 1;
 
@@ -633,19 +639,9 @@ if ($action === 'role') {
 
             foreach ($dateSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-                    $slotData = $dates[$date][$slot] ?? [];
-
-                    $val = (
-                        !empty($slotData['block_type']) &&
-                        $slotData['block_type'] === 'real' &&
-                        !empty($slotData['present'])
-                    )
+                    $val = (!empty(($dates[$date][$slot]['block_type'])) && $dates[$date][$slot]['block_type'] === 'real' && ($dates[$date][$slot]['present'] == true))
                         ? '✓'
-                        : (
-                            ($slotData['block_type'] === 'buffer') 
-                                ? '*' 
-                                : (($slotData['block_type'] === 'extra') ? '®' : '')
-                        );
+                        : ((isset($dates[$date][$slot]['assigned']) && ($dates[$date][$slot]['present'] == true)) ? '*' : '');
                     $pdf->SetFont('dejavusans', '', 10);
                     $pdf->Cell($slotW, $rowH, $val, 1, 0, 'C');
                 }
@@ -655,7 +651,6 @@ if ($action === 'role') {
             $pdf->Ln();
         }
 
-        /* ================= FOOTER ================= */
         $pdf->SetFont('times','B',10);$pdf->Ln(5);
         print_sign();
     }
@@ -665,7 +660,7 @@ if ($action === 'role') {
     exit;
 }
 
-/* ================= DEPARTMENT (SAME AS OVERALL FORMAT) ================= */
+/* ================= DEPARTMENT (UPDATED - IGNORES EMPTY SLOTS) ================= */
 if ($action === 'department') {
 
     /* ---- GROUP FACULTY BY DEPARTMENT ---- */
@@ -696,6 +691,45 @@ if ($action === 'department') {
     /* ---- LOOP EACH DEPARTMENT ---- */
     foreach ($deptFaculty as $dept => $facultyList) {
 
+        // FIRST: Calculate which slots have at least ONE faculty from this department assigned
+        $departmentSlotMap = [];
+        
+        foreach ($facultyList as $name => $dates) {
+            foreach ($dateSlotMap as $date => $slots) {
+                foreach ($slots as $slot) {
+                    // Check if this faculty is assigned to this slot and present
+                    if (isset($dates[$date][$slot]) && 
+                        is_array($dates[$date][$slot]) && 
+                        isset($dates[$date][$slot]['present']) && 
+                        $dates[$date][$slot]['present'] === true) {
+                        
+                        // Mark this slot as active for this department
+                        if (!isset($departmentSlotMap[$date][$slot])) {
+                            $departmentSlotMap[$date][$slot] = true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // If no slots for this department at all, skip this department
+        if (empty($departmentSlotMap)) {
+            continue;
+        }
+        
+        // Sort the department slot map by date and time
+        uksort($departmentSlotMap, function ($a, $b) {
+            return strtotime($a) <=> strtotime($b);
+        });
+        
+        foreach ($departmentSlotMap as $date => $slots) {
+            $slotArray = array_keys($slots);
+            usort($slotArray, function ($a, $b) {
+                return slotStartTimestamp($a) <=> slotStartTimestamp($b);
+            });
+            $departmentSlotMap[$date] = $slotArray;
+        }
+
         $pdf->AddPage();
         $count++;
 
@@ -705,20 +739,28 @@ if ($action === 'department') {
         $pdf->SetFont('times','B',11);
         $pdf->Cell(0,6,"{$dept} Department – Examination Supervision",0,1,'C');
 
-        /* -------- LEGEND -------- */
-        $pdf->Ln(1);
-        $pdf->SetFont('times','',9);
-        $pdf->Cell(20,6,'Slot Legend:',1,0);
+        /* -------- LEGEND (Only show active slots) -------- */
+        // $pdf->Ln(1);
+        // $pdf->SetFont('times','',9);
+        // $pdf->Cell(20,6,'Slot Legend:',1,0);
 
-        foreach ($slotCharMap as $slot => $char) {
-            $pdf->Cell(40,6,$char,1,0,'C');
-        }
-        $pdf->Cell(30,6,'',0,1);
+        // foreach ($departmentSlotMap as $slots) {
+        //     foreach ($slots as $slot) {
+        //         if (isset($slotCharMap[$slot])) {
+        //             $pdf->Cell(40,6,$slotCharMap[$slot],1,0,'C');
+        //         }
+        //     }
+        // }
+        // $pdf->Cell(30,6,'',0,1);
 
-        $pdf->Cell(20,6,'Slot Time:',1,0);
-        foreach ($slotCharMap as $slot => $char) {
-            $pdf->Cell(40,6,$slot,1,0,'C');
-        }
+        // $pdf->Cell(20,6,'Slot Time:',1,0);
+        // foreach ($departmentSlotMap as $slots) {
+        //     foreach ($slots as $slot) {
+        //         if (isset($slotCharMap[$slot])) {
+        //             $pdf->Cell(40,6,$slot,1,0,'C');
+        //         }
+        //     }
+        // }
         $pdf->Cell(30,6,'',0,1);
         $pdf->Cell(30,6,'',0,1);
 
@@ -730,12 +772,13 @@ if ($action === 'department') {
         $deptW = 15;
         $signW = 26;
 
-        $totalSlots = 0;
-        foreach ($dateSlotMap as $slots) {
-            $totalSlots += count($slots);
+        // Calculate total active slots for this department
+        $totalActiveSlots = 0;
+        foreach ($departmentSlotMap as $slots) {
+            $totalActiveSlots += count($slots);
         }
 
-        $slotW = ($totalPageWidth - ($srW + $nameW + $deptW + $signW)) / $totalSlots;
+        $slotW = ($totalPageWidth - ($srW + $nameW + $deptW + $signW)) / $totalActiveSlots;
 
         /* ================= HEADER (DATES) ================= */
         $pdf->SetFont('times','B',9);
@@ -744,8 +787,8 @@ if ($action === 'department') {
         $pdf->Cell($nameW,12,'Supervisor',1,0,'C');
         $pdf->Cell($deptW,12,'Dept',1,0,'C');
 
-        foreach ($dateSlotMap as $date => $slots) {
-            $pdf->Cell(count($slots)*$slotW,6,date('j/n/y',strtotime($date)),1,0,'C');
+        foreach ($departmentSlotMap as $date => $slots) {
+            $pdf->Cell(count($slots) * $slotW, 6, date('j/n', strtotime($date)), 1, 0, 'C');
         }
 
         $pdf->Cell($signW,12,'Signature',1,0,'C');
@@ -756,9 +799,9 @@ if ($action === 'department') {
         $pdf->Cell($nameW,6,'',0);
         $pdf->Cell($deptW,6,'',0);
 
-        foreach ($dateSlotMap as $slots) {
+        foreach ($departmentSlotMap as $slots) {
             foreach ($slots as $slot) {
-                $pdf->Cell($slotW,6,$slotCharMap[$slot],1,0,'C');
+                $pdf->Cell($slotW, 6, $slotCharMap[$slot] ?? '', 1, 0, 'C');
             }
         }
 
@@ -774,30 +817,36 @@ if ($action === 'department') {
             $rowH = 8;
             $originalDept = $dates['_original_dept'] ?? $dept;
 
-            $pdf->Cell($srW,$rowH,$sr++,1,0,'C');
-            $pdf->MultiCell($nameW,$rowH,$facultyName[$name],1,'L',false,0);
-            $pdf->Cell($deptW,$rowH,$originalDept,1,0,'C');
+            $pdf->Cell($srW, $rowH, $sr++, 1, 0, 'C');
+            $pdf->MultiCell($nameW, $rowH, $facultyName[$name], 1, 'L', false, 0);
+            $pdf->Cell($deptW, $rowH, $originalDept, 1, 0, 'C');
 
-            foreach ($dateSlotMap as $date => $slots) {
+            foreach ($departmentSlotMap as $date => $slots) {
                 foreach ($slots as $slot) {
-
-                    $val = !empty($dates[$date][$slot]['block'])
-                        ? '✓'
-                        : ((isset($dates[$date][$slot]['assigned']) && ($dates[$date][$slot]['present'] == true)) ? '✓' : '');
-
-                    $pdf->SetFont('dejavusans','',9);
-                    $pdf->Cell($slotW,$rowH,$val,1,0,'C');
+                    // Check if this faculty is assigned to this slot and present
+                    $isAssigned = isset($dates[$date][$slot]) && 
+                                  is_array($dates[$date][$slot]) && 
+                                  isset($dates[$date][$slot]['present']) && 
+                                  $dates[$date][$slot]['present'] === true;
+                    
+                    $val = $isAssigned ? '✓' : '';
+                    
+                    $pdf->SetFont('dejavusans', '', 9);
+                    $pdf->Cell($slotW, $rowH, $val, 1, 0, 'C');
                 }
             }
 
-            $pdf->Cell($signW,$rowH,'',1);
+            $pdf->Cell($signW, $rowH, '', 1);
             $pdf->Ln();
         }
 
-        /* ================= FOOTER ================= */
-        // $pdf->SetFont('times','B',10);
-        // $pdf->Ln(10);
-        // print_sign();
+        $pdf->AddPage();
+        $pdf->SetMargins(15,15,15);
+        $pdf->setPrintHeader(false);
+        print_letter_head($ref);
+        $pdf->Ln(5);
+        $pdf->writeHTML($closing_text, true, false, true, false, 'l');
+        print_sign();
     }
 
     $pdf->Output('Department_Wise_Supervision.pdf','I');
@@ -995,12 +1044,9 @@ if ($action === 'exam_analysis') {
         die("CSV file not found");
     }
 
-    /* =====================================================
-       READ CSV & BUILD ANALYSIS STRUCTURES
-    ===================================================== */
-    $analysis      = []; // course => [data][date][slot] + total
-    $dateSlotMap  = []; // date => slot => time-range
-    $slotTotals   = []; // date => slot => total count
+    $analysis      = [];
+    $dateSlotMap  = [];
+    $slotTotals   = [];
 
     $handle = fopen($csvFile, "r");
     fgetcsv($handle);
@@ -1018,10 +1064,8 @@ if ($action === 'exam_analysis') {
         if ($is_online === 1) continue;
         if ($sub_code === '' || $slot === '' || $date === '') continue;
 
-        /* ---- Date + Slot map ---- */
         $dateSlotMap[$date][$slot] = "{$start} - {$end}";
 
-        /* ---- Analysis ---- */
         if (!isset($analysis[$sub_code])) {
             $analysis[$sub_code] = [
                 'data'  => [],
@@ -1034,42 +1078,29 @@ if ($action === 'exam_analysis') {
 
         $analysis[$sub_code]['total'] += $stud_count;
 
-        /* ---- SLOT TOTALS ---- */
         $slotTotals[$date][$slot] =
             ($slotTotals[$date][$slot] ?? 0) + $stud_count;
     }
     fclose($handle);
 
-    /* =====================================================
-       SORT DATES & SLOTS
-    ===================================================== */
     ksort($dateSlotMap);
     foreach ($dateSlotMap as &$slots) {
         ksort($slots);
     }
     unset($slots);
 
-    /* =====================================================
-       CREATE PDF
-    ===================================================== */
     $pdf = new TCPDF('L','mm','A4',true,'UTF-8',false);
     $pdf->SetMargins(8,12,8);
     $pdf->SetAutoPageBreak(true,10);
     $pdf->setPrintHeader(false);
     $pdf->AddPage();
 
-    /* =====================================================
-       TITLE
-    ===================================================== */
     $pdf->SetFont('times','B',14);
     $pdf->Cell(0,8,'EXAM REGISTRATION ANALYSIS REPORT',0,1,'C');
     $pdf->SetFont('times','',11);
     $pdf->Cell(0,6,'Progressive Test – EVEN 2025',0,1,'C');
     $pdf->Ln(6);
 
-    /* =====================================================
-       WIDTH CALCULATION
-    ===================================================== */
     $pageWidth = 297 - 16;
     $srW = 10; $courseW = 50; $totalW = 22;
 
@@ -1080,9 +1111,6 @@ if ($action === 'exam_analysis') {
 
     $slotW = ($pageWidth - ($srW + $courseW + $totalW)) / $totalSlots;
 
-    /* =====================================================
-       TABLE HEADER – DATES
-    ===================================================== */
     $pdf->SetFont('times','B',9);
     $pdf->SetFillColor(230,230,230);
 
@@ -1096,9 +1124,6 @@ if ($action === 'exam_analysis') {
     $pdf->Cell($totalW,12,'TOTAL',1,0,'C',true);
     $pdf->Ln(6);
 
-    /* =====================================================
-       TABLE HEADER – SLOT TIME
-    ===================================================== */
     $pdf->SetFont('times','',9);
     $pdf->Cell($srW,6,'',0);
     $pdf->Cell($courseW,6,'',0);
@@ -1112,9 +1137,6 @@ if ($action === 'exam_analysis') {
     $pdf->Cell($totalW,6,'',0);
     $pdf->Ln();
 
-    /* =====================================================
-       TABLE BODY
-    ===================================================== */
     $pdf->SetFont('times','',9);
     $sr = 1;
     $grandTotal = 0;
@@ -1138,9 +1160,6 @@ if ($action === 'exam_analysis') {
         $pdf->Ln();
     }
 
-    /* =====================================================
-       SLOT TOTAL ROW (NEW)
-    ===================================================== */
     $pdf->SetFont('times','B',10);
     $pdf->Cell($srW + $courseW,8,'TOTAL',1,0,'C');
 
@@ -1152,9 +1171,6 @@ if ($action === 'exam_analysis') {
 
     $pdf->Cell($totalW,8,$grandTotal,1,1,'C');
 
-    /* =====================================================
-       OUTPUT
-    ===================================================== */
     $pdf->Output("Exam_Analysis_{$s_id}.pdf",'I');
     exit;
 }
@@ -1169,8 +1185,6 @@ if ($action === 'individual_email') {
 
     foreach ($facultyAssignments as $name => $dates) {
 
-        /* ================= CREATE PDF PER FACULTY ================= */
-
         $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
         $pdf->SetMargins(15,15,15);
         $pdf->SetAutoPageBreak(true,20);
@@ -1181,7 +1195,6 @@ if ($action === 'individual_email') {
         print_letter_head($ref);
         $pdf->Ln(5);
 
-        /* ---------- ADDRESS ---------- */
         $pdf->SetFont('times','',11);
 
         $f_dept = '';
@@ -1204,12 +1217,10 @@ if ($action === 'individual_email') {
         $pdf->writeHTML($html, true, false, true, false, 'L');
         $pdf->Ln(2);
 
-        /* ---------- SUBJECT ---------- */
         $pdf->SetFont('times','B',12);
         $pdf->writeHTML("Subject : $subject_name", true, false, true, false, 'L');
         $pdf->Ln(2);
 
-        /* ---------- BODY ---------- */
         $pdf->SetFont('times','',11);
         $pdf->writeHTML(
             $body_para_1.'<br><br>'.
@@ -1218,7 +1229,6 @@ if ($action === 'individual_email') {
             true,false,true,false,'L'
         );
 
-        /* ---------- TABLE ---------- */
         if ($show_table == 'yes') {
 
             $pdf->Ln(2);
@@ -1234,7 +1244,6 @@ if ($action === 'individual_email') {
 
             foreach ($dates as $date => $slots) {
 
-                /* ---- FILTER ONLY PRESENT SLOTS ---- */
                 $presentSlots = [];
 
                 foreach ($slots as $slot => $slotData) {
@@ -1247,22 +1256,18 @@ if ($action === 'individual_email') {
                     }
                 }
 
-                /* ---- SKIP DATE IF NO PRESENT SLOT ---- */
                 if (count($presentSlots) === 0) {
                     continue;
                 }
 
-                /* ---- HEIGHT BASED ON PRESENT SLOTS ---- */
                 $slotCount = count($presentSlots);
                 $totalH    = $slotCount * $rowH;
 
                 $x = $pdf->GetX();
                 $y = $pdf->GetY();
 
-                /* ---- SR NO ---- */
                 $pdf->Cell(20, $totalH, $sr++, 1, 0, 'C');
 
-                /* ---- DATE ---- */
                 $pdf->Cell(
                     80,
                     $totalH,
@@ -1272,7 +1277,6 @@ if ($action === 'individual_email') {
                     'C'
                 );
 
-                /* ---- SLOT COLUMN ---- */
                 $pdf->SetXY($x + 100, $y);
 
                 foreach ($presentSlots as $slot => $slotData) {
@@ -1281,16 +1285,12 @@ if ($action === 'individual_email') {
             }
         }
 
-        /* ---------- FOOTER ---------- */
         $pdf->Ln(3);
         $pdf->writeHTML($closing_text, true,false,true,false,'L');
         $pdf->Ln(10);
         print_sign();
 
-        /* ================= GET PDF STRING ================= */
         $pdfContent = $pdf->Output('', 'S');
-
-        /* ================= SEND EMAIL ================= */
 
         $mail = new PHPMailer(true);
 
@@ -1299,12 +1299,12 @@ if ($action === 'individual_email') {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'livestrike.in@gmail.com'; // Change to your email
-            $mail->Password = 'sdie phiv vbgk qymy'; // Use App Password if required
+            $mail->Username = 'livestrike.in@gmail.com';
+            $mail->Password = 'sdie phiv vbgk qymy';
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
-            $mail->setFrom('livestrike.in@gmail.com', 'LiveStrike'); // Sender
+            $mail->setFrom('livestrike.in@gmail.com', 'LiveStrike');
             $mail->addAddress($facultyEmail[$name]);
 
             $mail->isHTML(true);
@@ -1334,14 +1334,13 @@ if ($action === 'billing') {
 
     $pdf = createPDF("Supervision Billing", false);
 
-    /* ================= LETTERHEAD ================= */
     print_letter_head();
     $pdf->Ln(3);
 
     $pdf->SetFont('times','B',12);
     $pdf->Cell(0,8,'SUPERVISION BILLING REPORT',0,1,'C');
     $pdf->Ln(3);
-    /* ================= PAGE & WIDTH SETUP ================= */
+
     $pageWidth = 297 - 12;
 
     $srW    = 10;
@@ -1354,7 +1353,6 @@ if ($action === 'billing') {
     $acW = 35;
     $IFSCW = 25;
 
-    /* ================= SLOT COUNT ================= */
     $slotCount = 0;
     foreach ($dateSlotMap as $slots) {
         $slotCount += count($slots);
@@ -1362,7 +1360,6 @@ if ($action === 'billing') {
 
     $slotW = ($srW + $nameW + $deptW + $roleW + $dutyW + $amtW + $acW + $IFSCW);
 
-    /* ================= HEADER ================= */
     $pdf->SetFont('times', 'B', 10);
 
     $pdf->Cell($srW, 10, '#', 1, 0, 'C');
@@ -1375,7 +1372,6 @@ if ($action === 'billing') {
     $pdf->Cell($IFSCW, 10, 'IFSC Code', 1, 0, 'C');
     $pdf->Cell($totalW, 10, 'Total', 1, 1, 'C');
 
-    /* ================= BODY ================= */
     $pdf->SetFont('times', '', 9);
 
     $sr = 1;
@@ -1411,7 +1407,6 @@ if ($action === 'billing') {
             }
         }
 
-        /* ===== BILLING CALC ===== */
         $total_amount  = $real_blocks * $rate_per_duty;
 
         $pdf->Cell($dutyW, $rowH, $real_blocks, 1, 0, 'C');
@@ -1429,10 +1424,7 @@ if ($action === 'billing') {
     $pdf->Cell($slotW, $rowH, "Total Amount", 1, 0, '');
     $pdf->Cell($totalW, $rowH, $amount_grand_total, 1, 1, 'C');
 
-    //comitte
-    // Fetch all committee members
     $res = mysqli_query($conn, "SELECT * FROM committee WHERE Created_by = '$owner' AND status = 1 ORDER BY id ASC");
-    // Add a page
    $pdf->AddPage();
 
     print_letter_head();
@@ -1442,13 +1434,10 @@ if ($action === 'billing') {
     $pdf->Cell(0,8,'COMMITTEE BILLING REPORT',0,1,'C');
     $pdf->Ln(3);
 
-    // Table header
     $pdf->SetFont('times','B',10);
 
-    // Row heights
     $h = 8;
 
-    // Headers
     $pdf->Cell($srW, $h, 'Sr', 1, 0, 'C');
     $pdf->Cell($nameW-14, $h, 'Name', 1, 0, 'C');
     $pdf->Cell($deptW, $h, 'Dept', 1, 0, 'C');
@@ -1475,18 +1464,16 @@ if ($action === 'billing') {
         $pdf->Cell($roleW+14, $h, $row['designation'], 1, 0);
         $pdf->Cell($amtW, $h, $row['rate'], 1, 0, 'C');
         $pdf->Cell($dutyW, $h, $row['duty'], 1, 0, 'C');
-        $pdf->Cell($acW, $h, '', 1, 0, 'C');          // AC No.
-        $pdf->Cell($IFSCW, $h, '', 1, 0, 'C');          // IFSC
+        $pdf->Cell($acW, $h, '', 1, 0, 'C');
+        $pdf->Cell($IFSCW, $h, '', 1, 0, 'C');
         $pdf->Cell($totalW, $h, $amount, 1, 1, 'C');
     }
 
-    // Total Row
     $pdf->SetFont('times','B',10);
 
     $pdf->Cell($slotW, $h, 'Total Amount', 1, 0, 'L');
     $pdf->Cell($totalW, $h, $totalAmount, 1, 1, 'C');
 
-    // Fetch peons
     $res = mysqli_query($conn, "SELECT * FROM peons WHERE Created_by = '$owner' AND status = 1 ORDER BY id ASC");
 
     $pdf->AddPage();
@@ -1498,7 +1485,6 @@ if ($action === 'billing') {
     $pdf->Cell(0,8,'PEON BILLING REPORT',0,1,'C');
     $pdf->Ln(3);
 
-    // Header
     $pdf->SetFont('times','B',10);
     $h = 8;
 
@@ -1533,13 +1519,11 @@ if ($action === 'billing') {
         $pdf->Cell($totalW, $h, $amount, 1, 1, 'C');
     }
 
-    // Total
     $pdf->SetFont('times','B',10);
 
     $pdf->Cell($slotW, $h, 'Total Amount', 1, 0, 'L');
     $pdf->Cell($totalW, $h, $totalAmount, 1, 1, 'C');
 
-    /* ================= OUTPUT ================= */
     $pdf->Output("Supervision_Billing_Report.pdf", "I");
     exit;
 }
@@ -1786,7 +1770,6 @@ if ($action === 'billing') {
             border-top: 1px solid var(--border);
         }
 
-        /* Responsive Design */
         @media (max-width: 992px) {
             .actions-grid {
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1837,7 +1820,6 @@ if ($action === 'billing') {
             }
         }
 
-        /* Form styling */
         form {
             width: 100%;
         }
@@ -1846,7 +1828,6 @@ if ($action === 'billing') {
             display: none;
         }
 
-        /* Animation for buttons */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1881,7 +1862,6 @@ if ($action === 'billing') {
                 <input type="hidden" name="s" value="<?= htmlspecialchars($s_id ?? '') ?>">
                 
                 <div class="actions-grid">
-                    <!-- Overall Supervision PDF -->
                     <button type="submit" name="action" value="overall" class="action-button">
                         <i class="fas fa-book"></i>
                         <div class="button-title">Overall Supervision PDF</div>
@@ -1892,7 +1872,6 @@ if ($action === 'billing') {
                         </div>
                     </button>
 
-                    <!-- Department-Wise PDFs -->
                     <button type="submit" name="action" value="department" class="action-button">
                         <i class="fas fa-building"></i>
                         <div class="button-title">Department-Wise PDFs</div>
@@ -1903,7 +1882,6 @@ if ($action === 'billing') {
                         </div>
                     </button>
 
-                    <!-- Teaching / Non-Teaching PDFs -->
                     <button type="submit" name="action" value="role" class="action-button">
                         <i class="fas fa-chalkboard-teacher"></i>
                         <div class="button-title">Teaching / Non-Teaching PDFs</div>
@@ -1914,7 +1892,6 @@ if ($action === 'billing') {
                         </div>
                     </button>
 
-                    <!-- Individual Appointment Letters -->
                     <button type="submit" name="action" value="individual" class="action-button">
                         <i class="fas fa-envelope"></i>
                         <div class="button-title">Individual Appointment Letters</div>
@@ -1925,7 +1902,6 @@ if ($action === 'billing') {
                         </div>
                     </button>
 
-                    <!-- Faculty List with Signature -->
                     <button type="submit" name="action" value="faculty_signature" class="action-button">
                         <i class="fas fa-signature"></i>
                         <div class="button-title">Faculty List with Signature</div>
@@ -1936,7 +1912,6 @@ if ($action === 'billing') {
                         </div>
                     </button>
 
-                    <!-- Exam Analysis -->
                     <button type="submit" name="action" value="exam_analysis" class="action-button">
                         <i class="fas fa-chart-bar"></i>
                         <div class="button-title">Exam Analysis Report</div>
@@ -1947,7 +1922,6 @@ if ($action === 'billing') {
                         </div>
                     </button>
 
-                    <!-- billing -->
                     <button type="submit" name="action" value="billing" class="action-button">
                         <i class="fas fa-file-invoice-dollar"></i>
                         <div class="button-title">Billing Report</div>
@@ -1959,75 +1933,17 @@ if ($action === 'billing') {
                             <i class="fas fa-arrow-right button-arrow"></i>
                         </div>
                     </button>
-
-                    <!-- Individual Appointment Letters -->
-                    <!-- <button type="submit" name="action" value="individual_email" class="action-button">
-                        <i class="fas fa-envelope"></i>
-                        <div class="button-title">Individual Appointment Email</div>
-                        <div class="button-desc">Send personalized appointment letters to each faculty member.</div>
-                        <div class="button-footer">
-                            <span class="button-type">Personalized</span>
-                            <i class="fas fa-arrow-right button-arrow"></i>
-                        </div>
-                    </button> -->
                 </div>
             </form>
-
-            <!-- <div class="stats-section">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>145</h3>
-                        <p>Faculty Members</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-university"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>12</h3>
-                        <p>Departments</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-file-export"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>6</h3>
-                        <p>Export Types</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>24h</h3>
-                        <p>Processing Time</p>
-                    </div>
-                </div>
-            </div> -->
         </div>
-
-        <!-- <div class="footer">
-            <p>PDF Export Panel v2.1 • Last updated: June 2023 • <i class="fas fa-lock"></i> Secure Document Generation</p>
-        </div> -->
     </div>
 
     <script>
-        // Add click effect to buttons
         document.querySelectorAll('.action-button').forEach(button => {
             button.addEventListener('click', function() {
-                // Add visual feedback
                 this.style.transform = 'scale(0.98)';
                 this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                 
-                // Simulate loading state
-                const originalContent = this.querySelector('.button-footer').innerHTML;
                 const originalArrow = this.querySelector('.button-arrow');
                 
                 if (originalArrow) {
@@ -2037,19 +1953,19 @@ if ($action === 'billing') {
                 const loadingHTML = '<span class="button-type">Processing...</span><i class="fas fa-spinner fa-spin"></i>';
                 this.querySelector('.button-footer').innerHTML = loadingHTML;
                 
-                // Reset after a moment (in real implementation, this would be after the form submission)
                 setTimeout(() => {
                     this.style.transform = '';
                     this.style.boxShadow = '';
                     if (originalArrow) {
                         originalArrow.style.display = 'block';
                     }
-                    this.querySelector('.button-footer').innerHTML = originalContent;
+                    this.querySelector('.button-footer').innerHTML = '<span class="button-type">' + 
+                        (this.querySelector('.button-type')?.textContent || 'Export') + 
+                        '</span><i class="fas fa-arrow-right button-arrow"></i>';
                 }, 1500);
             });
         });
 
-        // Add subtle hover effect for entire content box
         const contentBox = document.querySelector('.content-box');
         contentBox.addEventListener('mouseenter', () => {
             contentBox.style.transform = 'translateY(-2px)';
